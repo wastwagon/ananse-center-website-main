@@ -1,14 +1,11 @@
+function trimSlash(value: string) {
+  return value.replace(/\/+$/, '')
+}
+
+/** Server-side fetches (SSR, middleware, admin BFF) — prefer internal Docker URL when set. */
 export function getServerApiUrl() {
-  const publicUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4035').replace(/\/+$/, '')
-  const internal = process.env.API_INTERNAL_URL?.replace(/\/+$/, '')
+  const internal = process.env.API_INTERNAL_URL?.trim()
+  if (internal) return trimSlash(internal)
 
-  if (internal?.includes('backend:') && process.env.RUNNING_IN_DOCKER === 'true') {
-    return internal
-  }
-
-  if (internal && !internal.includes('backend:')) {
-    return internal
-  }
-
-  return publicUrl
+  return trimSlash(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4035')
 }

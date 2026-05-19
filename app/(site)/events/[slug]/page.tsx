@@ -206,7 +206,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
 
       {/* ── SECTION 2: CONTENT ── */}
       <section className="page-section bg-white py-16">
-        <div className="page-section-container px-6 max-w-3xl mx-auto">
+        <div className="page-section-container">
           
           {/* Story */}
           <div className="mb-12 animate-slide-up [animation-fill-mode:both] [animation-delay:100ms]">

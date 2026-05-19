@@ -83,7 +83,7 @@ export default function EventsPage() {
 
       {/* ─── Featured Section ─── */}
       <section id="calendar" className="page-section bg-white py-16">
-        <div className="page-section-container px-6 max-w-6xl mx-auto">
+        <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">Upcoming Soon</span>
             <h2 className="page-section-heading">Featured Highlights</h2>
@@ -177,7 +177,7 @@ export default function EventsPage() {
 
       {/* ─── Full Catalog ─── */}
       <section className="page-section bg-slate-50 py-16">
-        <div className="page-section-container px-6 max-w-6xl mx-auto">
+        <div className="page-section-container">
           <div className="page-section-center-header">
             <h2 className="page-section-heading">All Gatherings</h2>
           </div>
@@ -270,7 +270,7 @@ export default function EventsPage() {
 
       {/* ─── Impact & Stories ─── */}
       <section className="page-section bg-white py-16">
-        <div className="page-section-container px-6 max-w-6xl mx-auto">
+        <div className="page-section-container">
           <div className="two-col-section">
             <div>
               <span className="section-badge">Cultural Impact</span>
@@ -314,12 +314,14 @@ export default function EventsPage() {
 
       {/* ─── Newsletter ─── */}
       <section className="page-section bg-slate-50">
-        <div className="page-section-container page-section-center-header" style={{ maxWidth: '640px' }}>
-          <h2 className="page-section-heading">Stay in the Loop</h2>
-          <p className="page-body-text" style={{ marginBottom: '2.5rem' }}>
-            Don&apos;t miss out on our upcoming festivals, workshops, and community gatherings.
-          </p>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="page-section-container">
+          <div className="page-section-center-header">
+            <h2 className="page-section-heading">Stay in the Loop</h2>
+            <p className="page-body-text">
+              Don&apos;t miss out on our upcoming festivals, workshops, and community gatherings.
+            </p>
+          </div>
+          <div className="newsletter-inline-form">
             <label htmlFor="newsletter-email" className="sr-only">Email address</label>
             <input
               id="newsletter-email"

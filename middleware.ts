@@ -1,21 +1,11 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { ADMIN_COOKIE } from './lib/admin-server'
-
-function getMiddlewareApiUrl() {
-  const publicUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4035').replace(/\/+$/, '')
-  const internal = process.env.API_INTERNAL_URL?.replace(/\/+$/, '')
-
-  if (internal?.includes('backend:') && process.env.RUNNING_IN_DOCKER === 'true') {
-    return internal
-  }
-
-  return publicUrl
-}
+import { getServerApiUrl } from './lib/server-api-url'
 
 async function fetchMaintenanceMode() {
   try {
-    const response = await fetch(`${getMiddlewareApiUrl()}/api/v1/site/status`, {
+    const response = await fetch(`${getServerApiUrl()}/api/v1/site/status`, {
       cache: 'no-store',
     })
     if (!response.ok) return false

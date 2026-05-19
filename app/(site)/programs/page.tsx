@@ -165,7 +165,7 @@ export default function ProgramsPage() {
 
       {/* ─── Filter & Catalog ─── */}
       <section id="catalog" className="page-section bg-white py-16">
-        <div className="page-section-container px-6 max-w-6xl mx-auto">
+        <div className="page-section-container">
           <div className="page-section-center-header">
             <h2 className="page-section-heading">Find Your Path</h2>
             <p className="page-body-text">
@@ -264,7 +264,7 @@ export default function ProgramsPage() {
 
       {/* ─── Benefits ─── */}
       <section className="page-section bg-slate-50 py-16">
-        <div className="page-section-container px-6 max-w-6xl mx-auto">
+        <div className="page-section-container">
            <div className="page-section-center-header">
              <span className="section-badge">Why Join Us?</span>
              <h2 className="page-section-heading">Program Benefits</h2>
@@ -304,7 +304,7 @@ export default function ProgramsPage() {
 
       {/* ─── Testimonials ─── */}
       <section className="page-section bg-white py-16">
-        <div className="page-section-container px-6 max-w-6xl mx-auto">
+        <div className="page-section-container">
            <div className="page-section-center-header">
              <span className="section-badge">Voices of Transformation</span>
              <h2 className="page-section-heading">Student Experiences</h2>

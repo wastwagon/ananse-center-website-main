@@ -1,3 +1,5 @@
+import { getServerApiUrl } from './server-api-url'
+
 export type ApiEvent = {
   id: string
   title: string
@@ -18,11 +20,7 @@ export function getPublicApiUrl() {
   return trimSlash(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4035')
 }
 
-export function getServerApiUrl() {
-  const internal = process.env.API_INTERNAL_URL
-  if (internal) return trimSlash(internal)
-  return getPublicApiUrl()
-}
+export { getServerApiUrl }
 
 export async function fetchEvents(): Promise<ApiEvent[]> {
   const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
