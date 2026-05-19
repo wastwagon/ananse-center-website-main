@@ -7,7 +7,7 @@ import HeroSplit from '../../../components/HeroSplit'
 import FeatureIcon from '../../../components/FeatureIcon'
 import DonateSection from '../../../components/DonateSection'
 import DonationStatusBanner from '../../../components/DonationStatusBanner'
-import { images } from '../../../lib/images'
+import { cardImageSizes, images } from '../../../lib/images'
 import type { LucideIcon } from 'lucide-react'
 import { Palette, Users, GraduationCap, Package, HandHeart, Building2, Scroll } from 'lucide-react'
 
@@ -92,7 +92,7 @@ export default function SupportPage() {
             </p>
           </div>
 
-          <div className="grid-1col grid-md-2col grid-lg-4col">
+          <div className="grid-cards">
             {impactStats.map((stat) => (
               <div
                 key={stat.number}
@@ -124,7 +124,7 @@ export default function SupportPage() {
             </p>
           </div>
 
-          <div className="grid-1col grid-md-3col">
+          <div className="grid-cards">
             {otherWays.map((way, idx) => (
               <div key={way.title} className="insight-card p-0">
                 <div
@@ -136,7 +136,7 @@ export default function SupportPage() {
                     alt={way.title}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes={cardImageSizes}
                   />
                 </div>
                 <div className="insight-card-bar" />

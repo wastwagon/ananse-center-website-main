@@ -213,7 +213,7 @@ export default function DonateSection() {
             ) : null}
           </div>
 
-          <div className="grid-1col grid-md-2col grid-lg-3col donate-tier-grid">
+          <div className="grid-cards donate-tier-grid">
             {donationTiers.map((opt) => (
               <div key={opt.amount} className="program-card text-center donate-tier-card">
                 <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1A1A1A', marginBottom: '0.5rem' }}>

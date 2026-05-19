@@ -23,7 +23,7 @@ import {
 import HeroPremium from '../../components/HeroPremium'
 import FeatureIcon from '../../components/FeatureIcon'
 import EventTypeIcon from '../../components/EventTypeIcon'
-import { images } from '../../lib/images'
+import { cardImageSizes, images } from '../../lib/images'
 import { getFeaturedEventsForHome } from '../../lib/featured-events'
 import { getContentValue } from '../../lib/site-content'
 
@@ -199,7 +199,7 @@ export default async function Home() {
               initiative we undertake.
             </p>
           </div>
-          <div className="grid-1col grid-md-2col grid-lg-3col">
+          <div className="grid-cards">
             {strategicGoals.map((goal, idx) => (
               <article key={goal.title} className="premium-card">
                 <div className="premium-card-image-wrapper">
@@ -208,7 +208,7 @@ export default async function Home() {
                     alt=""
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes={cardImageSizes}
                   />
                 </div>
                 <div className="premium-card-header">
@@ -242,7 +242,7 @@ export default async function Home() {
               View all programs →
             </Link>
           </div>
-          <div className="grid-1col grid-md-2col grid-lg-3col">
+          <div className="grid-cards">
             {programs.map((prog, idx) => (
               <article key={prog.title} className="premium-card">
                 <div className="premium-card-image-wrapper">
@@ -251,7 +251,7 @@ export default async function Home() {
                     alt=""
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes={cardImageSizes}
                   />
                 </div>
                 <div className="premium-card-header">
@@ -280,11 +280,11 @@ export default async function Home() {
               Festivals, workshops, and retreats that bring our mission to life across Ghana.
             </p>
           </div>
-          <div className="grid-1col grid-md-2col grid-lg-3col">
+          <div className="grid-cards">
             {featuredEvents.map((event) => (
               <article key={event.slug} className="premium-card">
                 <div className="premium-card-image-wrapper">
-                  <Image src={event.image} alt={event.title} fill className="object-cover" sizes="33vw" />
+                  <Image src={event.image} alt={event.title} fill className="object-cover" sizes={cardImageSizes} />
                 </div>
                 <div className="premium-card-header">
                   <EventTypeIcon type={event.type} />
@@ -320,7 +320,7 @@ export default async function Home() {
               Voices from participants, alumni, and partners — the human face of our work.
             </p>
           </div>
-          <div className="grid-1col grid-md-3col">
+          <div className="grid-cards">
             {impactStories.map((story) => (
               <div key={story.name} className="testimonial-card">
                 <span className="insight-card-tag">{story.tag}</span>
@@ -347,7 +347,7 @@ export default async function Home() {
               Bridging disciplines with one mission: dignity, development, and cultural excellence.
             </p>
           </div>
-          <div className="grid-1col grid-sm-3col grid-lg-6col sectors-grid">
+          <div className="grid-sectors sectors-grid">
             {sectors.map((ind) => (
               <div key={ind.name} className="sector-card">
                 <FeatureIcon icon={ind.icon} variant="gold" size={22} />

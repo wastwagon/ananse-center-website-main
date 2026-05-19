@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import HeroSplit from '../../../components/HeroSplit'
 import FeatureIcon from '../../../components/FeatureIcon'
-import { images } from '../../../lib/images'
+import { cardImageSizes, images } from '../../../lib/images'
 import type { LucideIcon } from 'lucide-react'
 import {
   Palette,
@@ -186,7 +186,7 @@ export default function ProgramsPage() {
             ))}
           </div>
 
-          <div className="grid-1col grid-md-2col grid-lg-3col">
+          <div className="grid-cards">
             {filteredPrograms.map((program) => (
               <article key={program.id} className="premium-card">
                 {/* ── Image Slot ── */}
@@ -196,7 +196,7 @@ export default function ProgramsPage() {
                     alt={program.title}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes={cardImageSizes}
                   />
                 </div>
 
@@ -274,7 +274,7 @@ export default function ProgramsPage() {
              </p>
            </div>
 
-           <div className="grid-1col grid-md-2col grid-lg-4col">
+           <div className="grid-cards">
               {benefits.map((benefit, idx) => (
                  <article key={benefit.title} className="premium-card">
                     <div className="premium-card-image-wrapper" style={{ height: '180px' }}>
@@ -283,7 +283,7 @@ export default function ProgramsPage() {
                         alt={benefit.title} 
                         fill
                         className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 25vw"
+                        sizes={cardImageSizes}
                       />
                     </div>
                     
@@ -310,7 +310,7 @@ export default function ProgramsPage() {
              <h2 className="page-section-heading">Student Experiences</h2>
            </div>
 
-           <div className="grid-1col grid-md-3col">
+           <div className="grid-cards">
               {[
                 {
                   name: "Ama Mensah",

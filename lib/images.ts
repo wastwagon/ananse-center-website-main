@@ -1,5 +1,8 @@
 /** Curated photography — avoids random index assignment across pages */
 
+/** Next/Image sizes for responsive card grids (2 col mobile → 4 col desktop). */
+export const cardImageSizes = '(max-width: 639px) 50vw, (max-width: 899px) 50vw, 25vw'
+
 export const images = {
   hero: {
     home: '/images/image (20).jpeg',

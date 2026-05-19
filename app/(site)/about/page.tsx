@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import HeroSplit from '../../../components/HeroSplit'
-import { images } from '../../../lib/images'
+import { cardImageSizes, images } from '../../../lib/images'
 import type { LucideIcon } from 'lucide-react'
 import { Globe, History, Palette, BookOpen, Sparkles, Globe2 } from 'lucide-react'
 
@@ -157,7 +157,7 @@ export default function About() {
             </p>
           </div>
 
-          <div className="grid-1col grid-md-2col grid-lg-3col">
+          <div className="grid-cards">
             {philosophies.map((item, idx) => (
               <article key={item.title} className="premium-card">
                 {/* ── Image Slot ── */}
@@ -167,7 +167,7 @@ export default function About() {
                     alt={item.title} 
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes={cardImageSizes}
                   />
                 </div>
 

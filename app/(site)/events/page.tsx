@@ -8,7 +8,7 @@ import { fallbackEvents } from './events-data'
 import HeroSplit from '../../../components/HeroSplit'
 import EventTypeIcon from '../../../components/EventTypeIcon'
 import { Calendar, MapPin } from 'lucide-react'
-import { images, eventImageForSlug } from '../../../lib/images'
+import { cardImageSizes, images, eventImageForSlug } from '../../../lib/images'
 
 const categories = ["All Events", "Festival", "Workshop", "Retreat", "Exhibition", "Symposium"]
 
@@ -89,8 +89,7 @@ export default function EventsPage() {
             <h2 className="page-section-heading">Featured Highlights</h2>
           </div>
 
-          {/* grid-1col + grid-md-3col already have align-items:stretch */}
-          <div className="grid-1col grid-md-3col" style={{ gap: '2rem' }}>
+          <div className="grid-cards">
             {events.filter(e => e.featured).map((event) => (
               <article
                 key={event.id}
@@ -105,7 +104,7 @@ export default function EventsPage() {
                     alt={event.title}
                     fill
                     style={{ objectFit: 'cover' }}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes={cardImageSizes}
                   />
                 </div>
 
@@ -208,7 +207,7 @@ export default function EventsPage() {
           </div>
 
           {/* Cards — height:100% on insight-card + align-items:stretch on grid = equal rows */}
-          <div className="grid-1col grid-md-2col grid-lg-3col" style={{ gap: '2rem' }}>
+          <div className="grid-cards">
             {filteredEvents.map((event) => (
               <article key={event.id} className="insight-card" aria-label={event.title}>
                 <div className="insight-card-bar" />
@@ -279,7 +278,7 @@ export default function EventsPage() {
                 Our events are more than just gatherings—they are catalysts for change and connection.
               </p>
 
-              <div className="grid-sm-2col" style={{ gap: '2rem' }}>
+              <div className="grid-cards">
                 {[
                   { val: "1,200+", lab: "Participants" },
                   { val: "45+", lab: "Gatherings" },

@@ -62,7 +62,7 @@ export default function VideosPage() {
 
       <section className="page-section bg-white" style={{ paddingTop: '2rem' }}>
         <div className="page-section-container">
-          <div className="grid-1col grid-md-2col grid-lg-3col">
+          <div className="grid-cards">
             {videos.map((video, index) => {
               let watchUrl = video.url
               if (video.url.includes('/embed/')) {

@@ -189,7 +189,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
         <div className="event-detail-hero-content page-section-container">
           <div className="event-detail-hero-inner">
             <span className="section-badge">Gathering</span>
-            <h1 className="hero-split-title">{event.title}</h1>
+            <h1 className="hero-page-title">{event.title}</h1>
             <div className="event-detail-meta">
               <span className="event-detail-meta-item">
                 <Calendar size={16} className="text-accent" />
@@ -223,7 +223,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
           </div>
 
           {/* Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 animate-slide-up [animation-fill-mode:both] [animation-delay:200ms]">
+          <div className="grid-cards mb-12 animate-slide-up [animation-fill-mode:both] [animation-delay:200ms]">
             <div className="p-6 rounded-xl border border-slate-100 bg-slate-50 shadow-sm transition-all hover:shadow-md hover:-translate-y-1 hover:border-primary-200">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">When</h3>
               <p className="text-[#1A1A1A] text-lg font-medium">{event?.date}</p>

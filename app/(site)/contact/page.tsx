@@ -89,7 +89,7 @@ export default function ContactPage() {
       {/* ─── Contact Grid ─── */}
       <section className="page-section bg-white">
         <div className="page-section-container">
-           <div className="grid-1col grid-md-2col grid-lg-4col">
+           <div className="grid-cards">
              {contactInfo.map((item) => (
                 <div key={item.title} className="feature-card text-center">
                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
