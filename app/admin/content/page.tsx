@@ -1,37 +1,48 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
 import {
-  createContentBlock,
-  deleteContentBlock,
   fetchContentBlocks,
+  fetchContentRegistry,
+  syncContentBlocksFromRegistry,
   updateContentBlock,
   type ContentBlock,
+  type ContentRegistryItem,
 } from '../../../lib/admin-api'
-
-const emptyForm = {
-  key: '',
-  label: '',
-  section: 'general',
-  body: '',
-  published: true,
-}
 
 export default function AdminContentPage() {
   const [blocks, setBlocks] = useState<ContentBlock[]>([])
+  const [registry, setRegistry] = useState<ContentRegistryItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState(emptyForm)
+  const [body, setBody] = useState('')
+  const [published, setPublished] = useState(true)
   const [saving, setSaving] = useState(false)
+
+  const registryKeys = useMemo(() => new Set(registry.map((item) => item.key)), [registry])
+  const registryByKey = useMemo(
+    () => new Map(registry.map((item) => [item.key, item])),
+    [registry],
+  )
+  const missingKeys = useMemo(
+    () => registry.filter((item) => !blocks.some((block) => block.key === item.key)),
+    [registry, blocks],
+  )
 
   async function load() {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await fetchContentBlocks()
-      setBlocks(data)
+      const [blocksRes, registryRes] = await Promise.all([
+        fetchContentBlocks(),
+        fetchContentRegistry(),
+      ])
+      setBlocks(blocksRes.data)
+      setRegistry(registryRes.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load content')
     } finally {
@@ -45,32 +56,39 @@ export default function AdminContentPage() {
 
   function startEdit(block: ContentBlock) {
     setEditingId(block.id)
-    setForm({
-      key: block.key,
-      label: block.label,
-      section: block.section,
-      body: block.body,
-      published: block.published,
-    })
+    setBody(block.body)
+    setPublished(block.published)
   }
 
-  function startCreate() {
-    setEditingId('new')
-    setForm(emptyForm)
+  async function onSync() {
+    setSyncing(true)
+    setError(null)
+    setNotice(null)
+    try {
+      const { created } = await syncContentBlocksFromRegistry()
+      setNotice(
+        created > 0
+          ? `Added ${created} block${created === 1 ? '' : 's'} from the registry.`
+          : 'All registry blocks are already in the database.',
+      )
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sync failed')
+    } finally {
+      setSyncing(false)
+    }
   }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
+    if (!editingId) return
     setSaving(true)
     setError(null)
+    setNotice(null)
     try {
-      if (editingId === 'new') {
-        await createContentBlock(form)
-      } else if (editingId) {
-        await updateContentBlock(editingId, form)
-      }
+      await updateContentBlock(editingId, { body, published })
       setEditingId(null)
-      setForm(emptyForm)
+      setNotice('Content saved.')
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed')
@@ -79,80 +97,60 @@ export default function AdminContentPage() {
     }
   }
 
-  async function onDelete(id: string) {
-    if (!confirm('Delete this content block?')) return
-    try {
-      await deleteContentBlock(id)
-      if (editingId === id) setEditingId(null)
-      await load()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed')
-    }
-  }
+  const editingBlock = blocks.find((block) => block.id === editingId) ?? null
+  const editingMeta = editingBlock ? registryByKey.get(editingBlock.key) : undefined
 
   return (
     <AdminShell title="Site content">
       <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        Edit text blocks used on the public site. Keys like <code>home.hero.lead</code> map to page
-        sections.
+        Long-form copy is managed through a fixed registry — one block per key, no duplicate
+        sections. Contact details and social links live under Settings.
       </p>
 
       {error ? <p className="admin-error">{error}</p> : null}
+      {notice ? <p className="admin-notice">{notice}</p> : null}
 
       <div className="admin-actions" style={{ marginBottom: '1rem' }}>
-        <button type="button" className="admin-btn admin-btn--primary" onClick={startCreate}>
-          New content block
+        <button
+          type="button"
+          className="admin-btn admin-btn--primary"
+          onClick={() => void onSync()}
+          disabled={syncing}
+        >
+          {syncing ? 'Syncing…' : 'Sync registry'}
         </button>
       </div>
 
-      {editingId ? (
+      {missingKeys.length > 0 ? (
+        <p className="admin-help admin-help--warn" style={{ marginBottom: '1rem' }}>
+          {missingKeys.length} registry block{missingKeys.length === 1 ? '' : 's'} not in the
+          database yet. Run sync before editing the public site.
+        </p>
+      ) : null}
+
+      {editingBlock ? (
         <div className="admin-card admin-card--spaced">
-          <h2 className="admin-card-title">
-            {editingId === 'new' ? 'Create block' : 'Edit block'}
-          </h2>
+          <h2 className="admin-card-title">{editingBlock.label}</h2>
+          <p className="admin-help">
+            <code>{editingBlock.key}</code>
+            {editingMeta?.hint ? <> — {editingMeta.hint}</> : null}
+          </p>
           <form className="admin-form" onSubmit={onSubmit}>
-            <div className="admin-field">
-              <label htmlFor="key">Key</label>
-              <input
-                id="key"
-                required
-                pattern="[a-z0-9._-]+"
-                disabled={editingId !== 'new'}
-                value={form.key}
-                onChange={(e) => setForm({ ...form, key: e.target.value })}
-              />
-            </div>
-            <div className="admin-field">
-              <label htmlFor="label">Label</label>
-              <input
-                id="label"
-                required
-                value={form.label}
-                onChange={(e) => setForm({ ...form, label: e.target.value })}
-              />
-            </div>
-            <div className="admin-field">
-              <label htmlFor="section">Section</label>
-              <input
-                id="section"
-                value={form.section}
-                onChange={(e) => setForm({ ...form, section: e.target.value })}
-              />
-            </div>
             <div className="admin-field">
               <label htmlFor="body">Content</label>
               <textarea
                 id="body"
                 required
-                value={form.body}
-                onChange={(e) => setForm({ ...form, body: e.target.value })}
+                rows={10}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
               />
             </div>
             <label className="admin-toggle-row">
               <input
                 type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm({ ...form, published: e.target.checked })}
+                checked={published}
+                onChange={(e) => setPublished(e.target.checked)}
               />
               <span>Published on public site</span>
             </label>
@@ -182,6 +180,7 @@ export default function AdminContentPage() {
                 <th>Key</th>
                 <th>Label</th>
                 <th>Section</th>
+                <th>Status</th>
                 <th />
               </tr>
             </thead>
@@ -190,26 +189,21 @@ export default function AdminContentPage() {
                 <tr key={block.id}>
                   <td>
                     <code>{block.key}</code>
+                    {!registryKeys.has(block.key) ? (
+                      <span className="admin-badge admin-badge--warn">Unregistered</span>
+                    ) : null}
                   </td>
                   <td>{block.label}</td>
                   <td>{block.section}</td>
+                  <td>{block.published ? 'Published' : 'Draft'}</td>
                   <td>
-                    <div className="admin-actions">
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--ghost admin-btn--sm"
-                        onClick={() => startEdit(block)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--danger admin-btn--sm"
-                        onClick={() => void onDelete(block.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--ghost admin-btn--sm"
+                      onClick={() => startEdit(block)}
+                    >
+                      Edit
+                    </button>
                   </td>
                 </tr>
               ))}

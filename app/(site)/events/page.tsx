@@ -1,16 +1,52 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { fetchEvents, subscribeNewsletter, type ApiEvent } from '../../../lib/api'
 import { fallbackEvents } from './events-data'
 import HeroSplit from '../../../components/HeroSplit'
+import { useCmsTexts } from '../../../lib/cms/client'
+import { renderSplitHeroTitle } from '../../../lib/cms/hero'
+import { parseCmsJson } from '../../../lib/cms/parse'
+import {
+  DEFAULT_EVENTS_FILTER_CATEGORIES,
+  DEFAULT_EVENTS_HERO_CTA_PRIMARY,
+  DEFAULT_EVENTS_HERO_CTA_SECONDARY,
+  DEFAULT_EVENTS_HERO_STATS,
+  DEFAULT_EVENTS_HERO_TITLE,
+  DEFAULT_EVENTS_HIGHLIGHTS_METRICS,
+  DEFAULT_EVENTS_HIGHLIGHTS_TESTIMONIAL,
+  type CmsEventTestimonial,
+  type CmsHeroCta,
+  type CmsHeroStat,
+  type CmsHeroTitle,
+  type CmsLabeledValue,
+} from '../../../lib/cms/registry'
 import EventTypeIcon from '../../../components/EventTypeIcon'
 import { Calendar, MapPin } from 'lucide-react'
 import { cardImageSizes, images, eventImageForSlug } from '../../../lib/images'
 
-const categories = ["All Events", "Festival", "Workshop", "Retreat", "Exhibition", "Symposium"]
+const EVENTS_CMS_KEYS = [
+  'events.hero.lead',
+  'events.hero.title',
+  'events.hero.stats',
+  'events.hero.cta.primary',
+  'events.hero.cta.secondary',
+  'events.featured.badge',
+  'events.featured.heading',
+  'events.catalog.heading',
+  'events.filter.categories',
+  'events.highlights.badge',
+  'events.highlights.heading',
+  'events.highlights.lead',
+  'events.highlights.metrics',
+  'events.highlights.testimonial',
+  'events.newsletter.heading',
+  'events.newsletter.lead',
+  'events.cta.heading',
+  'events.cta.body',
+] as const
 
 
 /* ════════════════════════════════════════════
@@ -18,11 +54,50 @@ const categories = ["All Events", "Festival", "Workshop", "Retreat", "Exhibition
 ════════════════════════════════════════════ */
 
 export default function EventsPage() {
-  const [activeTab, setActiveTab] = useState("All Events")
+  const cms = useCmsTexts(EVENTS_CMS_KEYS)
+  const heroTitle = useMemo(
+    () => parseCmsJson<CmsHeroTitle>(cms['events.hero.title'], DEFAULT_EVENTS_HERO_TITLE),
+    [cms['events.hero.title']],
+  )
+  const heroStats = useMemo(
+    () => parseCmsJson<CmsHeroStat[]>(cms['events.hero.stats'], DEFAULT_EVENTS_HERO_STATS),
+    [cms['events.hero.stats']],
+  )
+  const heroPrimaryCta = useMemo(
+    () => parseCmsJson<CmsHeroCta>(cms['events.hero.cta.primary'], DEFAULT_EVENTS_HERO_CTA_PRIMARY),
+    [cms['events.hero.cta.primary']],
+  )
+  const heroSecondaryCta = useMemo(
+    () => parseCmsJson<CmsHeroCta>(cms['events.hero.cta.secondary'], DEFAULT_EVENTS_HERO_CTA_SECONDARY),
+    [cms['events.hero.cta.secondary']],
+  )
+  const categories = useMemo(
+    () => parseCmsJson<string[]>(cms['events.filter.categories'], DEFAULT_EVENTS_FILTER_CATEGORIES),
+    [cms['events.filter.categories']],
+  )
+  const highlightMetrics = useMemo(
+    () => parseCmsJson<CmsLabeledValue[]>(cms['events.highlights.metrics'], DEFAULT_EVENTS_HIGHLIGHTS_METRICS),
+    [cms['events.highlights.metrics']],
+  )
+  const highlightTestimonial = useMemo(
+    () =>
+      parseCmsJson<CmsEventTestimonial>(
+        cms['events.highlights.testimonial'],
+        DEFAULT_EVENTS_HIGHLIGHTS_TESTIMONIAL,
+      ),
+    [cms['events.highlights.testimonial']],
+  )
+  const [activeTab, setActiveTab] = useState('All Events')
   const [events, setEvents] = useState<ApiEvent[]>(fallbackEvents)
   const [newsletterEmail, setNewsletterEmail] = useState('')
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [newsletterMessage, setNewsletterMessage] = useState('')
+
+  useEffect(() => {
+    if (categories.length > 0 && !categories.includes(activeTab)) {
+      setActiveTab(categories[0])
+    }
+  }, [categories, activeTab])
 
   useEffect(() => {
     let cancelled = false
@@ -65,28 +140,19 @@ export default function EventsPage() {
         compact
         imageSrc={images.hero.events}
         imageAlt="Cultural festivals at Ananse Center"
-        title={
-          <>
-            Events & <span className="text-accent">Gatherings</span>
-          </>
-        }
-        description="Festivals, workshops, and retreats that bring preservation, joy, and Pan-African connection to life."
-        primaryCta={{ label: 'View Calendar', href: '/events#calendar' }}
-        secondaryCta={{ label: 'Volunteer', href: '/contact#form' }}
-        stats={[
-          { value: '45+', label: 'Gatherings' },
-          { value: '1.2K+', label: 'Annual Guests' },
-          { value: '15+', label: 'Communities' },
-          { value: '2025', label: 'Season' },
-        ]}
+        title={renderSplitHeroTitle(heroTitle)}
+        description={cms['events.hero.lead']}
+        primaryCta={heroPrimaryCta}
+        secondaryCta={heroSecondaryCta}
+        stats={heroStats}
       />
 
       {/* ─── Featured Section ─── */}
       <section id="calendar" className="page-section bg-white py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <span className="section-badge">Upcoming Soon</span>
-            <h2 className="page-section-heading">Featured Highlights</h2>
+            <span className="section-badge">{cms['events.featured.badge']}</span>
+            <h2 className="page-section-heading">{cms['events.featured.heading']}</h2>
           </div>
 
           <div className="grid-cards">
@@ -178,7 +244,7 @@ export default function EventsPage() {
       <section className="page-section bg-slate-50 py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <h2 className="page-section-heading">All Gatherings</h2>
+            <h2 className="page-section-heading">{cms['events.catalog.heading']}</h2>
           </div>
 
           {/* Filter tabs */}
@@ -272,22 +338,19 @@ export default function EventsPage() {
         <div className="page-section-container">
           <div className="two-col-section">
             <div>
-              <span className="section-badge">Cultural Impact</span>
-              <h2 className="page-section-heading">Last Year&apos;s Highlights</h2>
+              <span className="section-badge">{cms['events.highlights.badge']}</span>
+              <h2 className="page-section-heading">{cms['events.highlights.heading']}</h2>
               <p className="page-body-text" style={{ marginBottom: '2.5rem' }}>
-                Our events are more than just gatherings—they are catalysts for change and connection.
+                {cms['events.highlights.lead']}
               </p>
 
               <div className="grid-cards">
-                {[
-                  { val: "1,200+", lab: "Participants" },
-                  { val: "45+", lab: "Gatherings" },
-                  { val: "25+", lab: "Partners" },
-                  { val: "15+", lab: "Countries" },
-                ].map((s) => (
-                  <div key={s.lab}>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#d97706' }}>{s.val}</div>
-                    <div style={{ fontSize: '12px', color: '#1A1A1A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.lab}</div>
+                {highlightMetrics.map((s) => (
+                  <div key={s.label}>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#d97706' }}>{s.value}</div>
+                    <div style={{ fontSize: '12px', color: '#1A1A1A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {s.label}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -296,14 +359,13 @@ export default function EventsPage() {
             <div className="about-visual-card">
               <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🌟</div>
               <blockquote style={{ fontSize: '1.125rem', color: '#1A1A1A', fontStyle: 'italic', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-                &quot;The Ananse festivals are a homecoming. Hearing the stories of my elders
-                connected me to my roots in a way nothing else could.&quot;
+                &quot;{highlightTestimonial.quote}&quot;
               </blockquote>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div className="testimonial-avatar">SJ</div>
+                <div className="testimonial-avatar">{highlightTestimonial.initials}</div>
                 <div>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#1A1A1A', margin: 0 }}>Sarah Johnson</p>
-                  <p style={{ fontSize: '12px', color: '#1A1A1A', margin: 0 }}>2023 Participant</p>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#1A1A1A', margin: 0 }}>{highlightTestimonial.name}</p>
+                  <p style={{ fontSize: '12px', color: '#1A1A1A', margin: 0 }}>{highlightTestimonial.role}</p>
                 </div>
               </div>
             </div>
@@ -315,10 +377,8 @@ export default function EventsPage() {
       <section className="page-section bg-slate-50">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <h2 className="page-section-heading">Stay in the Loop</h2>
-            <p className="page-body-text">
-              Don&apos;t miss out on our upcoming festivals, workshops, and community gatherings.
-            </p>
+            <h2 className="page-section-heading">{cms['events.newsletter.heading']}</h2>
+            <p className="page-body-text">{cms['events.newsletter.lead']}</p>
           </div>
           <div className="newsletter-inline-form">
             <label htmlFor="newsletter-email" className="sr-only">Email address</label>
@@ -352,11 +412,8 @@ export default function EventsPage() {
       {/* ─── Final CTA ─── */}
       <section className="page-cta-section">
         <div className="page-section-container page-cta-inner">
-          <h2 className="page-cta-heading">Join Our Table</h2>
-          <p className="page-cta-body">
-            Whether you&apos;re attending your first event or becoming a regular participant,
-            there&apos;s a seat for you in our growing circle.
-          </p>
+          <h2 className="page-cta-heading">{cms['events.cta.heading']}</h2>
+          <p className="page-cta-body">{cms['events.cta.body']}</p>
           <div className="page-cta-buttons">
             <Link href="/programs" className="btn-primary page-cta-btn">
               Explore Programs

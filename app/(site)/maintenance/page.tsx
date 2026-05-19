@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getCmsText } from '../../../lib/cms/content'
 import { getServerApiUrl } from '../../../lib/server-api-url'
 
 async function getMaintenanceCopy() {
@@ -15,13 +16,16 @@ async function getMaintenanceCopy() {
 }
 
 export default async function MaintenancePage() {
-  const copy = await getMaintenanceCopy()
+  const [copy, maintenanceBadge] = await Promise.all([
+    getMaintenanceCopy(),
+    getCmsText('site.maintenance.badge'),
+  ])
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-6 py-16">
       <div className="max-w-lg text-center">
         <p className="text-sm font-semibold uppercase tracking-widest text-amber-600 mb-3">
-          Under maintenance
+          {maintenanceBadge}
         </p>
         <h1 className="heading-section mb-4">
           {copy?.maintenanceTitle || "We'll be back soon"}

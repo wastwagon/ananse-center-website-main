@@ -5,6 +5,23 @@ export type AdminUser = {
   role: string
 }
 
+export type AdminProgram = {
+  id: string
+  title: string
+  slug: string
+  description: string
+  category: string
+  section: 'catalog' | 'sankofa'
+  duration: string
+  level: string
+  iconKey: string
+  features: string[]
+  sortOrder: number
+  published: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export type AdminEvent = {
   id: string
   title: string
@@ -12,8 +29,12 @@ export type AdminEvent = {
   description: string
   dateLabel: string
   location: string
+  venue: string
   type: string
   imageEmoji: string
+  storyTitle: string | null
+  storyBody: string | null
+  highlights: string[]
   featured: boolean
   published: boolean
   createdAt: string
@@ -99,6 +120,30 @@ export async function deleteAdminEvent(id: string) {
   return adminFetch<{ ok: boolean }>(`events/${id}`, { method: 'DELETE' })
 }
 
+export async function fetchAdminPrograms() {
+  return adminFetch<{ data: AdminProgram[] }>('programs')
+}
+
+export async function createAdminProgram(
+  body: Partial<AdminProgram> & Pick<AdminProgram, 'title' | 'description' | 'category'>,
+) {
+  return adminFetch<{ data: AdminProgram }>('programs', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function updateAdminProgram(id: string, body: Partial<AdminProgram>) {
+  return adminFetch<{ data: AdminProgram }>(`programs/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function deleteAdminProgram(id: string) {
+  return adminFetch<{ ok: boolean }>(`programs/${id}`, { method: 'DELETE' })
+}
+
 export async function fetchAdminContactMessages() {
   return adminFetch<{ data: AdminContactMessage[] }>('contact-messages')
 }
@@ -107,12 +152,38 @@ export async function fetchAdminDonations() {
   return adminFetch<{ data: AdminDonation[] }>('donations')
 }
 
+export type ImpactStat = {
+  value: string
+  label: string
+}
+
 export type SiteSettings = {
   maintenanceMode: boolean
   maintenanceTitle: string
   maintenanceMessage: string
   siteStatus: 'live' | 'maintenance'
   updatedAt: string
+  site: {
+    name: string
+    shortName: string
+    tagline: string
+    location: string
+  }
+  contact: {
+    phone: string
+    phoneHref: string
+    email: string
+    programsEmail: string
+    hours: string
+    address: string
+  }
+  impactStats: ImpactStat[]
+  social: {
+    facebook: string
+    instagram: string
+    youtube: string
+    twitter: string
+  }
 }
 
 export type AdminDashboardData = {
@@ -157,7 +228,28 @@ export async function fetchAdminSettings() {
   return adminFetch<{ data: SiteSettings }>('settings')
 }
 
-export async function updateAdminSettings(body: Partial<SiteSettings>) {
+export type AdminSettingsPatch = {
+  maintenanceMode?: boolean
+  maintenanceTitle?: string
+  maintenanceMessage?: string
+  siteName?: string
+  siteShortName?: string
+  siteTagline?: string
+  siteLocation?: string
+  contactPhone?: string
+  contactPhoneHref?: string
+  contactEmail?: string
+  programsEmail?: string
+  contactHours?: string
+  contactAddress?: string
+  impactStats?: ImpactStat[]
+  socialFacebook?: string
+  socialInstagram?: string
+  socialYoutube?: string
+  socialTwitter?: string
+}
+
+export async function updateAdminSettings(body: AdminSettingsPatch) {
   return adminFetch<{ data: SiteSettings }>('settings', {
     method: 'PATCH',
     body: JSON.stringify(body),
@@ -204,4 +296,31 @@ export async function createContentBlock(
 
 export async function deleteContentBlock(id: string) {
   return adminFetch<{ ok: boolean }>(`content-blocks/${id}`, { method: 'DELETE' })
+}
+
+export async function syncContentBlocksFromRegistry() {
+  return adminFetch<{ ok: boolean; created: number }>('content-blocks/sync', { method: 'POST' })
+}
+
+export type ContentRegistryItem = {
+  key: string
+  label: string
+  section: string
+  defaultBody: string
+  format?: 'plain' | 'markdown'
+  hint?: string
+}
+
+export async function fetchContentRegistry() {
+  return adminFetch<{ data: ContentRegistryItem[] }>('content-blocks/registry')
+}
+
+export type NewsletterSubscriber = {
+  id: string
+  email: string
+  createdAt: string
+}
+
+export async function fetchNewsletterSubscribers() {
+  return adminFetch<{ data: NewsletterSubscriber[] }>('newsletter/subscribers')
 }

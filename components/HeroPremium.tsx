@@ -1,16 +1,20 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
-import { site, heroStatsDefault } from '../lib/site'
+import { site } from '../lib/site'
 import { images } from '../lib/images'
+import { renderHomeHeroTitle } from '../lib/cms/hero'
+import type { CmsHeroCta, CmsHeroStat, CmsHomeHeroTitle } from '../lib/cms/registry'
 
 type HeroPremiumProps = {
-  lead?: string
+  lead: string
+  title: CmsHomeHeroTitle
+  stats: readonly CmsHeroStat[]
+  primaryCta: CmsHeroCta
+  secondaryCta: CmsHeroCta
 }
 
-export default function HeroPremium({ lead }: HeroPremiumProps) {
-  const defaultLead =
-    'Preserving heritage, restoring identity, and developing the next generation of Pan-African leaders through Sankofa arts and culture programs in Ghana and across the diaspora.'
+export default function HeroPremium({ lead, title, stats, primaryCta, secondaryCta }: HeroPremiumProps) {
   return (
     <section className="hero-premium" aria-labelledby="hero-heading">
       <div className="hero-premium-media" aria-hidden>
@@ -36,25 +40,24 @@ export default function HeroPremium({ lead }: HeroPremiumProps) {
           </p>
 
           <h1 id="hero-heading" className="hero-premium-title">
-            Weaving wisdom into
-            <span className="hero-premium-title-accent"> Africa&apos;s future</span>
+            {renderHomeHeroTitle(title)}
           </h1>
 
-          <p className="hero-premium-lead">{lead?.trim() || defaultLead}</p>
+          <p className="hero-premium-lead">{lead}</p>
 
           <div className="hero-premium-actions">
-            <Link href="/programs" className="hero-premium-btn hero-premium-btn--primary">
-              Explore programs
+            <Link href={primaryCta.href} className="hero-premium-btn hero-premium-btn--primary">
+              {primaryCta.label}
               <ArrowRight size={18} strokeWidth={2} aria-hidden />
             </Link>
-            <Link href="/support" className="hero-premium-btn hero-premium-btn--ghost">
-              Support our mission
+            <Link href={secondaryCta.href} className="hero-premium-btn hero-premium-btn--ghost">
+              {secondaryCta.label}
             </Link>
           </div>
         </div>
 
         <div className="hero-premium-stats" role="list">
-          {heroStatsDefault.map((stat) => (
+          {stats.map((stat) => (
             <div key={stat.label} className="hero-premium-stat" role="listitem">
               <span className="hero-premium-stat-value">{stat.value}</span>
               <span className="hero-premium-stat-label">{stat.label}</span>

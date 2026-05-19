@@ -12,6 +12,27 @@ export type ApiEvent = {
   featured: boolean
 }
 
+export type ApiEventDetail = ApiEvent & {
+  venue: string
+  storyTitle: string | null
+  storyBody: string | null
+  highlights: string[]
+}
+
+export type ApiProgram = {
+  id: string
+  slug: string
+  title: string
+  description: string
+  category: string
+  section: string
+  duration: string
+  level: string
+  iconKey: string
+  features: string[]
+  sortOrder: number
+}
+
 function trimSlash(value: string) {
   return value.replace(/\/+$/, '')
 }
@@ -33,6 +54,35 @@ export async function fetchEvents(): Promise<ApiEvent[]> {
   }
 
   const payload = (await response.json()) as { data: ApiEvent[] }
+  return payload.data
+}
+
+export async function fetchPrograms(section?: 'catalog' | 'sankofa'): Promise<ApiProgram[]> {
+  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
+  const query = section ? `?section=${encodeURIComponent(section)}` : ''
+  const response = await fetch(`${base}/api/v1/programs${query}`, {
+    next: { revalidate: 60 },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to load programs (${response.status})`)
+  }
+
+  const payload = (await response.json()) as { data: ApiProgram[] }
+  return payload.data
+}
+
+export async function fetchEventBySlug(slug: string): Promise<ApiEventDetail | null> {
+  const response = await fetch(`${getServerApiUrl()}/api/v1/events/${encodeURIComponent(slug)}`, {
+    next: { revalidate: 60 },
+  })
+
+  if (response.status === 404) return null
+  if (!response.ok) {
+    throw new Error(`Failed to load event (${response.status})`)
+  }
+
+  const payload = (await response.json()) as { data: ApiEventDetail }
   return payload.data
 }
 

@@ -8,7 +8,17 @@ import {
   ArrowRight,
   Heart,
 } from 'lucide-react'
-import { contact, site, social, impactStats } from '../lib/site'
+import { contact as defaultContact, site as defaultSite, social as defaultSocial } from '../lib/site'
+import { DEFAULT_IMPACT_STATS, type ImpactStat } from '../lib/site-impact'
+import type { PublicSiteProfile } from '../lib/site-profile'
+
+type FooterProps = {
+  site?: PublicSiteProfile['site']
+  contact?: PublicSiteProfile['contact']
+  social?: PublicSiteProfile['social']
+  impactStats?: ImpactStat[]
+  footerMission?: string
+}
 
 function FacebookIcon() {
   return (
@@ -51,14 +61,19 @@ const programLinks = [
   { name: 'Storytelling', href: '/programs' },
 ]
 
-const socialLinks = [
-  { label: 'Facebook', href: social.facebook, Icon: FacebookIcon },
-  { label: 'Instagram', href: social.instagram, Icon: InstagramIcon },
-  { label: 'YouTube', href: social.youtube, Icon: YoutubeIcon },
-] as const
-
-export default function Footer() {
+export default function Footer({
+  site = defaultSite,
+  contact = { ...defaultContact, address: defaultSite.address },
+  social = defaultSocial,
+  impactStats = DEFAULT_IMPACT_STATS,
+  footerMission = defaultSite.footerMission,
+}: FooterProps) {
   const year = new Date().getFullYear()
+  const socialLinks = [
+    { label: 'Facebook', href: social.facebook, Icon: FacebookIcon },
+    { label: 'Instagram', href: social.instagram, Icon: InstagramIcon },
+    { label: 'YouTube', href: social.youtube, Icon: YoutubeIcon },
+  ] as const
 
   return (
     <footer className="footer-root">
@@ -92,7 +107,7 @@ export default function Footer() {
             </div>
 
             <p className="footer-tagline">{site.tagline}</p>
-            <p className="footer-desc">{site.footerMission}</p>
+            <p className="footer-desc">{footerMission}</p>
 
             <div className="footer-cta-group">
               <Link href="/support" className="footer-cta footer-cta--primary">

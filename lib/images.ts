@@ -48,6 +48,11 @@ export const images = {
   story: '/images/image (14).jpeg',
 } as const
 
+export function programImageForOrder(sortOrder: number): string {
+  const index = Math.max(0, sortOrder) % images.programCatalog.length
+  return images.programCatalog[index]
+}
+
 export function eventImageForSlug(slug: string): string {
   if (slug.includes('storytelling') || slug.includes('festival') || slug.includes('drumming')) {
     return images.events.festival

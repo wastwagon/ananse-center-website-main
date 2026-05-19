@@ -1,19 +1,9 @@
-import { getServerApiUrl } from './server-api-url'
+import { getCmsText, isContentKey } from './cms/content'
 
-export async function fetchSiteContentMap(): Promise<Record<string, string>> {
-  try {
-    const response = await fetch(`${getServerApiUrl()}/api/v1/site/content`, {
-      next: { revalidate: 30 },
-    })
-    if (!response.ok) return {}
-    const payload = (await response.json()) as { data: Record<string, string> }
-    return payload.data ?? {}
-  } catch {
-    return {}
-  }
-}
-
+/** @deprecated Use `getCmsText` from `lib/cms/content`. */
 export async function getContentValue(key: string, fallback: string) {
-  const map = await fetchSiteContentMap()
-  return map[key]?.trim() || fallback
+  if (isContentKey(key)) return getCmsText(key)
+  return fallback
 }
+
+export { fetchSiteContentMap, getCmsText, getCmsTexts } from './cms/content'

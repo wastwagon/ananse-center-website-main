@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
 import { slugify } from '../../lib/slug.js'
+import { parseHighlights } from '../../lib/event-map.js'
 import { authenticateAdmin } from '../../plugins/admin-auth.js'
 
 const eventBodySchema = z.object({
@@ -9,8 +10,12 @@ const eventBodySchema = z.object({
   description: z.string().min(10),
   dateLabel: z.string().min(2).max(120),
   location: z.string().min(2).max(200),
+  venue: z.string().max(200).optional(),
   type: z.string().min(2).max(80),
   imageEmoji: z.string().min(1).max(8).optional(),
+  storyTitle: z.string().max(200).optional().nullable(),
+  storyBody: z.string().max(20000).optional().nullable(),
+  highlights: z.array(z.string().min(1)).optional(),
   featured: z.boolean().optional(),
   published: z.boolean().optional(),
   slug: z.string().min(2).max(200).optional(),
@@ -23,8 +28,12 @@ function mapEvent(event: {
   description: string
   dateLabel: string
   location: string
+  venue: string
   type: string
   imageEmoji: string
+  storyTitle: string | null
+  storyBody: string | null
+  highlights: unknown
   featured: boolean
   published: boolean
   createdAt: Date
@@ -37,8 +46,12 @@ function mapEvent(event: {
     description: event.description,
     dateLabel: event.dateLabel,
     location: event.location,
+    venue: event.venue,
     type: event.type,
     imageEmoji: event.imageEmoji,
+    storyTitle: event.storyTitle,
+    storyBody: event.storyBody,
+    highlights: parseHighlights(event.highlights),
     featured: event.featured,
     published: event.published,
     createdAt: event.createdAt.toISOString(),
@@ -82,8 +95,12 @@ export async function adminEventRoutes(app: FastifyInstance) {
         description: data.description,
         dateLabel: data.dateLabel,
         location: data.location,
+        venue: data.venue ?? '',
         type: data.type,
         imageEmoji: data.imageEmoji ?? '🎭',
+        storyTitle: data.storyTitle ?? null,
+        storyBody: data.storyBody ?? null,
+        highlights: data.highlights ?? [],
         featured: data.featured ?? false,
         published: data.published ?? true,
       },
@@ -117,8 +134,12 @@ export async function adminEventRoutes(app: FastifyInstance) {
         ...(data.description !== undefined ? { description: data.description } : {}),
         ...(data.dateLabel !== undefined ? { dateLabel: data.dateLabel } : {}),
         ...(data.location !== undefined ? { location: data.location } : {}),
+        ...(data.venue !== undefined ? { venue: data.venue } : {}),
         ...(data.type !== undefined ? { type: data.type } : {}),
         ...(data.imageEmoji !== undefined ? { imageEmoji: data.imageEmoji } : {}),
+        ...(data.storyTitle !== undefined ? { storyTitle: data.storyTitle } : {}),
+        ...(data.storyBody !== undefined ? { storyBody: data.storyBody } : {}),
+        ...(data.highlights !== undefined ? { highlights: data.highlights } : {}),
         ...(data.featured !== undefined ? { featured: data.featured } : {}),
         ...(data.published !== undefined ? { published: data.published } : {}),
       },

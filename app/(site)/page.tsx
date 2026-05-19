@@ -1,169 +1,108 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import {
-  Sprout,
-  Users,
-  Globe,
-  Heart,
-  Scale,
-  Building2,
-  UserCircle,
-  Bird,
-  BookOpen,
-  Music,
-  Salad,
-  Sun,
-  GraduationCap,
-  Palette,
-  Drum,
-  BookMarked,
-  Network,
-  type LucideIcon,
-} from 'lucide-react'
 import HeroPremium from '../../components/HeroPremium'
+import type { CmsHeroCta, CmsHeroStat, CmsHomeHeroTitle } from '../../lib/cms/registry'
 import FeatureIcon from '../../components/FeatureIcon'
 import EventTypeIcon from '../../components/EventTypeIcon'
+import { cmsIconForKey } from '../../lib/cms-icons'
 import { cardImageSizes, images } from '../../lib/images'
 import { getFeaturedEventsForHome } from '../../lib/featured-events'
-import { getContentValue } from '../../lib/site-content'
-
-const strategicGoals: { icon: LucideIcon; title: string; description: string }[] = [
-  {
-    icon: Sprout,
-    title: 'Value-Based Leadership',
-    description:
-      'Developing youth entrepreneurs and innovators grounded in African values and community responsibility.',
-  },
-  {
-    icon: Users,
-    title: 'Service to Community',
-    description:
-      'Reorienting young people toward service, self-sufficiency, and the spirit of Ubuntu.',
-  },
-  {
-    icon: Globe,
-    title: 'Pan-Africanism',
-    description:
-      'Aligning leadership with AU Agenda 2063 — building dignity and unity across the continent.',
-  },
-  {
-    icon: Heart,
-    title: 'Holistic Health & Wellness',
-    description:
-      'NEWSTART-informed programs for mind, body, and spirit — rooted in cultural wisdom.',
-  },
-  {
-    icon: Scale,
-    title: 'Peace & Conflict Resolution',
-    description:
-      'Blending traditional African adjudication with modern methods for lasting community peace.',
-  },
-  {
-    icon: Building2,
-    title: 'Organizational Excellence',
-    description:
-      'A credible, well-resourced center led by professionals committed to the mission.',
-  },
-]
-
-const programs: { icon: LucideIcon; title: string; description: string; href: string }[] = [
-  {
-    icon: UserCircle,
-    title: 'Sankofa Mentorship',
-    description: 'Emerging leaders paired with mentors for culturally grounded leadership.',
-    href: '/programs',
-  },
-  {
-    icon: Bird,
-    title: 'Sankofa Mediation',
-    description: 'Conflict resolution blending tradition and modern practice.',
-    href: '/programs',
-  },
-  {
-    icon: BookOpen,
-    title: 'Sankofa Resources',
-    description: 'African-centered education, research, and learning archives.',
-    href: '/programs',
-  },
-  {
-    icon: Music,
-    title: 'Sankofa Music',
-    description: 'Community building through music, rhythm, and shared celebration.',
-    href: '/programs',
-  },
-  {
-    icon: Salad,
-    title: 'Sankofa Kitchen & Health',
-    description: 'Nutrition and wellness workshops grounded in NEWSTART principles.',
-    href: '/programs',
-  },
-  {
-    icon: Sun,
-    title: 'Sankofa Sabbath & Volunteering',
-    description: 'Rest, renewal, and service-learning for purposeful living.',
-    href: '/programs',
-  },
-]
-
-const impactStories = [
-  {
-    tag: 'Mentorship',
-    quote:
-      "Through Sankofa, I found a connection to my heritage I did not know was missing — it is learning that lives in your bones.",
-    name: 'Program alumni',
-  },
-  {
-    tag: 'Arts',
-    quote:
-      'The arts programs gave me language to express identity. My work now carries the story of where I come from.',
-    name: 'Arts education participant',
-  },
-  {
-    tag: 'Community',
-    quote:
-      'This center became my second home — family, purpose, and a community that uplifts our shared heritage.',
-    name: 'Community volunteer',
-  },
-]
-
-const sectors: { icon: LucideIcon; name: string }[] = [
-  { icon: GraduationCap, name: 'Education & Leadership' },
-  { icon: Heart, name: 'Healthcare & Wellness' },
-  { icon: Scale, name: 'Legal & Mediation' },
-  { icon: Palette, name: 'Arts, Culture & Music' },
-  { icon: Sprout, name: 'Agriculture & Food' },
-  { icon: Network, name: 'Community & Service' },
-]
+import { getSankofaProgramsForHome } from '../../lib/sankofa-programs'
+import {
+  DEFAULT_HOME_PILLARS,
+  DEFAULT_HOME_SECTORS,
+  DEFAULT_HOME_HERO_CTA_PRIMARY,
+  DEFAULT_HOME_HERO_CTA_SECONDARY,
+  DEFAULT_HOME_HERO_STATS,
+  DEFAULT_HOME_HERO_TITLE,
+  DEFAULT_HOME_STORY_HIGHLIGHTS,
+  DEFAULT_HOME_TESTIMONIALS,
+  getCmsTexts,
+  parseCmsJson,
+  splitParagraphs,
+  type CmsPillar,
+  type CmsSector,
+  type CmsStoryHighlight,
+  type CmsTestimonial,
+} from '../../lib/cms/content'
 
 export default async function Home() {
-  const [heroLead, featuredEvents] = await Promise.all([
-    getContentValue(
+  const [cms, featuredEvents, sankofaPrograms] = await Promise.all([
+    getCmsTexts([
       'home.hero.lead',
-      'Preserving heritage, restoring identity, and developing the next generation of Pan-African leaders through Sankofa arts and culture programs in Ghana and across the diaspora.',
-    ),
+      'home.hero.title',
+      'home.hero.stats',
+      'home.hero.cta.primary',
+      'home.hero.cta.secondary',
+      'home.story',
+      'home.story.badge',
+      'home.story.heading',
+      'home.story.highlights',
+      'home.pillars.badge',
+      'home.pillars.heading',
+      'home.pillars.lead',
+      'home.pillars',
+      'home.programs.badge',
+      'home.programs.heading',
+      'home.programs.lead',
+      'home.events.badge',
+      'home.events.heading',
+      'home.events.lead',
+      'home.testimonials.badge',
+      'home.testimonials.heading',
+      'home.testimonials.lead',
+      'home.testimonials',
+      'home.sectors.badge',
+      'home.sectors.heading',
+      'home.sectors.lead',
+      'home.sectors',
+      'home.cta.heading',
+      'home.cta.body',
+    ] as const),
     getFeaturedEventsForHome(),
+    getSankofaProgramsForHome(),
   ])
+  const homeHeroTitle = parseCmsJson<CmsHomeHeroTitle>(cms['home.hero.title'], DEFAULT_HOME_HERO_TITLE)
+  const homeHeroStats = parseCmsJson<CmsHeroStat[]>(cms['home.hero.stats'], DEFAULT_HOME_HERO_STATS)
+  const homeHeroPrimaryCta = parseCmsJson<CmsHeroCta>(cms['home.hero.cta.primary'], DEFAULT_HOME_HERO_CTA_PRIMARY)
+  const homeHeroSecondaryCta = parseCmsJson<CmsHeroCta>(
+    cms['home.hero.cta.secondary'],
+    DEFAULT_HOME_HERO_CTA_SECONDARY,
+  )
+  const storyParagraphs = splitParagraphs(cms['home.story'])
+  const storyHighlights = parseCmsJson<CmsStoryHighlight[]>(
+    cms['home.story.highlights'],
+    DEFAULT_HOME_STORY_HIGHLIGHTS,
+  )
+  const pillars = parseCmsJson<CmsPillar[]>(cms['home.pillars'], DEFAULT_HOME_PILLARS)
+  const sectors = parseCmsJson<CmsSector[]>(cms['home.sectors'], DEFAULT_HOME_SECTORS)
+  const impactStories = parseCmsJson<CmsTestimonial[]>(
+    cms['home.testimonials'],
+    DEFAULT_HOME_TESTIMONIALS,
+  )
 
   return (
     <div>
-      <HeroPremium lead={heroLead} />
+      <HeroPremium
+        lead={cms['home.hero.lead']}
+        title={homeHeroTitle}
+        stats={homeHeroStats}
+        primaryCta={homeHeroPrimaryCta}
+        secondaryCta={homeHeroSecondaryCta}
+      />
 
       <section id="our-story" className="page-section bg-white">
         <div className="page-section-container">
           <div className="two-col-section">
             <div>
-              <span className="section-badge">Our Story</span>
-              <h2 className="page-section-heading">The Ananse Story</h2>
+              <span className="section-badge">{cms['home.story.badge']}</span>
+              <h2 className="page-section-heading">{cms['home.story.heading']}</h2>
               <div className="page-body-stack">
-                <p className="page-body-text">
-                  In Akan tradition, Ananse the spider weaves webs that connect generations — stories
-                  that heal, teach, and unite.
-                </p>
-                <p className="page-body-text">
-                  Our center is a gathering place where ancestral wisdom meets contemporary
-                  creativity: for students finding pathways to heritage, for the diaspora returning
-                  home, and for communities celebrating who we are.
-                </p>
+                {storyParagraphs.map((paragraph) => (
+                  <p key={paragraph.slice(0, 40)} className="page-body-text">
+                    {paragraph}
+                  </p>
+                ))}
               </div>
               <Link href="/about" className="btn-primary page-inline-cta">
                 Read Our Mission
@@ -171,18 +110,16 @@ export default async function Home() {
             </div>
             <div className="about-visual-card">
               <div className="about-visual-grid">
-                {[
-                  { icon: Network, label: 'Cultural Weaving', sub: 'Connecting generations' },
-                  { icon: Sprout, label: 'Identity Restored', sub: 'Roots rediscovered' },
-                  { icon: Users, label: 'Community Built', sub: 'Ubuntu in practice' },
-                  { icon: Globe, label: 'Africa-Wide Reach', sub: '15+ communities' },
-                ].map((item) => (
-                  <div key={item.label} className="about-mini-card">
-                    <FeatureIcon icon={item.icon} variant="gold" />
-                    <p className="about-mini-label">{item.label}</p>
-                    <p className="about-mini-sub">{item.sub}</p>
-                  </div>
-                ))}
+                {storyHighlights.map((item) => {
+                  const Icon = cmsIconForKey(item.iconKey)
+                  return (
+                    <div key={item.label} className="about-mini-card">
+                      <FeatureIcon icon={Icon} variant="gold" />
+                      <p className="about-mini-label">{item.label}</p>
+                      <p className="about-mini-sub">{item.sub}</p>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -192,37 +129,37 @@ export default async function Home() {
       <section className="page-section page-section--muted">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <span className="section-badge">Strategic Goals</span>
-            <h2 className="page-section-heading">Six Pillars of Transformation</h2>
-            <p className="page-body-text">
-              Interconnected commitments that guide every program, partnership, and community
-              initiative we undertake.
-            </p>
+            <span className="section-badge">{cms['home.pillars.badge']}</span>
+            <h2 className="page-section-heading">{cms['home.pillars.heading']}</h2>
+            <p className="page-body-text">{cms['home.pillars.lead']}</p>
           </div>
           <div className="grid-cards">
-            {strategicGoals.map((goal, idx) => (
-              <article key={goal.title} className="premium-card">
-                <div className="premium-card-image-wrapper">
-                  <Image
-                    src={images.goals[idx]}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes={cardImageSizes}
-                  />
-                </div>
-                <div className="premium-card-header">
-                  <div className="premium-card-icon-box">
-                    <goal.icon size={22} strokeWidth={1.75} />
+            {pillars.map((goal, idx) => {
+              const Icon = cmsIconForKey(goal.iconKey)
+              return (
+                <article key={goal.title} className="premium-card">
+                  <div className="premium-card-image-wrapper">
+                    <Image
+                      src={images.goals[idx % images.goals.length]}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes={cardImageSizes}
+                    />
                   </div>
-                </div>
-                <h3 className="premium-card-title">{goal.title}</h3>
-                <p className="premium-card-description">{goal.description}</p>
-                <Link href="/about" className="btn-secondary premium-card-cta">
-                  Our approach
-                </Link>
-              </article>
-            ))}
+                  <div className="premium-card-header">
+                    <div className="premium-card-icon-box">
+                      <Icon size={22} strokeWidth={1.75} />
+                    </div>
+                  </div>
+                  <h3 className="premium-card-title">{goal.title}</h3>
+                  <p className="premium-card-description">{goal.description}</p>
+                  <Link href="/about" className="btn-secondary premium-card-cta">
+                    Our approach
+                  </Link>
+                </article>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -231,23 +168,20 @@ export default async function Home() {
         <div className="page-section-container">
           <div className="section-header-split">
             <div>
-              <span className="section-badge">Sankofa Programs</span>
-              <h2 className="page-section-heading">Programs That Transform</h2>
-              <p className="page-body-text">
-                Six flagship initiatives developing whole persons — spiritually, academically, and
-                as community leaders.
-              </p>
+              <span className="section-badge">{cms['home.programs.badge']}</span>
+              <h2 className="page-section-heading">{cms['home.programs.heading']}</h2>
+              <p className="page-body-text">{cms['home.programs.lead']}</p>
             </div>
             <Link href="/programs" className="btn-outline page-section-cta-link">
               View all programs →
             </Link>
           </div>
           <div className="grid-cards">
-            {programs.map((prog, idx) => (
+            {sankofaPrograms.map((prog, idx) => (
               <article key={prog.title} className="premium-card">
                 <div className="premium-card-image-wrapper">
                   <Image
-                    src={images.programs[idx]}
+                    src={images.programs[idx % images.programs.length]}
                     alt=""
                     fill
                     className="object-cover"
@@ -274,17 +208,21 @@ export default async function Home() {
       <section className="page-section page-section--muted">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <span className="section-badge">Gatherings</span>
-            <h2 className="page-section-heading">Upcoming Events</h2>
-            <p className="page-body-text">
-              Festivals, workshops, and retreats that bring our mission to life across Ghana.
-            </p>
+            <span className="section-badge">{cms['home.events.badge']}</span>
+            <h2 className="page-section-heading">{cms['home.events.heading']}</h2>
+            <p className="page-body-text">{cms['home.events.lead']}</p>
           </div>
           <div className="grid-cards">
             {featuredEvents.map((event) => (
               <article key={event.slug} className="premium-card">
                 <div className="premium-card-image-wrapper">
-                  <Image src={event.image} alt={event.title} fill className="object-cover" sizes={cardImageSizes} />
+                  <Image
+                    src={event.image}
+                    alt={event.title}
+                    fill
+                    className="object-cover"
+                    sizes={cardImageSizes}
+                  />
                 </div>
                 <div className="premium-card-header">
                   <EventTypeIcon type={event.type} />
@@ -314,11 +252,9 @@ export default async function Home() {
       <section className="page-section bg-white">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <span className="section-badge">Impact</span>
-            <h2 className="page-section-heading">Stories From Our Community</h2>
-            <p className="page-body-text">
-              Voices from participants, alumni, and partners — the human face of our work.
-            </p>
+            <span className="section-badge">{cms['home.testimonials.badge']}</span>
+            <h2 className="page-section-heading">{cms['home.testimonials.heading']}</h2>
+            <p className="page-body-text">{cms['home.testimonials.lead']}</p>
           </div>
           <div className="grid-cards">
             {impactStories.map((story) => (
@@ -341,30 +277,28 @@ export default async function Home() {
       <section className="page-section page-section--muted">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <span className="section-badge">Sectors We Serve</span>
-            <h2 className="page-section-heading">Where We Work</h2>
-            <p className="page-body-text">
-              Bridging disciplines with one mission: dignity, development, and cultural excellence.
-            </p>
+            <span className="section-badge">{cms['home.sectors.badge']}</span>
+            <h2 className="page-section-heading">{cms['home.sectors.heading']}</h2>
+            <p className="page-body-text">{cms['home.sectors.lead']}</p>
           </div>
           <div className="grid-sectors sectors-grid">
-            {sectors.map((ind) => (
-              <div key={ind.name} className="sector-card">
-                <FeatureIcon icon={ind.icon} variant="gold" size={22} />
-                <p className="sector-name">{ind.name}</p>
-              </div>
-            ))}
+            {sectors.map((sector) => {
+              const Icon = cmsIconForKey(sector.iconKey)
+              return (
+                <div key={sector.name} className="sector-card">
+                  <FeatureIcon icon={Icon} variant="gold" size={22} />
+                  <p className="sector-name">{sector.name}</p>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
 
       <section className="page-cta-section">
         <div className="page-section-container page-cta-inner">
-          <h2 className="page-cta-heading">Begin Your Journey With Us</h2>
-          <p className="page-cta-body">
-            Whether you seek programs, partnership, or a way to give back — there is a place for you
-            at our table.
-          </p>
+          <h2 className="page-cta-heading">{cms['home.cta.heading']}</h2>
+          <p className="page-cta-body">{cms['home.cta.body']}</p>
           <div className="page-cta-buttons">
             <Link href="/programs" className="btn-primary page-cta-btn">
               Explore Programs

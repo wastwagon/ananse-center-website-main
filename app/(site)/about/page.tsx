@@ -1,201 +1,144 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import HeroSplit from '../../../components/HeroSplit'
+import { cmsIconForKey } from '../../../lib/cms-icons'
+import { renderSplitHeroTitle } from '../../../lib/cms/hero'
+import {
+  DEFAULT_ABOUT_APPROACH,
+  DEFAULT_ABOUT_HERO_CTA_PRIMARY,
+  DEFAULT_ABOUT_HERO_CTA_SECONDARY,
+  DEFAULT_ABOUT_HERO_STATS,
+  DEFAULT_ABOUT_HERO_TITLE,
+  DEFAULT_ABOUT_IMPACT_METRICS,
+  DEFAULT_ABOUT_PHILOSOPHY,
+  getCmsTexts,
+  parseCmsJson,
+  splitParagraphs,
+  type CmsApproachStep,
+  type CmsHeroCta,
+  type CmsHeroStat,
+  type CmsHeroTitle,
+  type CmsLabeledValue,
+  type CmsPhilosophyCard,
+} from '../../../lib/cms/content'
 import { cardImageSizes, images } from '../../../lib/images'
-import type { LucideIcon } from 'lucide-react'
-import { Globe, History, Palette, BookOpen, Sparkles, Globe2 } from 'lucide-react'
 
-const philosophies: { title: string; description: string; icon: LucideIcon }[] = [
-  {
-    title: 'Ubuntu Philosophy',
-    description:
-      'I am because we are. We believe in the interconnectedness of all people and the importance of community in personal and cultural development.',
-    icon: Globe,
-  },
-  {
-    title: 'Sankofa Principle',
-    description:
-      'Go back and fetch it. We honor the wisdom of our ancestors while moving forward, understanding that the past holds keys to our future.',
-    icon: History,
-  },
-  {
-    title: 'Restorative Arts',
-    description:
-      'Art as healing. We use creative expression as a tool for personal healing, community restoration, and cultural reclamation.',
-    icon: Palette,
-  },
-  {
-    title: 'Intergenerational Wisdom',
-    description:
-      'Knowledge flows through generations. We create spaces where elders and youth learn from each other in both directions.',
-    icon: BookOpen,
-  },
-  {
-    title: 'Cultural Innovation',
-    description:
-      'Tradition meets tomorrow. We believe cultural practices should evolve and adapt while maintaining their essential spirit.',
-    icon: Sparkles,
-  },
-  {
-    title: 'Global Localism',
-    description:
-      'Rooted locally, connected globally. We celebrate local traditions while recognizing our place in a global community.',
-    icon: Globe2,
-  },
-]
+export default async function About() {
+  const cms = await getCmsTexts([
+    'about.hero.lead',
+    'about.hero.title',
+    'about.hero.stats',
+    'about.hero.cta.primary',
+    'about.hero.cta.secondary',
+    'about.mission',
+    'about.mission.continuation',
+    'about.vision',
+    'about.philosophy.lead',
+    'about.philosophy',
+    'about.approach.lead',
+    'about.approach',
+    'about.impact.metrics',
+    'about.cta.heading',
+    'about.cta.body',
+  ] as const)
 
-const approaches = [
-  {
-    num: "1",
-    color: "#fff7ed",
-    text: "#b45309",
-    title: "Community-Led",
-    desc: "Our programs are developed in partnership with the communities we serve, ensuring cultural authenticity and community ownership."
-  },
-  {
-    num: "2",
-    color: "#f0fdf4",
-    text: "#15803d",
-    title: "Holistic Development",
-    desc: "We address the whole person—mind, body, and spirit—through integrated programs that combine arts, education, and wellness."
-  },
-  {
-    num: "3",
-    color: "#f8fafc",
-    text: "#334155",
-    title: "Intergenerational Connection",
-    desc: "We create opportunities for knowledge exchange between generations, strengthening cultural continuity and mutual understanding."
-  },
-  {
-    num: "4",
-    color: "#eff6ff",
-    text: "#1d4ed8",
-    title: "Accessibility & Inclusion",
-    desc: "We remove barriers to participation and create welcoming spaces for people of all backgrounds, abilities, and experiences."
-  }
-]
+  const heroTitle = parseCmsJson<CmsHeroTitle>(cms['about.hero.title'], DEFAULT_ABOUT_HERO_TITLE)
+  const heroStats = parseCmsJson<CmsHeroStat[]>(cms['about.hero.stats'], DEFAULT_ABOUT_HERO_STATS)
+  const heroPrimaryCta = parseCmsJson<CmsHeroCta>(cms['about.hero.cta.primary'], DEFAULT_ABOUT_HERO_CTA_PRIMARY)
+  const heroSecondaryCta = parseCmsJson<CmsHeroCta>(cms['about.hero.cta.secondary'], DEFAULT_ABOUT_HERO_CTA_SECONDARY)
+  const visionParagraphs = splitParagraphs(cms['about.vision'])
+  const philosophies = parseCmsJson<CmsPhilosophyCard[]>(
+    cms['about.philosophy'],
+    DEFAULT_ABOUT_PHILOSOPHY,
+  )
+  const approaches = parseCmsJson<CmsApproachStep[]>(cms['about.approach'], DEFAULT_ABOUT_APPROACH)
+  const impactMetrics = parseCmsJson<CmsLabeledValue[]>(
+    cms['about.impact.metrics'],
+    DEFAULT_ABOUT_IMPACT_METRICS,
+  )
 
-/* ════════════════════════════════════════════
-   PAGE
-════════════════════════════════════════════ */
-
-export default function About() {
   return (
     <div>
       <HeroSplit
         compact
         imageSrc={images.hero.about}
         imageAlt="Our story at The Ananse Center"
-        title={
-          <>
-            Our Story & <span className="text-accent">Mission</span>
-          </>
-        }
-        description="Rooted in tradition and reaching toward the future — a beacon for cultural preservation, healing, and Pan-African leadership in Ghana."
-        primaryCta={{ label: 'Explore Programs', href: '/programs' }}
-        secondaryCta={{ label: 'Visit Us', href: '/contact#form' }}
-        stats={[
-          { value: '2015', label: 'Year Founded' },
-          { value: '500+', label: 'Alumni & Participants' },
-          { value: '25+', label: 'Partner Organizations' },
-          { value: '6', label: 'Mission Pillars' },
-        ]}
+        title={renderSplitHeroTitle(heroTitle)}
+        description={cms['about.hero.lead']}
+        primaryCta={heroPrimaryCta}
+        secondaryCta={heroSecondaryCta}
+        stats={heroStats}
       />
 
-      {/* ─── Mission & Vision ─── */}
       <section className="page-section bg-white">
         <div className="page-section-container">
           <div className="two-col-section gap-xl">
-            {/* Mission */}
             <div>
               <h2 className="page-section-heading">Our Mission</h2>
               <div className="page-body-stack">
                 <p className="page-body-text" style={{ fontSize: '16px' }}>
-                  We exist to preserve, celebrate, and revitalize African cultural 
-                  heritage through transformative arts education and community engagement. 
-                  Our mission is to create spaces where identity is affirmed, stories 
-                  are honored, and connections are forged across generations and continents.
+                  {cms['about.mission']}
                 </p>
                 <p className="page-body-text" style={{ fontSize: '16px' }}>
-                  In a world where cultural erosion threatens the wisdom of our ancestors, 
-                  we stand as guardians of tradition while embracing innovation. We believe 
-                  that cultural knowledge is not static—it&apos;s a living, breathing force that 
-                  must be nurtured, shared, and evolved.
+                  {cms['about.mission.continuation']}
                 </p>
               </div>
             </div>
 
-            {/* Vision */}
             <div>
               <h2 className="page-section-heading">Our Vision</h2>
               <div className="page-body-stack">
-                <p className="page-body-text" style={{ fontSize: '16px' }}>
-                  We envision a world where African cultural heritage is not just preserved 
-                  but actively celebrated and integrated into contemporary life. Where every 
-                  individual, regardless of where they live, can access the richness of 
-                  African traditions and find their place within this vibrant tapestry.
-                </p>
-                <p className="page-body-text" style={{ fontSize: '16px' }}>
-                  Our vision extends beyond cultural preservation to cultural innovation—where 
-                  ancient wisdom informs modern creativity, and traditional practices inspire 
-                  contemporary solutions to global challenges.
-                </p>
+                {visionParagraphs.map((paragraph) => (
+                  <p key={paragraph.slice(0, 40)} className="page-body-text" style={{ fontSize: '16px' }}>
+                    {paragraph}
+                  </p>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── Philosophy ─── */}
       <section className="page-section bg-slate-50">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">Core Beliefs</span>
             <h2 className="page-section-heading">Our Cultural Philosophy</h2>
-            <p className="page-body-text">
-              Understanding the principles that guide our work and shape our community.
-            </p>
+            <p className="page-body-text">{cms['about.philosophy.lead']}</p>
           </div>
 
           <div className="grid-cards">
-            {philosophies.map((item, idx) => (
-              <article key={item.title} className="premium-card">
-                {/* ── Image Slot ── */}
-                <div className="premium-card-image-wrapper" style={{ height: '180px' }}>
-                  <Image 
-                    src={`/images/image (${idx + 7}).jpeg`} 
-                    alt={item.title} 
-                    fill
-                    className="object-cover"
-                    sizes={cardImageSizes}
-                  />
-                </div>
-
-                {/* ── Header ── */}
-                <div className="premium-card-header">
-                  <div className="premium-card-icon-box">
-                    <item.icon size={22} strokeWidth={1.75} />
+            {philosophies.map((item, idx) => {
+              const Icon = cmsIconForKey(item.iconKey)
+              return (
+                <article key={item.title} className="premium-card">
+                  <div className="premium-card-image-wrapper" style={{ height: '180px' }}>
+                    <Image
+                      src={`/images/image (${idx + 7}).jpeg`}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                      sizes={cardImageSizes}
+                    />
                   </div>
-                  <span className="premium-card-featured-label">Philosophy</span>
-                </div>
-
-                {/* ── Title ── */}
-                <h3 className="premium-card-title">{item.title}</h3>
-
-                {/* ── Body ── */}
-                <p className="premium-card-description">{item.description}</p>
-
-                {/* ── CTA ── */}
-                <Link href="/programs" className="btn-primary premium-card-cta">
-                  Explore Programs
-                </Link>
-              </article>
-            ))}
+                  <div className="premium-card-header">
+                    <div className="premium-card-icon-box">
+                      <Icon size={22} strokeWidth={1.75} />
+                    </div>
+                    <span className="premium-card-featured-label">Philosophy</span>
+                  </div>
+                  <h3 className="premium-card-title">{item.title}</h3>
+                  <p className="premium-card-description">{item.description}</p>
+                  <Link href="/programs" className="btn-primary premium-card-cta">
+                    Explore Programs
+                  </Link>
+                </article>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* ─── Our Approach ─── */}
       <section className="page-section bg-white">
         <div className="page-section-container">
           <div className="two-col-section">
@@ -203,32 +146,43 @@ export default function About() {
               <span className="section-badge">Methodology</span>
               <h2 className="page-section-heading">Our Approach</h2>
               <p className="page-body-text" style={{ marginBottom: '2.5rem' }}>
-                How we bring our mission to life through intentional, community-centered practices.
+                {cms['about.approach.lead']}
               </p>
-              
+
               <div className="flex-column" style={{ gap: '2rem' }}>
-                {approaches.map((app) => (
-                  <div key={app.title} style={{ display: 'flex', gap: '1.25rem' }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      backgroundColor: app.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      fontWeight: 700,
-                      color: app.text,
-                      fontSize: '14px'
-                    }}>
-                      {app.num}
+                {approaches.map((step) => (
+                  <div key={step.title} style={{ display: 'flex', gap: '1.25rem' }}>
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        backgroundColor: step.backgroundColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        fontWeight: 700,
+                        color: step.textColor,
+                        fontSize: '14px',
+                      }}
+                    >
+                      {step.num}
                     </div>
                     <div>
-                      <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1A1A1A', marginBottom: '4px' }}>
-                        {app.title}
+                      <h4
+                        style={{
+                          fontSize: '15px',
+                          fontWeight: 600,
+                          color: '#1A1A1A',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        {step.title}
                       </h4>
-                      <p className="page-body-text" style={{ fontSize: '14px', color: '#1A1A1A' }}>{app.desc}</p>
+                      <p className="page-body-text" style={{ fontSize: '14px', color: '#1A1A1A' }}>
+                        {step.description}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -236,52 +190,44 @@ export default function About() {
             </div>
 
             <article className="premium-card">
-               <div className="premium-card-header">
-                  <span className="premium-card-featured-label">Cultural Impact</span>
-               </div>
-               
-               <h3 className="premium-card-title" style={{ fontSize: '1.5rem', marginTop: '1rem' }}>
-                 Measuring Our Impact
-               </h3>
-               
-               <div className="flex-column" style={{ gap: '1rem', marginTop: '1rem' }}>
-                  {[
-                    { label: "Students Served", value: "500+", color: "#d97706" },
-                    { label: "Programs Active", value: "15+",  color: "#15803d" },
-                    { label: "Community Partners", value: "25+", color: "#0f172a" },
-                    { label: "Countries Connected", value: "15+", color: "#2563eb" },
-                  ].map((row) => (
-                    <div key={row.label} style={{
+              <div className="premium-card-header">
+                <span className="premium-card-featured-label">Cultural Impact</span>
+              </div>
+
+              <h3 className="premium-card-title" style={{ fontSize: '1.5rem', marginTop: '1rem' }}>
+                Measuring Our Impact
+              </h3>
+
+              <div className="flex-column" style={{ gap: '1rem', marginTop: '1rem' }}>
+                {impactMetrics.map((row) => (
+                  <div
+                    key={row.label}
+                    style={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       paddingBottom: '1rem',
-                      borderBottom: '1px solid #e2e8f0'
-                    }}>
-                      <span style={{ fontSize: '14px', color: '#1A1A1A' }}>{row.label}</span>
-                      <span style={{ fontSize: '16px', fontWeight: 700, color: '#1A1A1A' }}>{row.value}</span>
-                    </div>
-                  ))}
-               </div>
-               
-               <Link href="/support" className="btn-primary premium-card-cta" style={{ marginTop: '2.5rem' }}>
-                 Join Our Mission
-               </Link>
+                      borderBottom: '1px solid #e2e8f0',
+                    }}
+                  >
+                    <span style={{ fontSize: '14px', color: '#1A1A1A' }}>{row.label}</span>
+                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#1A1A1A' }}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Link href="/support" className="btn-primary premium-card-cta" style={{ marginTop: '2.5rem' }}>
+                Join Our Mission
+              </Link>
             </article>
           </div>
         </div>
       </section>
 
-      {/* ─── Final CTA ─── */}
       <section className="page-cta-section">
         <div className="page-section-container page-cta-inner">
-          <h2 className="page-cta-heading">Building a Legacy Together</h2>
-          <p className="page-cta-body">
-            Our story is still being written, and it&apos;s a story that belongs to all of us. 
-            Every person who walks through our doors, every program we offer, every connection 
-            we make adds a new chapter to this ongoing narrative of cultural preservation and 
-            community empowerment.
-          </p>
+          <h2 className="page-cta-heading">{cms['about.cta.heading']}</h2>
+          <p className="page-cta-body">{cms['about.cta.body']}</p>
           <div className="page-cta-buttons">
             <Link href="/contact#form" className="btn-primary page-cta-btn">
               Get Involved

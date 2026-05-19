@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { CONTENT_KEYS, CONTENT_REGISTRY, isContentKey } from '../../cms/registry.js'
 import { authenticateAdmin } from '../../plugins/admin-auth.js'
 import { prisma } from '../../lib/prisma.js'
 
@@ -10,6 +11,10 @@ const blockSchema = z.object({
   body: z.string().min(1),
   format: z.enum(['plain', 'markdown']).optional(),
   published: z.boolean().optional(),
+})
+
+const editSchema = blockSchema.omit({ key: true }).partial().extend({
+  body: z.string().min(1).optional(),
 })
 
 function mapBlock(block: {
@@ -39,6 +44,36 @@ function mapBlock(block: {
 export async function adminContentRoutes(app: FastifyInstance) {
   const guard = { preHandler: [authenticateAdmin] }
 
+  app.get('/api/v1/admin/content-blocks/registry', guard, async () => {
+    return {
+      data: CONTENT_KEYS.map((key) => ({
+        key,
+        ...CONTENT_REGISTRY[key],
+      })),
+    }
+  })
+
+  app.post('/api/v1/admin/content-blocks/sync', guard, async () => {
+    let created = 0
+    for (const key of CONTENT_KEYS) {
+      const entry = CONTENT_REGISTRY[key]
+      const existing = await prisma.contentBlock.findUnique({ where: { key } })
+      if (existing) continue
+      await prisma.contentBlock.create({
+        data: {
+          key,
+          label: entry.label,
+          section: entry.section,
+          body: entry.defaultBody,
+          format: entry.format ?? 'plain',
+          published: true,
+        },
+      })
+      created += 1
+    }
+    return { ok: true, created }
+  })
+
   app.get('/api/v1/admin/content-blocks', guard, async () => {
     const blocks = await prisma.contentBlock.findMany({
       orderBy: [{ section: 'asc' }, { label: 'asc' }],
@@ -59,18 +94,25 @@ export async function adminContentRoutes(app: FastifyInstance) {
     }
 
     const data = parsed.data
+    if (!isContentKey(data.key)) {
+      return reply.status(400).send({
+        error: 'Unknown content key. Use “Sync registry” or pick a key from the CMS registry.',
+      })
+    }
+
     const existing = await prisma.contentBlock.findUnique({ where: { key: data.key } })
     if (existing) {
       return reply.status(409).send({ error: 'A block with this key already exists' })
     }
 
+    const entry = CONTENT_REGISTRY[data.key]
     const block = await prisma.contentBlock.create({
       data: {
         key: data.key,
-        label: data.label,
-        section: data.section ?? 'general',
+        label: data.label || entry.label,
+        section: data.section ?? entry.section,
         body: data.body,
-        format: data.format ?? 'plain',
+        format: data.format ?? entry.format ?? 'plain',
         published: data.published ?? true,
       },
     })
@@ -79,7 +121,7 @@ export async function adminContentRoutes(app: FastifyInstance) {
   })
 
   app.patch<{ Params: { id: string } }>('/api/v1/admin/content-blocks/:id', guard, async (request, reply) => {
-    const parsed = blockSchema.partial().safeParse(request.body)
+    const parsed = editSchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: parsed.error.flatten() })
     }
@@ -88,14 +130,19 @@ export async function adminContentRoutes(app: FastifyInstance) {
     if (!existing) return reply.status(404).send({ error: 'Content block not found' })
 
     const data = parsed.data
-    if (data.key && data.key !== existing.key) {
-      const conflict = await prisma.contentBlock.findUnique({ where: { key: data.key } })
-      if (conflict) return reply.status(409).send({ error: 'A block with this key already exists' })
+    if (data.key !== undefined) {
+      return reply.status(400).send({ error: 'Content keys cannot be changed. Edit body only.' })
     }
 
     const block = await prisma.contentBlock.update({
       where: { id: existing.id },
-      data,
+      data: {
+        ...(data.label !== undefined ? { label: data.label } : {}),
+        ...(data.section !== undefined ? { section: data.section } : {}),
+        ...(data.body !== undefined ? { body: data.body } : {}),
+        ...(data.format !== undefined ? { format: data.format } : {}),
+        ...(data.published !== undefined ? { published: data.published } : {}),
+      },
     })
 
     return { data: mapBlock(block) }

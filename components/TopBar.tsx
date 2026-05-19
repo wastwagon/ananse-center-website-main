@@ -1,7 +1,15 @@
 'use client'
 
 import { Phone, Mail } from 'lucide-react'
-import { contact, social } from '../lib/site'
+import { contact as staticContact, site, social as defaultSocial } from '../lib/site'
+
+const defaultContact = { ...staticContact, address: site.address }
+import type { PublicSiteProfile } from '../lib/site-profile'
+
+type TopBarProps = {
+  contact?: PublicSiteProfile['contact']
+  social?: PublicSiteProfile['social']
+}
 
 function FacebookIcon() {
   return (
@@ -48,13 +56,16 @@ function YoutubeIcon() {
   )
 }
 
-const socialLinks = [
-  { href: social.facebook, label: 'Facebook', Icon: FacebookIcon },
-  { href: social.instagram, label: 'Instagram', Icon: InstagramIcon },
-  { href: social.youtube, label: 'YouTube', Icon: YoutubeIcon },
-] as const
+export default function TopBar({
+  contact = defaultContact,
+  social = defaultSocial,
+}: TopBarProps) {
+  const socialLinks = [
+    { href: social.facebook, label: 'Facebook', Icon: FacebookIcon },
+    { href: social.instagram, label: 'Instagram', Icon: InstagramIcon },
+    { href: social.youtube, label: 'YouTube', Icon: YoutubeIcon },
+  ] as const
 
-export default function TopBar() {
   return (
     <div className="topbar-root">
       <div className="topbar-container">

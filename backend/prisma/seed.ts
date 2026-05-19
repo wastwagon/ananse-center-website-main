@@ -1,4 +1,8 @@
 import { PrismaClient } from '@prisma/client'
+import { CONTENT_KEYS, CONTENT_REGISTRY } from '../src/cms/registry.js'
+import { EVENT_DETAIL_SEED } from '../src/cms/event-detail-seed.js'
+import { PROGRAMS_SEED } from '../src/cms/programs-seed.js'
+import { DEFAULT_IMPACT_STATS, DEFAULT_SITE_PROFILE } from '../src/cms/site-defaults.js'
 import { slugify } from '../src/lib/slug.js'
 import { hashPassword } from '../src/lib/password.js'
 
@@ -91,68 +95,119 @@ async function seedAdmin() {
   console.log(`Seeded admin user: ${email}`)
 }
 
-const contentBlocks = [
-  {
-    key: 'home.hero.lead',
-    label: 'Home hero description',
-    section: 'home',
-    body:
-      'Preserving heritage, restoring identity, and developing the next generation of Pan-African leaders through Sankofa arts and culture programs in Ghana and across the diaspora.',
-  },
-  {
-    key: 'home.story.intro',
-    label: 'Our story intro',
-    section: 'home',
-    body:
-      'The Ananse Center for Arts and Culture is a living space for African heritage, creativity, and leadership development.',
-  },
-  {
-    key: 'about.mission',
-    label: 'About mission statement',
-    section: 'about',
-    body:
-      'We weave wisdom into solutions by connecting cultural knowledge with practical programs that empower youth and communities.',
-  },
-]
-
 async function seedSiteSettings() {
   await prisma.siteSettings.upsert({
     where: { id: 'default' },
-    create: { id: 'default' },
+    create: {
+      id: 'default',
+      siteName: DEFAULT_SITE_PROFILE.siteName,
+      siteShortName: DEFAULT_SITE_PROFILE.siteShortName,
+      siteTagline: DEFAULT_SITE_PROFILE.siteTagline,
+      siteLocation: DEFAULT_SITE_PROFILE.siteLocation,
+      contactPhone: DEFAULT_SITE_PROFILE.contactPhone,
+      contactPhoneHref: DEFAULT_SITE_PROFILE.contactPhoneHref,
+      contactEmail: DEFAULT_SITE_PROFILE.contactEmail,
+      programsEmail: DEFAULT_SITE_PROFILE.programsEmail,
+      contactHours: DEFAULT_SITE_PROFILE.contactHours,
+      contactAddress: DEFAULT_SITE_PROFILE.contactAddress,
+      impactStats: [...DEFAULT_IMPACT_STATS],
+      socialFacebook: DEFAULT_SITE_PROFILE.socialFacebook,
+      socialInstagram: DEFAULT_SITE_PROFILE.socialInstagram,
+      socialYoutube: DEFAULT_SITE_PROFILE.socialYoutube,
+      socialTwitter: DEFAULT_SITE_PROFILE.socialTwitter,
+    },
     update: {},
   })
   console.log('Seeded site settings')
 }
 
 async function seedContentBlocks() {
-  for (const block of contentBlocks) {
+  for (const key of CONTENT_KEYS) {
+    const entry = CONTENT_REGISTRY[key]
     await prisma.contentBlock.upsert({
-      where: { key: block.key },
-      create: block,
+      where: { key },
+      create: {
+        key,
+        label: entry.label,
+        section: entry.section,
+        body: entry.defaultBody,
+        format: entry.format ?? 'plain',
+        published: true,
+      },
       update: {
-        label: block.label,
-        section: block.section,
-        body: block.body,
+        label: entry.label,
+        section: entry.section,
       },
     })
   }
-  console.log(`Seeded ${contentBlocks.length} content blocks`)
+  console.log(`Seeded ${CONTENT_KEYS.length} registry content blocks`)
+}
+
+async function seedEvents() {
+  for (const event of events) {
+    const slug = slugify(event.title)
+    const detail = EVENT_DETAIL_SEED[slug]
+    await prisma.event.upsert({
+      where: { slug },
+      create: {
+        ...event,
+        slug,
+        venue: detail?.venue ?? '',
+        storyTitle: detail?.storyTitle ?? null,
+        storyBody: detail?.storyBody ?? null,
+        highlights: detail?.highlights ?? [],
+      },
+      update: {
+        ...event,
+        venue: detail?.venue ?? '',
+        storyTitle: detail?.storyTitle ?? null,
+        storyBody: detail?.storyBody ?? null,
+        highlights: detail?.highlights ?? [],
+      },
+    })
+  }
+  console.log(`Seeded ${events.length} events`)
+}
+
+async function seedPrograms() {
+  for (const program of PROGRAMS_SEED) {
+    const slug = slugify(program.title)
+    await prisma.program.upsert({
+      where: { slug },
+      create: {
+        title: program.title,
+        slug,
+        description: program.description,
+        category: program.category,
+        section: program.section,
+        duration: program.duration,
+        level: program.level,
+        iconKey: program.iconKey,
+        features: [...program.features],
+        sortOrder: program.sortOrder,
+        published: true,
+      },
+      update: {
+        title: program.title,
+        description: program.description,
+        category: program.category,
+        section: program.section,
+        duration: program.duration,
+        level: program.level,
+        iconKey: program.iconKey,
+        features: [...program.features],
+        sortOrder: program.sortOrder,
+      },
+    })
+  }
+  console.log(`Seeded ${PROGRAMS_SEED.length} programs`)
 }
 
 async function main() {
   await seedSiteSettings()
   await seedContentBlocks()
-
-  for (const event of events) {
-    const slug = slugify(event.title)
-    await prisma.event.upsert({
-      where: { slug },
-      create: { ...event, slug },
-      update: event,
-    })
-  }
-
-  console.log(`Seeded ${events.length} events`)
+  await seedPrograms()
+  await seedEvents()
   await seedAdmin()
 }
 

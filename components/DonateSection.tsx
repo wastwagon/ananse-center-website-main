@@ -16,14 +16,16 @@ import {
 } from '../lib/donations'
 import { paystack } from '../lib/site'
 import { openPaystackCheckout } from '../lib/paystack-popup'
+import { DEFAULT_SUPPORT_DONATE_PRESETS, type CmsDonatePreset } from '../lib/cms/registry'
 
-const donationTiers = [
-  { amount: 50, label: 'Art Supplies' },
-  { amount: 100, label: 'Community Workshop' },
-  { amount: 250, label: 'Artisan Support' },
-  { amount: 500, label: 'Classroom Materials' },
-  { amount: 1000, label: 'Legacy Builder' },
-]
+const FALLBACK_DONATE_PRESETS = DEFAULT_SUPPORT_DONATE_PRESETS
+
+type DonateSectionProps = {
+  heading?: string
+  leadReady?: string
+  leadOffline?: string
+  presets?: CmsDonatePreset[]
+}
 
 const DONOR_STORAGE_KEY = 'ananse_donor'
 
@@ -32,7 +34,12 @@ type DonorDetails = {
   email: string
 }
 
-export default function DonateSection() {
+export default function DonateSection({
+  heading,
+  leadReady,
+  leadOffline,
+  presets = FALLBACK_DONATE_PRESETS,
+}: DonateSectionProps) {
   const [config, setConfig] = useState<DonationConfig | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -172,11 +179,13 @@ export default function DonateSection() {
     <section id="donate" className="page-section bg-slate-50">
       <div className="page-section-container">
         <div className="page-section-center-header">
-          <h2 className="page-section-heading">Ways to Give</h2>
+          <h2 className="page-section-heading">{heading ?? 'Ways to Give'}</h2>
           <p className="page-body-text">
             {paymentsReady
-              ? 'Give securely with Paystack — card, mobile money, and bank transfer where available.'
-              : 'Add your Paystack keys to enable secure online giving. You can still reach us to donate offline.'}
+              ? (leadReady ??
+                'Give securely with Paystack — card, mobile money, and bank transfer where available.')
+              : (leadOffline ??
+                'Add your Paystack keys to enable secure online giving. You can still reach us to donate offline.')}
           </p>
         </div>
 
@@ -214,7 +223,7 @@ export default function DonateSection() {
           </div>
 
           <div className="grid-cards donate-tier-grid">
-            {donationTiers.map((opt) => (
+            {presets.map((opt) => (
               <div key={opt.amount} className="program-card text-center donate-tier-card">
                 <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1A1A1A', marginBottom: '0.5rem' }}>
                   {symbol}

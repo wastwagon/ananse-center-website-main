@@ -1,24 +1,26 @@
 import Link from 'next/link'
 import { site } from '../../../lib/site'
+import { getCmsTexts } from '../../../lib/cms/content'
 
 export const metadata = {
   title: `Privacy Policy | ${site.shortName}`,
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const cms = await getCmsTexts([
+    'legal.badge',
+    'privacy.heading',
+    'privacy.lead',
+    'privacy.body',
+  ] as const)
+
   return (
     <div className="page-section bg-white">
       <div className="page-section-container legal-page">
-        <span className="section-badge">Legal</span>
-        <h1 className="page-section-heading">Privacy Policy</h1>
-        <p className="page-body-text legal-lead">
-          {site.name} respects your privacy. This page will be updated with our full policy before
-          public launch. For questions, contact us directly.
-        </p>
-        <p className="page-body-text">
-          We collect information you submit through contact forms and newsletter sign-ups solely to
-          respond to inquiries and share program updates. We do not sell personal data.
-        </p>
+        <span className="section-badge">{cms['legal.badge']}</span>
+        <h1 className="page-section-heading">{cms['privacy.heading']}</h1>
+        <p className="page-body-text legal-lead">{cms['privacy.lead']}</p>
+        <p className="page-body-text">{cms['privacy.body']}</p>
         <div className="legal-cta-row">
           <Link href="/contact#form" className="btn-primary page-inline-cta">
             Contact us

@@ -15,8 +15,12 @@ const emptyForm = {
   description: '',
   dateLabel: '',
   location: '',
+  venue: '',
   type: 'Festival',
   imageEmoji: '🎭',
+  storyTitle: '',
+  storyBody: '',
+  highlightsText: '',
   featured: false,
   published: true,
 }
@@ -58,8 +62,12 @@ export default function AdminEventsPage() {
       description: event.description,
       dateLabel: event.dateLabel,
       location: event.location,
+      venue: event.venue ?? '',
       type: event.type,
       imageEmoji: event.imageEmoji,
+      storyTitle: event.storyTitle ?? '',
+      storyBody: event.storyBody ?? '',
+      highlightsText: (event.highlights ?? []).join('\n'),
       featured: event.featured,
       published: event.published,
     })
@@ -70,10 +78,27 @@ export default function AdminEventsPage() {
     setSaving(true)
     setError(null)
     try {
+      const payload = {
+        title: form.title,
+        description: form.description,
+        dateLabel: form.dateLabel,
+        location: form.location,
+        venue: form.venue,
+        type: form.type,
+        imageEmoji: form.imageEmoji,
+        storyTitle: form.storyTitle || null,
+        storyBody: form.storyBody || null,
+        highlights: form.highlightsText
+          .split('\n')
+          .map((line) => line.trim())
+          .filter(Boolean),
+        featured: form.featured,
+        published: form.published,
+      }
       if (editingId === 'new') {
-        await createAdminEvent(form)
+        await createAdminEvent(payload)
       } else if (editingId) {
-        await updateAdminEvent(editingId, form)
+        await updateAdminEvent(editingId, payload)
       }
       setEditingId(null)
       setForm(emptyForm)
@@ -150,6 +175,14 @@ export default function AdminEventsPage() {
               />
             </div>
             <div className="admin-field">
+              <label htmlFor="venue">Venue</label>
+              <input
+                id="venue"
+                value={form.venue}
+                onChange={(e) => setForm({ ...form, venue: e.target.value })}
+              />
+            </div>
+            <div className="admin-field">
               <label htmlFor="type">Type</label>
               <input
                 id="type"
@@ -164,6 +197,34 @@ export default function AdminEventsPage() {
                 id="imageEmoji"
                 value={form.imageEmoji}
                 onChange={(e) => setForm({ ...form, imageEmoji: e.target.value })}
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="storyTitle">Story heading</label>
+              <input
+                id="storyTitle"
+                value={form.storyTitle}
+                onChange={(e) => setForm({ ...form, storyTitle: e.target.value })}
+                placeholder="Experience Highlights"
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="storyBody">Story body</label>
+              <textarea
+                id="storyBody"
+                rows={6}
+                value={form.storyBody}
+                onChange={(e) => setForm({ ...form, storyBody: e.target.value })}
+                placeholder="Long-form copy for the detail page. Separate paragraphs with a blank line."
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="highlightsText">Highlights (one per line)</label>
+              <textarea
+                id="highlightsText"
+                rows={4}
+                value={form.highlightsText}
+                onChange={(e) => setForm({ ...form, highlightsText: e.target.value })}
               />
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

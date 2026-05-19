@@ -7,6 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Program {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String   @db.Text
+  category    String
+  section     String   @default("catalog")
+  duration    String   @default("")
+  level       String   @default("")
+  iconKey     String   @default("BookOpen") @map("icon_key")
+  features    Json     @default("[]")
+  sortOrder   Int      @default(0) @map("sort_order")
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([section, published, sortOrder])
+  @@map("programs")
+}
+
 model Event {
   id          String   @id @default(cuid())
   title       String
@@ -14,8 +34,12 @@ model Event {
   description String   @db.Text
   dateLabel   String   @map("date_label")
   location    String
+  venue       String   @default("")
   type        String
   imageEmoji  String   @default("🎭") @map("image_emoji")
+  storyTitle  String?  @map("story_title")
+  storyBody   String?  @map("story_body") @db.Text
+  highlights  Json     @default("[]")
   featured    Boolean  @default(false)
   published   Boolean  @default(true)
   createdAt   DateTime @default(now()) @map("created_at")
@@ -61,6 +85,21 @@ model SiteSettings {
   maintenanceMode     Boolean  @default(false) @map("maintenance_mode")
   maintenanceTitle    String   @default("We'll be back soon") @map("maintenance_title")
   maintenanceMessage  String   @default("The Ananse Center website is undergoing scheduled updates. Thank you for your patience.") @map("maintenance_message") @db.Text
+  siteName            String   @default("The Ananse Center for Arts and Culture") @map("site_name")
+  siteShortName       String   @default("Ananse Center") @map("site_short_name")
+  siteTagline         String   @default("Weaving wisdom into solutions") @map("site_tagline")
+  siteLocation        String   @default("Accra, Ghana · West Africa") @map("site_location")
+  contactPhone        String   @default("+233 25 712 7205") @map("contact_phone")
+  contactPhoneHref    String   @default("tel:+233257127205") @map("contact_phone_href")
+  contactEmail        String   @default("info@anansecenter.org") @map("contact_email")
+  programsEmail       String   @default("programs@anansecenter.org") @map("programs_email")
+  contactHours        String   @default("Mon–Fri 9:00–17:00 · Sat 10:00–14:00") @map("contact_hours")
+  contactAddress      String   @default("The Ananse Center for Arts and Culture\nP.O. Box AN 1234\nAccra, Ghana") @map("contact_address") @db.Text
+  impactStats         Json     @default("[{\"value\":\"500+\",\"label\":\"Lives Impacted\"},{\"value\":\"50+\",\"label\":\"Programs Delivered\"},{\"value\":\"15+\",\"label\":\"Communities Reached\"},{\"value\":\"6\",\"label\":\"Mission Pillars\"}]") @map("impact_stats")
+  socialFacebook      String   @default("https://www.facebook.com/anansecenter") @map("social_facebook")
+  socialInstagram     String   @default("https://www.instagram.com/anansecenter") @map("social_instagram")
+  socialYoutube       String   @default("https://www.youtube.com/@anansecenter") @map("social_youtube")
+  socialTwitter       String   @default("https://twitter.com/anansecenter") @map("social_twitter")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")

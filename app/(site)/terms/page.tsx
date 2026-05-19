@@ -1,24 +1,21 @@
 import Link from 'next/link'
 import { site } from '../../../lib/site'
+import { getCmsTexts } from '../../../lib/cms/content'
 
 export const metadata = {
   title: `Terms of Service | ${site.shortName}`,
 }
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const cms = await getCmsTexts(['legal.badge', 'terms.heading', 'terms.lead', 'terms.body'] as const)
+
   return (
     <div className="page-section bg-white">
       <div className="page-section-container legal-page">
-        <span className="section-badge">Legal</span>
-        <h1 className="page-section-heading">Terms of Service</h1>
-        <p className="page-body-text legal-lead">
-          By using this website you agree to these terms. Full legal text will be published before
-          launch. Program participation is subject to separate registration agreements.
-        </p>
-        <p className="page-body-text">
-          Content on this site is for informational purposes. Images and stories represent our
-          mission; specific dates and offerings may change.
-        </p>
+        <span className="section-badge">{cms['legal.badge']}</span>
+        <h1 className="page-section-heading">{cms['terms.heading']}</h1>
+        <p className="page-body-text legal-lead">{cms['terms.lead']}</p>
+        <p className="page-body-text">{cms['terms.body']}</p>
         <div className="legal-cta-row">
           <Link href="/contact#form" className="btn-primary page-inline-cta">
             Contact us

@@ -4,6 +4,7 @@ import rateLimit from '@fastify/rate-limit'
 import { healthRoutes } from './routes/health.js'
 import { siteRoutes } from './routes/site.js'
 import { eventRoutes } from './routes/events.js'
+import { programRoutes } from './routes/programs.js'
 import { contactRoutes } from './routes/contact.js'
 import { newsletterRoutes } from './routes/newsletter.js'
 import { donationRoutes } from './routes/donations.js'
@@ -33,6 +34,7 @@ await app.register(rateLimit, {
 await app.register(healthRoutes)
 await app.register(siteRoutes)
 await app.register(eventRoutes)
+await app.register(programRoutes)
 await app.register(contactRoutes)
 await app.register(newsletterRoutes)
 await app.register(donationRoutes)
