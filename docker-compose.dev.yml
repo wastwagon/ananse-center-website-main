@@ -1,0 +1,131 @@
+# =============================================================================
+# Ananse Center — local development with HOT RELOAD
+#
+#   cp .env.example .env
+#   docker compose -f docker-compose.dev.yml up --build
+#
+# Site:  http://localhost:3035
+# API:   http://localhost:4035/api/v1/health
+# =============================================================================
+
+name: ananse-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ananse-db-dev
+    restart: unless-stopped
+    networks:
+      - ananse-dev
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ananse-redis-dev
+    restart: unless-stopped
+    networks:
+      - ananse-dev
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev.api
+    container_name: ananse-backend-dev
+    restart: unless-stopped
+    networks:
+      - ananse-dev
+    working_dir: /app
+    environment:
+      NODE_ENV: development
+      BACKEND_PORT: "4000"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      SKIP_PRISMA_SEED: ${SKIP_PRISMA_SEED:-false}
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
+      PAYSTACK_CURRENCY: ${PAYSTACK_CURRENCY:-GHS}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+      NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: ${NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY:-}
+      CHOKIDAR_USEPOLLING: "1"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-Site Administrator}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:-}
+      ADMIN_ALLOW_SYSTEM_OPS: ${ADMIN_ALLOW_SYSTEM_OPS:-true}
+    ports:
+      - "${BACKEND_PORT}:4000"
+    volumes:
+      - ./backend:/app
+      - api_node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["npm", "run", "dev"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4000/api/v1/health >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev.web
+    container_name: ananse-web-dev
+    restart: unless-stopped
+    networks:
+      - ananse-dev
+    working_dir: /app
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: ${NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY:-}
+      API_INTERNAL_URL: ${API_INTERNAL_URL}
+      RUNNING_IN_DOCKER: "true"
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "1"
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    volumes:
+      - .:/app
+      - web_node_modules:/app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+  web_node_modules:
+  api_node_modules:
+
+networks:
+  ananse-dev:
+    driver: bridge

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Thumbnails Generator</title>
+    <style>
+        :root {
+            --love-primary: #FF6B6B;
+            --love-secondary: #FFE066;
+            --love-background: #FFF5F5;
+            --love-accent: #FF8A80;
+
+            --integrity-primary: #4FC3F7;
+            --integrity-secondary: #A5D6A7;
+            --integrity-background: #E3F2FD;
+            --integrity-accent: #29B6F6;
+
+            --healing-primary: #7E57C2;
+            --healing-secondary: #FFAB91;
+            --healing-background: #F3E5F5;
+            --healing-accent: #BA68C8;
+
+            --excellence-primary: #FFB300;
+            --excellence-secondary: #FFFFFF;
+            --excellence-background: #FFF8E1;
+            --excellence-accent: #F57F17;
+
+            --learning-primary: #4DB6AC;
+            --learning-secondary: #FFCC80;
+            --learning-background: #E0F2F1;
+            --learning-accent: #26A69A;
+
+            --failure-primary: #78909C;
+            --failure-secondary: #FF7043;
+            --failure-background: #F5F5F5;
+            --failure-accent: #546E7A;
+
+            --success-primary: #66BB6A;
+            --success-secondary: #FFCA28;
+            --success-background: #E8F5E8;
+            --success-accent: #4CAF50;
+
+            --grace-primary: #81D4FA;
+            --grace-secondary: #E1BEE7;
+            --grace-background: #E3F2FD;
+            --grace-accent: #4FC3F7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .thumbnails-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        .thumbnail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .thumbnail-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            aspect-ratio: 16/9;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+        }
+
+        .thumbnail {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Abstract shapes */
+        .abstract-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(20px);
+            opacity: 0.8;
+            z-index: 1;
+        }
+
+        .triangle-shape {
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            border-radius: 0;
+        }
+
+        .wave-shape {
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+            height: 60%;
+            width: 120%;
+            top: 20%;
+            left: -10%;
+        }
+
+        .lines-shape {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 50%, transparent 50%);
+            background-size: 40px 100%;
+            width: 100%;
+            height: 100%;
+            opacity: 0.6;
+        }
+
+        .gradient-shape {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+            opacity: 0.9;
+        }
+
+        /* Text content */
+        .text-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            opacity: 0.9;
+        }
+
+        /* Color themes */
+        .theme-love .thumbnail {
+            background-color: var(--love-background);
+        }
+
+        .theme-love .title {
+            color: var(--love-primary);
+        }
+
+        .theme-love .subtitle {
+            color: var(--love-secondary);
+        }
+
+        .theme-love .abstract-shape {
+            background-color: var(--love-accent);
+        }
+
+        .theme-integrity .thumbnail {
+            background-color: var(--integrity-background);
+        }
+
+        .theme-integrity .title {
+            color: var(--integrity-primary);
+        }
+
+        .theme-integrity .subtitle {
+            color: var(--integrity-secondary);
+        }
+
+        .theme-integrity .abstract-shape {
+            background-color: var(--integrity-accent);
+        }
+
+        .theme-healing .thumbnail {
+            background-color: var(--healing-background);
+        }
+
+        .theme-healing .title {
+            color: var(--healing-primary);
+        }
+
+        .theme-healing .subtitle {
+            color: var(--healing-secondary);
+        }
+
+        .theme-healing .abstract-shape {
+            background-color: var(--healing-accent);
+        }
+
+        .theme-excellence .thumbnail {
+            background-color: var(--excellence-background);
+        }
+
+        .theme-excellence .title {
+            color: var(--excellence-primary);
+        }
+
+        .theme-excellence .subtitle {
+            color: var(--excellence-secondary);
+        }
+
+        .theme-excellence .abstract-shape {
+            background-color: var(--excellence-accent);
+        }
+
+        .theme-learning .thumbnail {
+            background-color: var(--learning-background);
+        }
+
+        .theme-learning .title {
+            color: var(--learning-primary);
+        }
+
+        .theme-learning .subtitle {
+            color: var(--learning-secondary);
+        }
+
+        .theme-learning .abstract-shape {
+            background-color: var(--learning-accent);
+        }
+
+        .theme-failure .thumbnail {
+            background-color: var(--failure-background);
+        }
+
+        .theme-failure .title {
+            color: var(--failure-primary);
+        }
+
+        .theme-failure .subtitle {
+            color: var(--failure-secondary);
+        }
+
+        .theme-failure .abstract-shape {
+            background-color: var(--failure-accent);
+        }
+
+        .theme-success .thumbnail {
+            background-color: var(--success-background);
+        }
+
+        .theme-success .title {
+            color: var(--success-primary);
+        }
+
+        .theme-success .subtitle {
+            color: var(--success-secondary);
+        }
+
+        .theme-success .abstract-shape {
+            background-color: var(--success-accent);
+        }
+
+        .theme-grace .thumbnail {
+            background-color: var(--grace-background);
+        }
+
+        .theme-grace .title {
+            color: var(--grace-primary);
+        }
+
+        .theme-grace .subtitle {
+            color: var(--grace-secondary);
+        }
+
+        .theme-grace .abstract-shape {
+            background-color: var(--grace-accent);
+        }
+
+        /* Positioning */
+        .shape-left {
+            left: -10%;
+            top: 10%;
+            width: 60%;
+            height: 80%;
+        }
+
+        .shape-right {
+            right: -10%;
+            top: 10%;
+            width: 60%;
+            height: 80%;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 32px;
+            }
+
+            .subtitle {
+                font-size: 18px;
+            }
+
+            .shape-left,
+            .shape-right {
+                width: 80%;
+                height: 60%;
+                left: -20%;
+                right: -20%;
+            }
+        }
+
+        .download-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .download-btn:hover {
+            background: #555;
+        }
+
+        .instructions {
+            max-width: 800px;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Professional YouTube Thumbnails</h1>
+
+    <div class="instructions">
+        <p>These 8 thumbnails are designed with a modern, clean, and minimalistic style.
+            Each features soft complementary color palettes, bold readable typography, and
+            abstract symbolic imagery relevant to the topic. All thumbnails are 16:9 aspect ratio
+            and optimized for professional use.</p>
+    </div>
+
+    <div class="thumbnails-container">
+        <!-- Thumbnail 1: Marriage & Relationships -->
+        <div class="thumbnail-card">
+            <div class="thumbnail-wrapper">
+                <div class="thumbnail theme-love">
+                    <div class="abstract-shape shape-right"
+                        style="background: radial-gradient(circle, var(--love-accent), transparent 70%);"></div>
+                    <div class="text-content">
+                        <h2 class="title">MARRIAGE & RELATIONSHIPS</h2>
+                        <p class="subtitle">Love, Partnership & Connection</p>
+                    </div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadThumbnail('marriage-relationships')">Download PNG</button>
+        </div>
+
+        <!-- Thumbnail 2: The Mindset of Integrity -->
+        <div class="thumbnail-card">
+            <div class="thumbnail-wrapper">
+                <div class="thumbnail theme-integrity">
+                    <div class="abstract-shape shape-left gradient-shape"></div>
+                    <div class="text-content">
+                        <h2 class="title">THE MINDSET OF INTEGRITY</h2>
+                        <p class="subtitle">Honesty & Values</p>
+                    </div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadThumbnail('integrity')">Download PNG</button>
+        </div>
+
+        <!-- Thumbnail 3: Healed Wounds But Ugly Scars -->
+        <div class="thumbnail-card">
+            <div class="thumbnail-wrapper">
+                <div class="thumbnail theme-healing">
+                    <div class="abstract-shape shape-left wave-shape"></div>
+                    <div class="text-content">
+                        <h2 class="title">HEALED WOUNDS BUT UGLY SCARS</h2>
+                        <p class="subtitle">Emotional Healing & Resilience</p>
+                    </div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadThumbnail('healing')">Download PNG</button>
+        </div>
+
+        <!-- Thumbnail 4: The Need for Excellence -->
+        <div class="thumbnail-card">
+            <div class="thumbnail-wrapper">
+                <div class="thumbnail theme-excellence">
+                    <div class="abstract-shape shape-right triangle-shape"></div>
+                    <div class="text-content">
+                        <h2 class="title">THE NEED FOR EXCELLENCE</h2>
+                        <p class="subtitle">Achievement & Success</p>
+                    </div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadThumbnail('excellence')">Download PNG</button>
+        </div>
+
+        <!-- Thumbnail 5: Empowering Minds, Shaping Futures -->
+        <div class="thumbnail-card">
+            <div class="thumbnail-wrapper">
+                <div class="thumbnail theme-learning">
+                    <div class="abstract-shape shape-left lines-shape"></div>
+                    <div class="text-content">
+                        <h2 class="title">EMPOWERING MINDS, SHAPING FUTURES</h2>
+                        <p class="subtitle">UEW Lecture Series 2025</p>
+                    </div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadThumbnail('learning')">Download PNG</button>
+        </div>
+
+        <!-- Thumbnail 6: The Mindset of Failure -->
+        <div class="thumbnail-card">
+            <div class="thumbnail-wrapper">
+                <div class="thumbnail theme-failure">
+                    <div class="abstract-shape shape-right gradient-shape"></div>
+                    <div class="text-content">
+                        <h2 class="title">THE MINDSET OF FAILURE</h2>
+                        <p class="subtitle">Learning & Growth</p>
+                    </div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadThumbnail('failure')">Download PNG</button>
+        </div>
+
+        <!-- Thumbnail 7: Top of the Top Ten -->
+        <div class="thumbnail-card">
+            <div class="thumbnail-wrapper">
+                <div class="thumbnail theme-success">
+                    <div class="abstract-shape shape-left triangle-shape"></div>
+                    <div class="text-content">
+                        <h2 class="title">TOP OF THE TOP TEN</h2>
+                        <p class="subtitle">ALIVE Nigeria, MEC 2019</p>
+                    </div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadThumbnail('success')">Download PNG</button>
+        </div>
+
+        <!-- Thumbnail 8: Uncomfortable Grace -->
+        <div class="thumbnail-card">
+            <div class="thumbnail-wrapper">
+                <div class="thumbnail theme-grace">
+                    <div class="abstract-shape shape-right"
+                        style="background: radial-gradient(circle, var(--grace-accent), transparent 70%);"></div>
+                    <div class="text-content">
+                        <h2 class="title">UNCOMFORTABLE GRACE</h2>
+                        <p class="subtitle">Grace & Challenge</p>
+                    </div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadThumbnail('grace')">Download PNG</button>
+        </div>
+    </div>
+
+    <script>
+        function downloadThumbnail(name) {
+            // Create a canvas element
+            const canvas = document.createElement('canvas');
+            canvas.width = 1280;
+            canvas.height = 720;
+            const ctx = canvas.getContext('2d');
+
+            // Get the thumbnail element
+            const thumbnail = document.querySelector(`.thumbnail.${name === 'marriage-relationships' ? 'theme-love' :
+                name === 'integrity' ? 'theme-integrity' :
+                    name === 'healing' ? 'theme-healing' :
+                        name === 'excellence' ? 'theme-excellence' :
+                            name === 'learning' ? 'theme-learning' :
+                                name === 'failure' ? 'theme-failure' :
+                                    name === 'success' ? 'theme-success' : 'theme-grace'}`);
+
+            if (!thumbnail) {
+                alert('Thumbnail not found');
+                return;
+            }
+
+            // Create an image from the thumbnail
+            const rect = thumbnail.getBoundingClientRect();
+            const dataURL = thumbnail.toDataURL('image/png');
+
+            const img = new Image();
+            img.onload = function () {
+                ctx.fillStyle = getComputedStyle(thumbnail).backgroundColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw the thumbnail content
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // Add text
+                const title = thumbnail.querySelector('.title').textContent;
+                const subtitle = thumbnail.querySelector('.subtitle').textContent;
+                const titleColor = getComputedStyle(thumbnail.querySelector('.title')).color;
+                const subtitleColor = getComputedStyle(thumbnail.querySelector('.subtitle')).color;
+
+                ctx.fillStyle = titleColor;
+                ctx.font = 'bold 64px Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Wrap title text
+                const titleLines = wrapText(ctx, title, canvas.width * 0.8);
+                const titleY = canvas.height * 0.3;
+
+                titleLines.forEach((line, index) => {
+                    const y = titleY + (index * 74);
+                    ctx.fillText(line, canvas.width / 2, y);
+                });
+
+                ctx.fillStyle = subtitleColor;
+                ctx.font = '600 28px Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+                ctx.fillText(subtitle, canvas.width / 2, canvas.height * 0.7);
+
+                // Download
+                const link = document.createElement('a');
+                link.download = `${name}-thumbnail.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+            img.src = dataURL;
+        }
+
+        function wrapText(ctx, text, maxWidth) {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                const word = words[i];
+                const width = ctx.measureText(currentLine + ' ' + word).width;
+                if (width < maxWidth) {
+                    currentLine += ' ' + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+    </script>
+</body>
+
+</html>

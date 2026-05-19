@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String   @db.Text
+  dateLabel   String   @map("date_label")
+  location    String
+  type        String
+  imageEmoji  String   @default("🎭") @map("image_emoji")
+  featured    Boolean  @default(false)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("events")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  status    String   @default("new")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contact_messages")
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("newsletter_subscribers")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_users")
+}
+
+model SiteSettings {
+  id                  String   @id @default("default")
+  maintenanceMode     Boolean  @default(false) @map("maintenance_mode")
+  maintenanceTitle    String   @default("We'll be back soon") @map("maintenance_title")
+  maintenanceMessage  String   @default("The Ananse Center website is undergoing scheduled updates. Thank you for your patience.") @map("maintenance_message") @db.Text
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model ContentBlock {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  section     String   @default("general")
+  body        String   @db.Text
+  format      String   @default("plain")
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("content_blocks")
+}
+
+model Donation {
+  id          String    @id @default(cuid())
+  reference   String    @unique
+  email       String
+  donorName   String?   @map("donor_name")
+  amount      Int
+  currency    String    @default("GHS")
+  label       String?
+  status      String    @default("pending")
+  paystackRef String?   @map("paystack_ref")
+  channel     String?
+  paidAt      DateTime? @map("paid_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("donations")
+}
