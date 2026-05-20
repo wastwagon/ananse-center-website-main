@@ -18,7 +18,15 @@ type ContactPageClientProps = {
   heroStats: CmsHeroStat[]
   heroPrimaryCta: CmsHeroCta
   heroSecondaryCta: CmsHeroCta
+  formHeading: string
+  formSubjects: string[]
+  mapHeading: string
+  mapSubtitle: string
+  visitHeading: string
+  visitLinkText: string
+  infoTitles: string[]
   visitBlurb: string
+  ctaHeading: string
   ctaBody: string
   profile: PublicSiteProfile
 }
@@ -29,26 +37,31 @@ export default function ContactPageClient({
   heroStats,
   heroPrimaryCta,
   heroSecondaryCta,
+  formHeading,
+  formSubjects,
+  mapHeading,
+  mapSubtitle,
+  visitHeading,
+  visitLinkText,
+  infoTitles,
   visitBlurb,
+  ctaHeading,
   ctaBody,
   profile,
 }: ContactPageClientProps) {
   const { contact, social } = profile
 
-  const contactInfo: { title: string; desc: string; icon: LucideIcon }[] = [
-    { title: 'Our Location', desc: contact.address, icon: MapPin },
-    {
-      title: 'Email Us',
-      desc: `${contact.email}\n${contact.programsEmail}`,
-      icon: Mail,
-    },
-    { title: 'Call Us', desc: contact.phone, icon: Phone },
-    { title: 'Office Hours', desc: contact.hours, icon: Clock },
-  ]
+  const infoIcons: LucideIcon[] = [MapPin, Mail, Phone, Clock]
+  const infoDescriptions = [contact.address, `${contact.email}\n${contact.programsEmail}`, contact.phone, contact.hours]
+  const contactInfo: { title: string; desc: string; icon: LucideIcon }[] = infoTitles.map((title, index) => ({
+    title,
+    desc: infoDescriptions[index] ?? '',
+    icon: infoIcons[index] ?? MapPin,
+  }))
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [subject, setSubject] = useState('General Inquiry')
+  const [subject, setSubject] = useState(formSubjects[0] ?? 'General Inquiry')
   const [message, setMessage] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [feedback, setFeedback] = useState('')
@@ -64,7 +77,7 @@ export default function ContactPageClient({
       setFeedback(result.message)
       setName('')
       setEmail('')
-      setSubject('General Inquiry')
+      setSubject(formSubjects[0] ?? 'General Inquiry')
       setMessage('')
     } catch (error) {
       setStatus('error')
@@ -110,7 +123,7 @@ export default function ContactPageClient({
               <div className="insight-card-bar" />
               <div className="insight-card-body p-20">
                 <h2 className="page-section-heading" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>
-                  Send Us a Message
+                  {formHeading}
                 </h2>
                 <form onSubmit={handleSubmit}>
                   <div className="contact-form-grid">
@@ -145,10 +158,9 @@ export default function ContactPageClient({
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
                     >
-                      <option>General Inquiry</option>
-                      <option>Programs & Classes</option>
-                      <option>Partnerships</option>
-                      <option>Volunteering</option>
+                      {formSubjects.map((option) => (
+                        <option key={option}>{option}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -196,15 +208,15 @@ export default function ContactPageClient({
                 <div className="text-center" style={{ position: 'relative', zIndex: 1 }}>
                   <span style={{ fontSize: '4rem', marginBottom: '1rem', display: 'block' }}>🗺️</span>
                   <h4 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1A1A1A', marginBottom: '4px' }}>
-                    Find Us In Accra
+                    {mapHeading}
                   </h4>
-                  <p style={{ fontSize: '13px', color: '#1A1A1A' }}>Interactive Map Coming Soon</p>
+                  <p style={{ fontSize: '13px', color: '#1A1A1A' }}>{mapSubtitle}</p>
                 </div>
               </div>
 
               <div className="about-mini-card">
                 <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1A1A1A', marginBottom: '8px' }}>
-                  Planning a Visit?
+                  {visitHeading}
                 </h4>
                 <p className="page-body-text" style={{ fontSize: '13px' }}>
                   {visitBlurb}
@@ -214,7 +226,7 @@ export default function ContactPageClient({
                   className="program-card-link"
                   style={{ fontSize: '12px', display: 'inline-block', marginTop: '1rem' }}
                 >
-                  Learn more about our center →
+                  {visitLinkText}
                 </Link>
               </div>
             </div>
@@ -224,7 +236,7 @@ export default function ContactPageClient({
 
       <section className="page-cta-section">
         <div className="page-section-container page-cta-inner">
-          <h2 className="page-cta-heading">Stay Connected</h2>
+          <h2 className="page-cta-heading">{ctaHeading}</h2>
           <p className="page-cta-body">{ctaBody}</p>
           <div className="page-cta-buttons">
             <a

@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import HeroPremium from '../../components/HeroPremium'
-import type { CmsHeroCta, CmsHeroStat, CmsHomeHeroTitle } from '../../lib/cms/registry'
 import FeatureIcon from '../../components/FeatureIcon'
 import EventTypeIcon from '../../components/EventTypeIcon'
 import { cmsIconForKey } from '../../lib/cms-icons'
@@ -14,12 +13,16 @@ import {
   DEFAULT_HOME_HERO_CTA_PRIMARY,
   DEFAULT_HOME_HERO_CTA_SECONDARY,
   DEFAULT_HOME_HERO_STATS,
+  DEFAULT_HOME_CTA_BUTTONS,
   DEFAULT_HOME_HERO_TITLE,
   DEFAULT_HOME_STORY_HIGHLIGHTS,
   DEFAULT_HOME_TESTIMONIALS,
   getCmsTexts,
   parseCmsJson,
   splitParagraphs,
+  type CmsHeroCta,
+  type CmsHeroStat,
+  type CmsHomeHeroTitle,
   type CmsPillar,
   type CmsSector,
   type CmsStoryHighlight,
@@ -58,6 +61,14 @@ export default async function Home() {
       'home.sectors',
       'home.cta.heading',
       'home.cta.body',
+      'home.cta.buttons',
+      'home.story.cta',
+      'home.pillars.cardCta',
+      'home.programs.link',
+      'home.programs.cardLabel',
+      'home.programs.cardCta',
+      'home.events.cardCta',
+      'home.events.calendarLink',
     ] as const),
     getFeaturedEventsForHome(),
     getSankofaProgramsForHome(),
@@ -69,6 +80,7 @@ export default async function Home() {
     cms['home.hero.cta.secondary'],
     DEFAULT_HOME_HERO_CTA_SECONDARY,
   )
+  const homeCtaButtons = parseCmsJson<CmsHeroCta[]>(cms['home.cta.buttons'], DEFAULT_HOME_CTA_BUTTONS)
   const storyParagraphs = splitParagraphs(cms['home.story'])
   const storyHighlights = parseCmsJson<CmsStoryHighlight[]>(
     cms['home.story.highlights'],
@@ -105,7 +117,7 @@ export default async function Home() {
                 ))}
               </div>
               <Link href="/about" className="btn-primary page-inline-cta">
-                Read Our Mission
+                {cms['home.story.cta']}
               </Link>
             </div>
             <div className="about-visual-card">
@@ -155,7 +167,7 @@ export default async function Home() {
                   <h3 className="premium-card-title">{goal.title}</h3>
                   <p className="premium-card-description">{goal.description}</p>
                   <Link href="/about" className="btn-secondary premium-card-cta">
-                    Our approach
+                    {cms['home.pillars.cardCta']}
                   </Link>
                 </article>
               )
@@ -173,7 +185,7 @@ export default async function Home() {
               <p className="page-body-text">{cms['home.programs.lead']}</p>
             </div>
             <Link href="/programs" className="btn-outline page-section-cta-link">
-              View all programs →
+              {cms['home.programs.link']}
             </Link>
           </div>
           <div className="grid-cards">
@@ -192,12 +204,12 @@ export default async function Home() {
                   <div className="premium-card-icon-box">
                     <prog.icon size={22} strokeWidth={1.75} />
                   </div>
-                  <span className="premium-card-featured-label">Sankofa</span>
+                  <span className="premium-card-featured-label">{cms['home.programs.cardLabel']}</span>
                 </div>
                 <h3 className="premium-card-title">{prog.title}</h3>
                 <p className="premium-card-description">{prog.description}</p>
                 <Link href={prog.href} className="btn-primary premium-card-cta">
-                  Program details
+                  {cms['home.programs.cardCta']}
                 </Link>
               </article>
             ))}
@@ -236,14 +248,14 @@ export default async function Home() {
                 </div>
                 <p className="premium-card-description">{event.description}</p>
                 <Link href={`/events/${event.slug}`} className="btn-primary premium-card-cta">
-                  Event details
+                  {cms['home.events.cardCta']}
                 </Link>
               </article>
             ))}
           </div>
           <p className="text-center" style={{ marginTop: '2.5rem' }}>
             <Link href="/events" className="btn-outline">
-              View full calendar
+              {cms['home.events.calendarLink']}
             </Link>
           </p>
         </div>
@@ -300,15 +312,15 @@ export default async function Home() {
           <h2 className="page-cta-heading">{cms['home.cta.heading']}</h2>
           <p className="page-cta-body">{cms['home.cta.body']}</p>
           <div className="page-cta-buttons">
-            <Link href="/programs" className="btn-primary page-cta-btn">
-              Explore Programs
-            </Link>
-            <Link href="/contact#form" className="btn-outline-white page-cta-btn">
-              Get in Touch
-            </Link>
-            <Link href="/support" className="btn-outline-white page-cta-btn">
-              Donate Today
-            </Link>
+            {homeCtaButtons.map((btn, index) => (
+              <Link
+                key={btn.label}
+                href={btn.href}
+                className={index === 0 ? 'btn-primary page-cta-btn' : 'btn-outline-white page-cta-btn'}
+              >
+                {btn.label}
+              </Link>
+            ))}
           </div>
         </div>
       </section>

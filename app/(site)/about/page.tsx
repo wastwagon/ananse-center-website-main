@@ -30,22 +30,43 @@ export default async function About() {
     'about.hero.stats',
     'about.hero.cta.primary',
     'about.hero.cta.secondary',
+    'about.mission.heading',
+    'about.vision.heading',
     'about.mission',
     'about.mission.continuation',
     'about.vision',
+    'about.philosophy.badge',
+    'about.philosophy.heading',
+    'about.philosophy.cardLabel',
+    'about.philosophy.cardCta',
     'about.philosophy.lead',
     'about.philosophy',
+    'about.approach.badge',
+    'about.approach.heading',
     'about.approach.lead',
     'about.approach',
+    'about.impact.cardBadge',
+    'about.impact.cardHeading',
+    'about.impact.cardCta',
     'about.impact.metrics',
     'about.cta.heading',
     'about.cta.body',
+    'about.cta.primary',
+    'about.cta.secondary',
   ] as const)
 
   const heroTitle = parseCmsJson<CmsHeroTitle>(cms['about.hero.title'], DEFAULT_ABOUT_HERO_TITLE)
   const heroStats = parseCmsJson<CmsHeroStat[]>(cms['about.hero.stats'], DEFAULT_ABOUT_HERO_STATS)
   const heroPrimaryCta = parseCmsJson<CmsHeroCta>(cms['about.hero.cta.primary'], DEFAULT_ABOUT_HERO_CTA_PRIMARY)
   const heroSecondaryCta = parseCmsJson<CmsHeroCta>(cms['about.hero.cta.secondary'], DEFAULT_ABOUT_HERO_CTA_SECONDARY)
+  const aboutCtaPrimary = parseCmsJson<CmsHeroCta>(
+    cms['about.cta.primary'],
+    { label: 'Get Involved', href: '/contact#form' },
+  )
+  const aboutCtaSecondary = parseCmsJson<CmsHeroCta>(
+    cms['about.cta.secondary'],
+    { label: 'Support Our Work', href: '/support' },
+  )
   const visionParagraphs = splitParagraphs(cms['about.vision'])
   const philosophies = parseCmsJson<CmsPhilosophyCard[]>(
     cms['about.philosophy'],
@@ -74,7 +95,7 @@ export default async function About() {
         <div className="page-section-container">
           <div className="two-col-section gap-xl">
             <div>
-              <h2 className="page-section-heading">Our Mission</h2>
+              <h2 className="page-section-heading">{cms['about.mission.heading']}</h2>
               <div className="page-body-stack">
                 <p className="page-body-text" style={{ fontSize: '16px' }}>
                   {cms['about.mission']}
@@ -86,7 +107,7 @@ export default async function About() {
             </div>
 
             <div>
-              <h2 className="page-section-heading">Our Vision</h2>
+              <h2 className="page-section-heading">{cms['about.vision.heading']}</h2>
               <div className="page-body-stack">
                 {visionParagraphs.map((paragraph) => (
                   <p key={paragraph.slice(0, 40)} className="page-body-text" style={{ fontSize: '16px' }}>
@@ -102,8 +123,8 @@ export default async function About() {
       <section className="page-section bg-slate-50">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <span className="section-badge">Core Beliefs</span>
-            <h2 className="page-section-heading">Our Cultural Philosophy</h2>
+            <span className="section-badge">{cms['about.philosophy.badge']}</span>
+            <h2 className="page-section-heading">{cms['about.philosophy.heading']}</h2>
             <p className="page-body-text">{cms['about.philosophy.lead']}</p>
           </div>
 
@@ -125,12 +146,12 @@ export default async function About() {
                     <div className="premium-card-icon-box">
                       <Icon size={22} strokeWidth={1.75} />
                     </div>
-                    <span className="premium-card-featured-label">Philosophy</span>
+                    <span className="premium-card-featured-label">{cms['about.philosophy.cardLabel']}</span>
                   </div>
                   <h3 className="premium-card-title">{item.title}</h3>
                   <p className="premium-card-description">{item.description}</p>
                   <Link href="/programs" className="btn-primary premium-card-cta">
-                    Explore Programs
+                    {cms['about.philosophy.cardCta']}
                   </Link>
                 </article>
               )
@@ -143,8 +164,8 @@ export default async function About() {
         <div className="page-section-container">
           <div className="two-col-section">
             <div className="max-w-md">
-              <span className="section-badge">Methodology</span>
-              <h2 className="page-section-heading">Our Approach</h2>
+              <span className="section-badge">{cms['about.approach.badge']}</span>
+              <h2 className="page-section-heading">{cms['about.approach.heading']}</h2>
               <p className="page-body-text" style={{ marginBottom: '2.5rem' }}>
                 {cms['about.approach.lead']}
               </p>
@@ -191,11 +212,11 @@ export default async function About() {
 
             <article className="premium-card">
               <div className="premium-card-header">
-                <span className="premium-card-featured-label">Cultural Impact</span>
+                <span className="premium-card-featured-label">{cms['about.impact.cardBadge']}</span>
               </div>
 
               <h3 className="premium-card-title" style={{ fontSize: '1.5rem', marginTop: '1rem' }}>
-                Measuring Our Impact
+                {cms['about.impact.cardHeading']}
               </h3>
 
               <div className="flex-column" style={{ gap: '1rem', marginTop: '1rem' }}>
@@ -217,7 +238,7 @@ export default async function About() {
               </div>
 
               <Link href="/support" className="btn-primary premium-card-cta" style={{ marginTop: '2.5rem' }}>
-                Join Our Mission
+                {cms['about.impact.cardCta']}
               </Link>
             </article>
           </div>
@@ -229,11 +250,11 @@ export default async function About() {
           <h2 className="page-cta-heading">{cms['about.cta.heading']}</h2>
           <p className="page-cta-body">{cms['about.cta.body']}</p>
           <div className="page-cta-buttons">
-            <Link href="/contact#form" className="btn-primary page-cta-btn">
-              Get Involved
+            <Link href={aboutCtaPrimary.href} className="btn-primary page-cta-btn">
+              {aboutCtaPrimary.label}
             </Link>
-            <Link href="/support" className="btn-outline-white page-cta-btn">
-              Support Our Work
+            <Link href={aboutCtaSecondary.href} className="btn-outline-white page-cta-btn">
+              {aboutCtaSecondary.label}
             </Link>
           </div>
         </div>

@@ -178,6 +178,25 @@ const VIDEOS_HERO_STATS_DEFAULT: CmsHeroStat[] = [
 const VIDEOS_HERO_CTA_PRIMARY_DEFAULT: CmsHeroCta = { label: 'Get in Touch', href: '/contact#form' }
 const VIDEOS_HERO_CTA_SECONDARY_DEFAULT: CmsHeroCta = { label: 'View Events', href: '/events' }
 
+const HOME_CTA_BUTTONS_DEFAULT: CmsHeroCta[] = [
+  { label: 'Explore Programs', href: '/programs' },
+  { label: 'Get in Touch', href: '/contact#form' },
+  { label: 'Donate Today', href: '/support#donate' },
+]
+
+const CONTACT_INFO_TITLES_DEFAULT = ['Our Location', 'Email Us', 'Call Us', 'Office Hours']
+
+const CONTACT_FORM_SUBJECTS_DEFAULT = [
+  'General Inquiry',
+  'Programs & Classes',
+  'Partnerships',
+  'Volunteering',
+]
+
+const EVENTS_DETAIL_HIGHLIGHTS_FALLBACK_DEFAULT = [
+  'Join us for an unforgettable gathering at The Ananse Center.',
+]
+
 const HOME_PILLARS_DEFAULT: CmsPillar[] = [
   {
     iconKey: 'Sprout',
@@ -601,6 +620,57 @@ export const CONTENT_REGISTRY = {
     defaultBody:
       'Whether you seek programs, partnership, or a way to give back — there is a place for you at our table.',
   },
+  'home.cta.buttons': {
+    label: 'Home — bottom CTA buttons (JSON)',
+    section: 'home',
+    hint: 'JSON array: [{ "label", "href" }]',
+    defaultBody: JSON.stringify(HOME_CTA_BUTTONS_DEFAULT, null, 2),
+  },
+  'home.story.cta': {
+    label: 'Home — story section link',
+    section: 'home',
+    defaultBody: 'Read Our Mission',
+  },
+  'home.pillars.cardCta': {
+    label: 'Home — pillar card link',
+    section: 'home',
+    defaultBody: 'Our approach',
+  },
+  'home.programs.link': {
+    label: 'Home — programs section link',
+    section: 'home',
+    defaultBody: 'View all programs →',
+  },
+  'home.programs.cardLabel': {
+    label: 'Home — program card badge',
+    section: 'home',
+    defaultBody: 'Sankofa',
+  },
+  'home.programs.cardCta': {
+    label: 'Home — program card link',
+    section: 'home',
+    defaultBody: 'Program details',
+  },
+  'home.events.cardCta': {
+    label: 'Home — event card link',
+    section: 'home',
+    defaultBody: 'Event details',
+  },
+  'home.events.calendarLink': {
+    label: 'Home — events calendar link',
+    section: 'home',
+    defaultBody: 'View full calendar',
+  },
+  'about.mission.heading': {
+    label: 'About — mission heading',
+    section: 'about',
+    defaultBody: 'Our Mission',
+  },
+  'about.vision.heading': {
+    label: 'About — vision heading',
+    section: 'about',
+    defaultBody: 'Our Vision',
+  },
   'about.mission': {
     label: 'About — mission summary',
     section: 'about',
@@ -650,17 +720,62 @@ export const CONTENT_REGISTRY = {
     defaultBody:
       'We envision a world where African cultural heritage is not just preserved but actively celebrated and integrated into contemporary life. Where every individual, regardless of where they live, can access the richness of African traditions and find their place within this vibrant tapestry.\n\nOur vision extends beyond cultural preservation to cultural innovation—where ancient wisdom informs modern creativity, and traditional practices inspire contemporary solutions to global challenges.',
   },
+  'about.philosophy.badge': {
+    label: 'About — philosophy section badge',
+    section: 'about',
+    defaultBody: 'Core Beliefs',
+  },
+  'about.philosophy.heading': {
+    label: 'About — philosophy section heading',
+    section: 'about',
+    defaultBody: 'Our Cultural Philosophy',
+  },
+  'about.philosophy.cardLabel': {
+    label: 'About — philosophy card badge',
+    section: 'about',
+    defaultBody: 'Philosophy',
+  },
+  'about.philosophy.cardCta': {
+    label: 'About — philosophy card link',
+    section: 'about',
+    defaultBody: 'Explore Programs',
+  },
   'about.philosophy.lead': {
     label: 'About — philosophy section intro',
     section: 'about',
     defaultBody:
       'Understanding the principles that guide our work and shape our community.',
   },
+  'about.approach.badge': {
+    label: 'About — approach section badge',
+    section: 'about',
+    defaultBody: 'Methodology',
+  },
+  'about.approach.heading': {
+    label: 'About — approach section heading',
+    section: 'about',
+    defaultBody: 'Our Approach',
+  },
   'about.approach.lead': {
     label: 'About — approach section intro',
     section: 'about',
     defaultBody:
       'How we bring our mission to life through intentional, community-centered practices.',
+  },
+  'about.impact.cardBadge': {
+    label: 'About — impact card badge',
+    section: 'about',
+    defaultBody: 'Cultural Impact',
+  },
+  'about.impact.cardHeading': {
+    label: 'About — impact card heading',
+    section: 'about',
+    defaultBody: 'Measuring Our Impact',
+  },
+  'about.impact.cardCta': {
+    label: 'About — impact card link',
+    section: 'about',
+    defaultBody: 'Join Our Mission',
   },
   'about.philosophy': {
     label: 'About — philosophy cards (JSON)',
@@ -692,6 +807,18 @@ export const CONTENT_REGISTRY = {
     defaultBody:
       "Our story is still being written, and it's a story that belongs to all of us. Every person who walks through our doors, every program we offer, every connection we make adds a new chapter to this ongoing narrative of cultural preservation and community empowerment.",
   },
+  'about.cta.primary': {
+    label: 'About — bottom CTA primary (JSON)',
+    section: 'about',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Get Involved', href: '/contact#form' }, null, 2),
+  },
+  'about.cta.secondary': {
+    label: 'About — bottom CTA secondary (JSON)',
+    section: 'about',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Support Our Work', href: '/support' }, null, 2),
+  },
   'programs.hero.lead': {
     label: 'Programs — hero description',
     section: 'programs',
@@ -722,11 +849,62 @@ export const CONTENT_REGISTRY = {
     hint: 'JSON: { "label", "href" }',
     defaultBody: JSON.stringify(PROGRAMS_HERO_CTA_SECONDARY_DEFAULT, null, 2),
   },
+  'programs.catalog.heading': {
+    label: 'Programs — catalog heading',
+    section: 'programs',
+    defaultBody: 'Find Your Path',
+  },
   'programs.catalog.lead': {
     label: 'Programs — catalog intro',
     section: 'programs',
     defaultBody:
       'Explore our diverse range of programs designed for all ages and experience levels.',
+  },
+  'programs.benefits.badge': {
+    label: 'Programs — benefits section badge',
+    section: 'programs',
+    defaultBody: 'Why Join Us?',
+  },
+  'programs.benefits.heading': {
+    label: 'Programs — benefits section heading',
+    section: 'programs',
+    defaultBody: 'Program Benefits',
+  },
+  'programs.benefits.cardLabel': {
+    label: 'Programs — benefit card badge',
+    section: 'programs',
+    defaultBody: 'Benefit',
+  },
+  'programs.testimonials.badge': {
+    label: 'Programs — testimonials section badge',
+    section: 'programs',
+    defaultBody: 'Voices of Transformation',
+  },
+  'programs.testimonials.heading': {
+    label: 'Programs — testimonials section heading',
+    section: 'programs',
+    defaultBody: 'Student Experiences',
+  },
+  'programs.card.cta.primary': {
+    label: 'Programs — catalog card primary link',
+    section: 'programs',
+    defaultBody: 'Apply Now',
+  },
+  'programs.card.cta.secondary': {
+    label: 'Programs — catalog card secondary link',
+    section: 'programs',
+    defaultBody: 'Learn More',
+  },
+  'programs.cta.primary': {
+    label: 'Programs — bottom CTA primary (JSON)',
+    section: 'programs',
+    hint: 'JSON: { "label", "href" } — use href "#catalog" for in-page scroll handled in UI',
+    defaultBody: JSON.stringify({ label: 'View All Programs', href: '/programs#catalog' }, null, 2),
+  },
+  'programs.cta.secondary': {
+    label: 'Programs — bottom CTA secondary (JSON)',
+    section: 'programs',
+    defaultBody: JSON.stringify({ label: 'Apply Now', href: '/contact#form' }, null, 2),
   },
   'programs.benefits.lead': {
     label: 'Programs — benefits intro',
@@ -808,6 +986,47 @@ export const CONTENT_REGISTRY = {
     section: 'programs',
     defaultBody:
       "Whether you're looking to learn a new skill, connect with your heritage, or simply explore the richness of African culture, there's a program waiting for you.",
+  },
+  'events.detail.storyTitleDefault': {
+    label: 'Events — detail default story heading',
+    section: 'events',
+    defaultBody: 'Experience Highlights',
+  },
+  'events.detail.highlightsHeading': {
+    label: 'Events — detail highlights heading',
+    section: 'events',
+    defaultBody: 'Experience Highlights',
+  },
+  'events.detail.highlightsFallback': {
+    label: 'Events — detail highlights fallback (JSON)',
+    section: 'events',
+    hint: 'JSON array of strings when event has no highlights',
+    defaultBody: JSON.stringify(EVENTS_DETAIL_HIGHLIGHTS_FALLBACK_DEFAULT, null, 2),
+  },
+  'events.detail.whenLabel': {
+    label: 'Events — detail when label',
+    section: 'events',
+    defaultBody: 'When',
+  },
+  'events.detail.whereLabel': {
+    label: 'Events — detail where label',
+    section: 'events',
+    defaultBody: 'Where',
+  },
+  'events.detail.reserveCta': {
+    label: 'Events — detail reserve button (JSON)',
+    section: 'events',
+    defaultBody: JSON.stringify({ label: 'Reserve Your Place', href: '/contact#form' }, null, 2),
+  },
+  'events.detail.questionsPrefix': {
+    label: 'Events — detail questions prefix',
+    section: 'events',
+    defaultBody: 'Have questions?',
+  },
+  'events.detail.contactLinkText': {
+    label: 'Events — detail contact link text',
+    section: 'events',
+    defaultBody: 'Contact our team',
   },
   'events.hero.lead': {
     label: 'Events — hero description',
@@ -940,11 +1159,26 @@ export const CONTENT_REGISTRY = {
     hint: 'JSON: { "label", "href" }',
     defaultBody: JSON.stringify(SUPPORT_HERO_CTA_SECONDARY_DEFAULT, null, 2),
   },
+  'support.impact.badge': {
+    label: 'Support — impact section badge',
+    section: 'support',
+    defaultBody: 'Where Your Gift Goes',
+  },
+  'support.impact.heading': {
+    label: 'Support — impact section heading',
+    section: 'support',
+    defaultBody: 'Your Impact',
+  },
   'support.impact.lead': {
     label: 'Support — impact section intro',
     section: 'support',
     defaultBody:
       'Every contribution, no matter the size, helps us create meaningful change in the lives of students, artists, and communities across the continent.',
+  },
+  'support.beyond.heading': {
+    label: 'Support — beyond donations heading',
+    section: 'support',
+    defaultBody: 'Beyond Financial Support',
   },
   'support.donation.tiers': {
     label: 'Support — donation impact tiers (JSON)',
@@ -1036,6 +1270,48 @@ export const CONTENT_REGISTRY = {
     section: 'support',
     hint: 'JSON array: [{ "amount": number, "label": "short name" }]. Amount is in GHS (or site currency).',
     defaultBody: JSON.stringify(SUPPORT_DONATE_PRESETS_DEFAULT, null, 2),
+  },
+  'contact.form.heading': {
+    label: 'Contact — form heading',
+    section: 'contact',
+    defaultBody: 'Send Us a Message',
+  },
+  'contact.form.subjects': {
+    label: 'Contact — form subject options (JSON)',
+    section: 'contact',
+    hint: 'JSON array of strings',
+    defaultBody: JSON.stringify(CONTACT_FORM_SUBJECTS_DEFAULT, null, 2),
+  },
+  'contact.map.heading': {
+    label: 'Contact — map placeholder heading',
+    section: 'contact',
+    defaultBody: 'Find Us In Accra',
+  },
+  'contact.map.subtitle': {
+    label: 'Contact — map placeholder subtitle',
+    section: 'contact',
+    defaultBody: 'Interactive Map Coming Soon',
+  },
+  'contact.visit.heading': {
+    label: 'Contact — visit card heading',
+    section: 'contact',
+    defaultBody: 'Planning a Visit?',
+  },
+  'contact.visit.linkText': {
+    label: 'Contact — visit card link',
+    section: 'contact',
+    defaultBody: 'Learn more about our center →',
+  },
+  'contact.info.titles': {
+    label: 'Contact — info card titles (JSON)',
+    section: 'contact',
+    hint: 'JSON array of 4 strings: location, email, phone, hours',
+    defaultBody: JSON.stringify(CONTACT_INFO_TITLES_DEFAULT, null, 2),
+  },
+  'contact.cta.heading': {
+    label: 'Contact — bottom CTA heading',
+    section: 'contact',
+    defaultBody: 'Stay Connected',
   },
   'contact.hero.lead': {
     label: 'Contact — hero description',
@@ -1234,3 +1510,7 @@ export const DEFAULT_VIDEOS_HERO_TITLE = VIDEOS_HERO_TITLE_DEFAULT
 export const DEFAULT_VIDEOS_HERO_STATS = VIDEOS_HERO_STATS_DEFAULT
 export const DEFAULT_VIDEOS_HERO_CTA_PRIMARY = VIDEOS_HERO_CTA_PRIMARY_DEFAULT
 export const DEFAULT_VIDEOS_HERO_CTA_SECONDARY = VIDEOS_HERO_CTA_SECONDARY_DEFAULT
+export const DEFAULT_HOME_CTA_BUTTONS = HOME_CTA_BUTTONS_DEFAULT
+export const DEFAULT_CONTACT_INFO_TITLES = CONTACT_INFO_TITLES_DEFAULT
+export const DEFAULT_CONTACT_FORM_SUBJECTS = CONTACT_FORM_SUBJECTS_DEFAULT
+export const DEFAULT_EVENTS_DETAIL_HIGHLIGHTS_FALLBACK = EVENTS_DETAIL_HIGHLIGHTS_FALLBACK_DEFAULT

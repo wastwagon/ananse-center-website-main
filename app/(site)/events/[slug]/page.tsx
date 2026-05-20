@@ -4,7 +4,13 @@ import { notFound } from 'next/navigation'
 import { Calendar, MapPin } from 'lucide-react'
 import { fetchEventBySlug } from '../../../../lib/api'
 import { eventImageForSlug } from '../../../../lib/images'
-import { splitParagraphs } from '../../../../lib/cms/content'
+import {
+  DEFAULT_EVENTS_DETAIL_HIGHLIGHTS_FALLBACK,
+  getCmsTexts,
+  parseCmsJson,
+  splitParagraphs,
+  type CmsHeroCta,
+} from '../../../../lib/cms/content'
 
 export default async function EventDetailPage({
   params,
@@ -12,20 +18,37 @@ export default async function EventDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const event = await fetchEventBySlug(slug)
+  const [event, cms] = await Promise.all([
+    fetchEventBySlug(slug),
+    getCmsTexts([
+      'events.detail.storyTitleDefault',
+      'events.detail.highlightsHeading',
+      'events.detail.highlightsFallback',
+      'events.detail.whenLabel',
+      'events.detail.whereLabel',
+      'events.detail.reserveCta',
+      'events.detail.questionsPrefix',
+      'events.detail.contactLinkText',
+    ] as const),
+  ])
 
   if (!event) {
     notFound()
   }
 
-  const storyTitle = event.storyTitle?.trim() || 'Experience Highlights'
+  const storyTitle = event.storyTitle?.trim() || cms['events.detail.storyTitleDefault']
   const storyParagraphs = event.storyBody?.trim()
     ? splitParagraphs(event.storyBody)
     : splitParagraphs(event.description)
-  const highlights =
-    event.highlights.length > 0
-      ? event.highlights
-      : ['Join us for an unforgettable gathering at The Ananse Center.']
+  const highlightsFallback = parseCmsJson<string[]>(
+    cms['events.detail.highlightsFallback'],
+    DEFAULT_EVENTS_DETAIL_HIGHLIGHTS_FALLBACK,
+  )
+  const highlights = event.highlights.length > 0 ? event.highlights : highlightsFallback
+  const reserveCta = parseCmsJson<CmsHeroCta>(cms['events.detail.reserveCta'], {
+    label: 'Reserve Your Place',
+    href: '/contact#form',
+  })
 
   return (
     <div className="min-h-screen bg-white pb-20 font-body">
@@ -74,11 +97,15 @@ export default async function EventDetailPage({
 
           <div className="grid-cards mb-12">
             <div className="p-6 rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">When</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                {cms['events.detail.whenLabel']}
+              </h3>
               <p className="text-[#1A1A1A] text-lg font-medium">{event.date}</p>
             </div>
             <div className="p-6 rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Where</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                {cms['events.detail.whereLabel']}
+              </h3>
               <p className="text-[#1A1A1A] text-lg font-medium">{event.location}</p>
               {event.venue ? (
                 <p className="text-slate-500 mt-1 text-sm">{event.venue}</p>
@@ -87,7 +114,9 @@ export default async function EventDetailPage({
           </div>
 
           <div className="mb-16">
-            <h3 className="text-2xl font-bold text-[#1A1A1A] mb-6 font-heading">Experience Highlights</h3>
+            <h3 className="text-2xl font-bold text-[#1A1A1A] mb-6 font-heading">
+              {cms['events.detail.highlightsHeading']}
+            </h3>
             <ul className="space-y-4">
               {highlights.map((highlight) => (
                 <li key={highlight} className="flex items-start gap-4 group">
@@ -101,13 +130,13 @@ export default async function EventDetailPage({
           </div>
 
           <div className="text-center pt-10 border-t border-slate-100 mt-10">
-            <Link href="/contact#form" className="btn-primary hero-cta-primary">
-              Reserve Your Place
+            <Link href={reserveCta.href} className="btn-primary hero-cta-primary">
+              {reserveCta.label}
             </Link>
             <p className="mt-6 text-sm text-slate-500">
-              Have questions?{' '}
+              {cms['events.detail.questionsPrefix']}{' '}
               <Link href="/contact#form" className="text-accent font-medium hover:underline">
-                Contact our team
+                {cms['events.detail.contactLinkText']}
               </Link>
             </p>
           </div>

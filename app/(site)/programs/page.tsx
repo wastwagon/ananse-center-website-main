@@ -72,7 +72,17 @@ export default async function ProgramsPage() {
       'programs.hero.stats',
       'programs.hero.cta.primary',
       'programs.hero.cta.secondary',
+      'programs.catalog.heading',
       'programs.catalog.lead',
+      'programs.benefits.badge',
+      'programs.benefits.heading',
+      'programs.benefits.cardLabel',
+      'programs.testimonials.badge',
+      'programs.testimonials.heading',
+      'programs.card.cta.primary',
+      'programs.card.cta.secondary',
+      'programs.cta.primary',
+      'programs.cta.secondary',
       'programs.benefits.lead',
       'programs.benefits',
       'programs.testimonials',
@@ -89,6 +99,14 @@ export default async function ProgramsPage() {
     cms['programs.hero.cta.secondary'],
     DEFAULT_PROGRAMS_HERO_CTA_SECONDARY,
   )
+  const ctaPrimary = parseCmsJson<CmsHeroCta>(
+    cms['programs.cta.primary'],
+    { label: 'View All Programs', href: '/programs#catalog' },
+  )
+  const ctaSecondary = parseCmsJson<CmsHeroCta>(
+    cms['programs.cta.secondary'],
+    { label: 'Apply Now', href: '/contact#form' },
+  )
   const benefits = parseCmsJson<ProgramBenefit[]>(cms['programs.benefits'], DEFAULT_PROGRAM_BENEFITS)
   const testimonials = parseCmsJson<ProgramTestimonial[]>(
     cms['programs.testimonials'],
@@ -102,7 +120,17 @@ export default async function ProgramsPage() {
       heroStats={heroStats}
       heroPrimaryCta={heroPrimaryCta}
       heroSecondaryCta={heroSecondaryCta}
+      catalogHeading={cms['programs.catalog.heading']}
       catalogLead={cms['programs.catalog.lead']}
+      benefitsBadge={cms['programs.benefits.badge']}
+      benefitsHeading={cms['programs.benefits.heading']}
+      benefitsCardLabel={cms['programs.benefits.cardLabel']}
+      testimonialsBadge={cms['programs.testimonials.badge']}
+      testimonialsHeading={cms['programs.testimonials.heading']}
+      cardCtaPrimary={cms['programs.card.cta.primary']}
+      cardCtaSecondary={cms['programs.card.cta.secondary']}
+      ctaPrimary={ctaPrimary}
+      ctaSecondary={ctaSecondary}
       benefitsLead={cms['programs.benefits.lead']}
       benefits={benefits}
       testimonials={testimonials}

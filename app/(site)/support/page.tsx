@@ -36,7 +36,10 @@ export default async function SupportPage() {
     'support.hero.stats',
     'support.hero.cta.primary',
     'support.hero.cta.secondary',
+    'support.impact.badge',
+    'support.impact.heading',
     'support.impact.lead',
+    'support.beyond.heading',
     'support.donation.tiers',
     'support.other.ways',
     'support.beyond.lead',
@@ -96,8 +99,8 @@ export default async function SupportPage() {
       <section className="page-section bg-white">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <span className="section-badge">Where Your Gift Goes</span>
-            <h2 className="page-section-heading">Your Impact</h2>
+            <span className="section-badge">{cms['support.impact.badge']}</span>
+            <h2 className="page-section-heading">{cms['support.impact.heading']}</h2>
             <p className="page-body-text">{cms['support.impact.lead']}</p>
           </div>
 
@@ -134,7 +137,7 @@ export default async function SupportPage() {
       <section className="page-section bg-white">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <h2 className="page-section-heading">Beyond Financial Support</h2>
+            <h2 className="page-section-heading">{cms['support.beyond.heading']}</h2>
             <p className="page-body-text">{cms['support.beyond.lead']}</p>
           </div>
 

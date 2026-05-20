@@ -29,7 +29,17 @@ type ProgramsPageClientProps = {
   heroStats: CmsHeroStat[]
   heroPrimaryCta: CmsHeroCta
   heroSecondaryCta: CmsHeroCta
+  catalogHeading: string
   catalogLead: string
+  benefitsBadge: string
+  benefitsHeading: string
+  benefitsCardLabel: string
+  testimonialsBadge: string
+  testimonialsHeading: string
+  cardCtaPrimary: string
+  cardCtaSecondary: string
+  ctaPrimary: CmsHeroCta
+  ctaSecondary: CmsHeroCta
   benefitsLead: string
   benefits: ProgramBenefit[]
   testimonials: ProgramTestimonial[]
@@ -44,7 +54,17 @@ export default function ProgramsPageClient({
   heroStats,
   heroPrimaryCta,
   heroSecondaryCta,
+  catalogHeading,
   catalogLead,
+  benefitsBadge,
+  benefitsHeading,
+  benefitsCardLabel,
+  testimonialsBadge,
+  testimonialsHeading,
+  cardCtaPrimary,
+  cardCtaSecondary,
+  ctaPrimary,
+  ctaSecondary,
   benefitsLead,
   benefits,
   testimonials,
@@ -78,7 +98,7 @@ export default function ProgramsPageClient({
       <section id="catalog" className="page-section bg-white py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <h2 className="page-section-heading">Find Your Path</h2>
+            <h2 className="page-section-heading">{catalogHeading}</h2>
             <p className="page-body-text">{catalogLead}</p>
           </div>
 
@@ -168,7 +188,7 @@ export default function ProgramsPageClient({
                   ) : null}
                   <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
                     <Link href="/contact#form" className="btn-primary premium-card-cta" style={{ flex: 1 }}>
-                      Apply Now
+                      {cardCtaPrimary}
                     </Link>
                     <Link
                       href="/contact#form"
@@ -185,7 +205,7 @@ export default function ProgramsPageClient({
                         color: '#1A1A1A',
                       }}
                     >
-                      Learn More
+                      {cardCtaSecondary}
                     </Link>
                   </div>
                 </article>
@@ -198,8 +218,8 @@ export default function ProgramsPageClient({
       <section className="page-section bg-slate-50 py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <span className="section-badge">Why Join Us?</span>
-            <h2 className="page-section-heading">Program Benefits</h2>
+            <span className="section-badge">{benefitsBadge}</span>
+            <h2 className="page-section-heading">{benefitsHeading}</h2>
             <p className="page-body-text">{benefitsLead}</p>
           </div>
           <div className="grid-cards">
@@ -220,7 +240,7 @@ export default function ProgramsPageClient({
                   <div className="premium-card-icon-box">
                     <BenefitIcon size={22} strokeWidth={1.75} />
                   </div>
-                  <span className="premium-card-featured-label">Benefit</span>
+                  <span className="premium-card-featured-label">{benefitsCardLabel}</span>
                 </div>
                 <h3 className="premium-card-title">{benefit.title}</h3>
                 <p className="premium-card-description">{benefit.description}</p>
@@ -234,8 +254,8 @@ export default function ProgramsPageClient({
       <section className="page-section bg-white py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <span className="section-badge">Voices of Transformation</span>
-            <h2 className="page-section-heading">Student Experiences</h2>
+            <span className="section-badge">{testimonialsBadge}</span>
+            <h2 className="page-section-heading">{testimonialsHeading}</h2>
           </div>
           <div className="grid-cards">
             {testimonials.map((t) => (
@@ -268,10 +288,10 @@ export default function ProgramsPageClient({
                 document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })
               }}
             >
-              View All Programs
+              {ctaPrimary.label}
             </button>
-            <Link href="/contact#form" className="btn-outline-white page-cta-btn">
-              Apply Now
+            <Link href={ctaSecondary.href} className="btn-outline-white page-cta-btn">
+              {ctaSecondary.label}
             </Link>
           </div>
         </div>
