@@ -1,8 +1,17 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { CONTENT_KEYS, CONTENT_REGISTRY, isContentKey } from '../../cms/registry.js'
+import {
+  CONTENT_KEYS,
+  CONTENT_REGISTRY,
+  type ContentRegistryEntry,
+  isContentKey,
+} from '../../cms/registry.js'
 import { authenticateAdmin } from '../../plugins/admin-auth.js'
 import { prisma } from '../../lib/prisma.js'
+
+function registryFormat(entry: ContentRegistryEntry): 'plain' | 'markdown' {
+  return entry.format ?? 'plain'
+}
 
 const blockSchema = z.object({
   key: z.string().min(2).max(120).regex(/^[a-z0-9._-]+$/),
@@ -65,7 +74,7 @@ export async function adminContentRoutes(app: FastifyInstance) {
           label: entry.label,
           section: entry.section,
           body: entry.defaultBody,
-          format: entry.format ?? 'plain',
+          format: registryFormat(entry),
           published: true,
         },
       })
@@ -112,7 +121,7 @@ export async function adminContentRoutes(app: FastifyInstance) {
         label: data.label || entry.label,
         section: data.section ?? entry.section,
         body: data.body,
-        format: data.format ?? entry.format ?? 'plain',
+        format: data.format ?? registryFormat(entry),
         published: data.published ?? true,
       },
     })
@@ -130,10 +139,6 @@ export async function adminContentRoutes(app: FastifyInstance) {
     if (!existing) return reply.status(404).send({ error: 'Content block not found' })
 
     const data = parsed.data
-    if (data.key !== undefined) {
-      return reply.status(400).send({ error: 'Content keys cannot be changed. Edit body only.' })
-    }
-
     const block = await prisma.contentBlock.update({
       where: { id: existing.id },
       data: {
