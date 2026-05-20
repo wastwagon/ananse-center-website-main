@@ -1,6 +1,7 @@
 import SkipLink from '../../components/SkipLink'
 import TopBar from '../../components/TopBar'
 import Navbar from '../../components/Navbar'
+import MobileBottomNav from '../../components/MobileBottomNav'
 import Footer from '../../components/Footer'
 import { getCmsText } from '../../lib/cms/content'
 import { getPublicSiteProfile } from '../../lib/site-profile'
@@ -12,7 +13,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   ])
 
   return (
-    <div className="site-shell flex flex-col flex-grow">
+    <div className="site-shell site-shell--mobile-nav flex flex-col flex-grow">
       <SkipLink />
       <TopBar contact={profile.contact} social={profile.social} />
       <Navbar />
@@ -26,6 +27,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         impactStats={profile.impactStats}
         footerMission={footerMission}
       />
+      <MobileBottomNav />
     </div>
   )
 }

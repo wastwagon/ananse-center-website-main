@@ -421,6 +421,99 @@ p {
   }
 }
 
+/* ─── Mobile bottom tab bar (app-style, ≤767px only) ─── */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .site-shell--mobile-nav {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .site-shell--mobile-nav .footer-bottom {
+    margin-bottom: 0.5rem;
+  }
+
+  .mobile-bottom-nav {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    pointer-events: none;
+  }
+
+  .mobile-bottom-nav-inner {
+    pointer-events: auto;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 0.15rem;
+    margin: 0 0.5rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.35rem 0.25rem 0.4rem;
+    background: rgba(255, 255, 255, 0.97);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    border-radius: 1.125rem;
+    box-shadow:
+      0 -2px 12px rgba(15, 23, 42, 0.06),
+      0 8px 24px rgba(15, 23, 42, 0.1);
+  }
+
+  .mobile-bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-width: 0;
+    padding: 0.35rem 0.15rem;
+    border-radius: 0.75rem;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: color 0.2s ease, background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-bottom-nav-item:active {
+    background: rgba(245, 158, 11, 0.12);
+  }
+
+  .mobile-bottom-nav-item--active {
+    color: var(--color-accent);
+  }
+
+  .mobile-bottom-nav-item--active .mobile-bottom-nav-icon {
+    background: rgba(245, 158, 11, 0.14);
+    color: var(--color-accent);
+  }
+
+  .mobile-bottom-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.625rem;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .mobile-bottom-nav-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 /* ─── Mobile-first card grids: 2 columns → 4 columns (no 3-col step) ─── */
 .grid-cards {
   display: grid;
@@ -1939,6 +2032,12 @@ p {
 .hero-premium-photo {
   object-fit: cover !important;
   object-position: center 18% !important;
+}
+
+@media (max-width: 767px) {
+  .hero-premium-photo {
+    object-position: center top !important;
+  }
 }
 
 .hero-page-photo {
