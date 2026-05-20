@@ -7,43 +7,66 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model MediaAsset {
+  id           String    @id @default(cuid())
+  filename     String
+  originalName String    @map("original_name")
+  mimeType     String    @map("mime_type")
+  sizeBytes    Int       @map("size_bytes")
+  width        Int?
+  height       Int?
+  altText      String    @default("") @map("alt_text")
+  title        String    @default("")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  eventCovers  Event[]   @relation("EventCover")
+  programCovers Program[] @relation("ProgramCover")
+
+  @@index([mimeType, createdAt(sort: Desc)])
+  @@map("media_assets")
+}
+
 model Program {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String   @db.Text
-  category    String
-  section     String   @default("catalog")
-  duration    String   @default("")
-  level       String   @default("")
-  iconKey     String   @default("BookOpen") @map("icon_key")
-  features    Json     @default("[]")
-  sortOrder   Int      @default(0) @map("sort_order")
-  published   Boolean  @default(true)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id           String      @id @default(cuid())
+  title        String
+  slug         String      @unique
+  description  String      @db.Text
+  category     String
+  section      String      @default("catalog")
+  duration     String      @default("")
+  level        String      @default("")
+  iconKey      String      @default("BookOpen") @map("icon_key")
+  features     Json        @default("[]")
+  sortOrder    Int         @default(0) @map("sort_order")
+  published    Boolean     @default(true)
+  coverMediaId String?     @map("cover_media_id")
+  coverMedia   MediaAsset? @relation("ProgramCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
   @@index([section, published, sortOrder])
   @@map("programs")
 }
 
 model Event {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String   @db.Text
-  dateLabel   String   @map("date_label")
-  location    String
-  venue       String   @default("")
-  type        String
-  imageEmoji  String   @default("🎭") @map("image_emoji")
-  storyTitle  String?  @map("story_title")
-  storyBody   String?  @map("story_body") @db.Text
-  highlights  Json     @default("[]")
-  featured    Boolean  @default(false)
-  published   Boolean  @default(true)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id           String      @id @default(cuid())
+  title        String
+  slug         String      @unique
+  description  String      @db.Text
+  dateLabel    String      @map("date_label")
+  location     String
+  venue        String      @default("")
+  type         String
+  imageEmoji   String      @default("🎭") @map("image_emoji")
+  coverMediaId String?     @map("cover_media_id")
+  coverMedia   MediaAsset? @relation("EventCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  storyTitle   String?     @map("story_title")
+  storyBody    String?     @map("story_body") @db.Text
+  highlights   Json        @default("[]")
+  featured     Boolean     @default(false)
+  published    Boolean     @default(true)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
   @@map("events")
 }

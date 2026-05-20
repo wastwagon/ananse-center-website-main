@@ -11,6 +11,7 @@ export const fallbackEvents: ApiEvent[] = [
     location: 'Accra, Ghana',
     type: 'Festival',
     image: '🎭',
+    coverImageUrl: null,
     featured: true,
   },
   {
@@ -23,6 +24,7 @@ export const fallbackEvents: ApiEvent[] = [
     location: 'Kumasi, Ghana',
     type: 'Workshop',
     image: '🧵',
+    coverImageUrl: null,
     featured: false,
   },
   {
@@ -35,6 +37,7 @@ export const fallbackEvents: ApiEvent[] = [
     location: 'Cape Coast, Ghana',
     type: 'Retreat',
     image: '🌿',
+    coverImageUrl: null,
     featured: true,
   },
   {
@@ -47,6 +50,7 @@ export const fallbackEvents: ApiEvent[] = [
     location: 'Accra Arts Center',
     type: 'Exhibition',
     image: '🖼️',
+    coverImageUrl: null,
     featured: false,
   },
   {
@@ -59,6 +63,7 @@ export const fallbackEvents: ApiEvent[] = [
     location: 'Tamale, Ghana',
     type: 'Festival',
     image: '🥁',
+    coverImageUrl: null,
     featured: false,
   },
   {
@@ -71,6 +76,7 @@ export const fallbackEvents: ApiEvent[] = [
     location: 'University of Ghana',
     type: 'Symposium',
     image: '🎓',
+    coverImageUrl: null,
     featured: true,
   },
 ]

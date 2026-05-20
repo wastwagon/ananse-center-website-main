@@ -27,7 +27,7 @@ async function proxy(request: Request, context: RouteContext) {
   }
 
   if (request.method !== 'GET' && request.method !== 'HEAD') {
-    init.body = await request.text()
+    init.body = await request.arrayBuffer()
   }
 
   const upstream = await fetch(target, init)

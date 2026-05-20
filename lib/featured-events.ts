@@ -1,5 +1,5 @@
 import { fetchEvents } from './api'
-import { eventImageForSlug, images } from './images'
+import { images, resolveEventCoverImage } from './images'
 
 export type FeaturedEventCard = {
   slug: string
@@ -61,7 +61,7 @@ export async function getFeaturedEventsForHome(): Promise<FeaturedEventCard[]> {
       date: e.date,
       location: e.location,
       description: e.description,
-      image: eventImageForSlug(e.slug),
+      image: resolveEventCoverImage(e),
       type: e.type,
     }))
   } catch {

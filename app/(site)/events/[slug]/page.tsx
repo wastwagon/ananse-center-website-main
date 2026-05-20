@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { Calendar, MapPin } from 'lucide-react'
 import { fetchEventBySlug } from '../../../../lib/api'
-import { eventImageForSlug } from '../../../../lib/images'
+import { resolveEventCoverImage } from '../../../../lib/images'
 import {
   DEFAULT_EVENTS_DETAIL_HIGHLIGHTS_FALLBACK,
   getCmsTexts,
@@ -54,7 +54,7 @@ export default async function EventDetailPage({
     <div className="min-h-screen bg-white pb-20 font-body">
       <section className="event-detail-hero">
         <Image
-          src={eventImageForSlug(slug)}
+          src={resolveEventCoverImage(event)}
           alt=""
           fill
           priority

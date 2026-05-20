@@ -17,6 +17,7 @@ const programBodySchema = z.object({
   sortOrder: z.number().int().min(0).max(999).optional(),
   published: z.boolean().optional(),
   slug: z.string().min(2).max(200).optional(),
+  coverMediaId: z.string().cuid().optional().nullable(),
 })
 
 function mapProgram(program: {
@@ -32,6 +33,7 @@ function mapProgram(program: {
   features: unknown
   sortOrder: number
   published: boolean
+  coverMediaId: string | null
   createdAt: Date
   updatedAt: Date
 }) {
@@ -48,6 +50,7 @@ function mapProgram(program: {
     features: parseFeatures(program.features),
     sortOrder: program.sortOrder,
     published: program.published,
+    coverMediaId: program.coverMediaId,
     createdAt: program.createdAt.toISOString(),
     updatedAt: program.updatedAt.toISOString(),
   }
@@ -95,6 +98,7 @@ export async function adminProgramRoutes(app: FastifyInstance) {
         features: data.features ?? [],
         sortOrder: data.sortOrder ?? 0,
         published: data.published ?? true,
+        coverMediaId: data.coverMediaId ?? null,
       },
     })
 
@@ -136,6 +140,7 @@ export async function adminProgramRoutes(app: FastifyInstance) {
         ...(data.features !== undefined ? { features: data.features } : {}),
         ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
         ...(data.published !== undefined ? { published: data.published } : {}),
+        ...(data.coverMediaId !== undefined ? { coverMediaId: data.coverMediaId } : {}),
       },
     })
 

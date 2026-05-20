@@ -14,6 +14,7 @@ export const fallbackCatalogPrograms: ApiProgram[] = [
     iconKey: 'Palette',
     features: ['Hands-on workshops', 'Master artisan guidance', 'Cultural context', 'Materials provided'],
     sortOrder: 0,
+    coverImageUrl: null,
   },
   {
     id: 'fallback-2',
@@ -28,5 +29,6 @@ export const fallbackCatalogPrograms: ApiProgram[] = [
     iconKey: 'Music',
     features: ['Drum circles', 'Instrument making', 'Performance opportunities', 'Music theory'],
     sortOrder: 1,
+    coverImageUrl: null,
   },
 ]

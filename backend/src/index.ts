@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
+import multipart from '@fastify/multipart'
 import { healthRoutes } from './routes/health.js'
 import { siteRoutes } from './routes/site.js'
 import { eventRoutes } from './routes/events.js'
@@ -9,6 +10,8 @@ import { contactRoutes } from './routes/contact.js'
 import { newsletterRoutes } from './routes/newsletter.js'
 import { donationRoutes } from './routes/donations.js'
 import { adminRoutes } from './routes/admin/index.js'
+import { mediaRoutes } from './routes/media.js'
+import { ensureUploadDir, maxUploadBytes } from './lib/media-path.js'
 
 const port = Number(process.env.BACKEND_PORT || 4000)
 const host = process.env.BACKEND_HOST || '0.0.0.0'
@@ -31,7 +34,17 @@ await app.register(rateLimit, {
   timeWindow: '1 minute',
 })
 
+await ensureUploadDir()
+
+await app.register(multipart, {
+  limits: {
+    fileSize: maxUploadBytes(),
+    files: 1,
+  },
+})
+
 await app.register(healthRoutes)
+await app.register(mediaRoutes)
 await app.register(siteRoutes)
 await app.register(eventRoutes)
 await app.register(programRoutes)

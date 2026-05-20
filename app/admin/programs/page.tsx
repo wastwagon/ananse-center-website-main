@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
+import CoverMediaField from '../../../components/admin/CoverMediaField'
 import {
   type AdminProgram,
   createAdminProgram,
@@ -34,6 +35,7 @@ const emptyForm = {
   featuresText: '',
   sortOrder: 0,
   published: true,
+  coverMediaId: null as string | null,
 }
 
 export default function AdminProgramsPage() {
@@ -79,6 +81,7 @@ export default function AdminProgramsPage() {
       featuresText: program.features.join('\n'),
       sortOrder: program.sortOrder,
       published: program.published,
+      coverMediaId: program.coverMediaId,
     })
   }
 
@@ -101,6 +104,7 @@ export default function AdminProgramsPage() {
           .filter(Boolean),
         sortOrder: form.sortOrder,
         published: form.published,
+        coverMediaId: form.coverMediaId,
       }
       if (editingId === 'new') {
         await createAdminProgram(payload)
@@ -168,6 +172,10 @@ export default function AdminProgramsPage() {
                 <option value="sankofa">Sankofa (Home teaser)</option>
               </select>
             </div>
+            <CoverMediaField
+              value={form.coverMediaId}
+              onChange={(coverMediaId) => setForm({ ...form, coverMediaId })}
+            />
             <div className="admin-field">
               <label htmlFor="category">Category</label>
               <input

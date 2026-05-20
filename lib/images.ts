@@ -53,6 +53,18 @@ export function programImageForOrder(sortOrder: number): string {
   return images.programCatalog[index]
 }
 
+export function resolveEventCoverImage(
+  event: { slug: string; coverImageUrl?: string | null },
+): string {
+  return event.coverImageUrl || eventImageForSlug(event.slug)
+}
+
+export function resolveProgramCoverImage(
+  program: { sortOrder: number; coverImageUrl?: string | null },
+): string {
+  return program.coverImageUrl || programImageForOrder(program.sortOrder)
+}
+
 export function eventImageForSlug(slug: string): string {
   if (slug.includes('storytelling') || slug.includes('festival') || slug.includes('drumming')) {
     return images.events.festival

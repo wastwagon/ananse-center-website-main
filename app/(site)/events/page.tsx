@@ -25,7 +25,7 @@ import {
 } from '../../../lib/cms/registry'
 import EventTypeIcon from '../../../components/EventTypeIcon'
 import { Calendar, MapPin } from 'lucide-react'
-import { cardImageSizes, images, eventImageForSlug } from '../../../lib/images'
+import { cardImageSizes, images, resolveEventCoverImage } from '../../../lib/images'
 
 const EVENTS_CMS_KEYS = [
   'events.hero.lead',
@@ -166,7 +166,7 @@ export default function EventsPage() {
                 {/* ── Consistent 16:9 image slot ── */}
                 <div className="card-image-wrapper">
                   <Image
-                    src={eventImageForSlug(event.slug)}
+                    src={resolveEventCoverImage(event)}
                     alt={event.title}
                     fill
                     style={{ objectFit: 'cover' }}

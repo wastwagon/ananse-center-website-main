@@ -18,6 +18,7 @@ export type AdminProgram = {
   features: string[]
   sortOrder: number
   published: boolean
+  coverMediaId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -37,6 +38,7 @@ export type AdminEvent = {
   highlights: string[]
   featured: boolean
   published: boolean
+  coverMediaId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -65,13 +67,23 @@ export type AdminDonation = {
   createdAt: string
 }
 
+export type AdminMedia = import('./media').MediaAsset
+
+export type AdminMediaList = {
+  data: AdminMedia[]
+  pagination: { page: number; limit: number; total: number; pages: number }
+}
+
 async function adminFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers)
+  const isFormData = typeof FormData !== 'undefined' && init?.body instanceof FormData
+  if (!isFormData && !headers.has('content-type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+
   const response = await fetch(`/api/admin/${path}`, {
     ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
+    headers,
     cache: 'no-store',
   })
 
@@ -323,4 +335,39 @@ export type NewsletterSubscriber = {
 
 export async function fetchNewsletterSubscribers() {
   return adminFetch<{ data: NewsletterSubscriber[] }>('newsletter/subscribers')
+}
+
+export async function fetchAdminMedia(params?: {
+  q?: string
+  type?: 'image' | 'file'
+  page?: number
+  limit?: number
+}) {
+  const search = new URLSearchParams()
+  if (params?.q) search.set('q', params.q)
+  if (params?.type) search.set('type', params.type)
+  if (params?.page) search.set('page', String(params.page))
+  if (params?.limit) search.set('limit', String(params.limit))
+  const query = search.toString()
+  return adminFetch<AdminMediaList>(`media${query ? `?${query}` : ''}`)
+}
+
+export async function uploadAdminMedia(file: File) {
+  const body = new FormData()
+  body.append('file', file)
+  return adminFetch<{ data: AdminMedia }>('media', {
+    method: 'POST',
+    body,
+  })
+}
+
+export async function updateAdminMedia(id: string, patch: { altText?: string; title?: string }) {
+  return adminFetch<{ data: AdminMedia }>(`media/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+export async function deleteAdminMedia(id: string) {
+  return adminFetch<{ ok: boolean }>(`media/${id}`, { method: 'DELETE' })
 }

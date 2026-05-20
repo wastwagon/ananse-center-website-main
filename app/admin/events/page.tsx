@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
+import CoverMediaField from '../../../components/admin/CoverMediaField'
 import {
   type AdminEvent,
   createAdminEvent,
@@ -23,6 +24,7 @@ const emptyForm = {
   highlightsText: '',
   featured: false,
   published: true,
+  coverMediaId: null as string | null,
 }
 
 export default function AdminEventsPage() {
@@ -70,6 +72,7 @@ export default function AdminEventsPage() {
       highlightsText: (event.highlights ?? []).join('\n'),
       featured: event.featured,
       published: event.published,
+      coverMediaId: event.coverMediaId,
     })
   }
 
@@ -94,6 +97,7 @@ export default function AdminEventsPage() {
           .filter(Boolean),
         featured: form.featured,
         published: form.published,
+        coverMediaId: form.coverMediaId,
       }
       if (editingId === 'new') {
         await createAdminEvent(payload)
@@ -191,6 +195,10 @@ export default function AdminEventsPage() {
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
               />
             </div>
+            <CoverMediaField
+              value={form.coverMediaId}
+              onChange={(coverMediaId) => setForm({ ...form, coverMediaId })}
+            />
             <div className="admin-field">
               <label htmlFor="imageEmoji">Emoji</label>
               <input

@@ -7,7 +7,7 @@ import HeroSplit from '../../../components/HeroSplit'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import type { CmsHeroCta, CmsHeroStat, CmsHeroTitle } from '../../../lib/cms/registry'
 import FeatureIcon from '../../../components/FeatureIcon'
-import { cardImageSizes, images, programImageForOrder } from '../../../lib/images'
+import { cardImageSizes, images, resolveProgramCoverImage } from '../../../lib/images'
 import { programIconForKey } from '../../../lib/program-icons'
 import type { ApiProgram } from '../../../lib/api'
 export type ProgramBenefit = {
@@ -130,7 +130,7 @@ export default function ProgramsPageClient({
                 <article key={program.id} className="premium-card">
                   <div className="premium-card-image-wrapper">
                     <Image
-                      src={programImageForOrder(program.sortOrder)}
+                      src={resolveProgramCoverImage(program)}
                       alt={program.title}
                       fill
                       className="object-cover"

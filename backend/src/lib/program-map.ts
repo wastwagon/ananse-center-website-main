@@ -1,11 +1,14 @@
-import type { Program } from '@prisma/client'
+import type { MediaAsset, Program } from '@prisma/client'
+import { mediaPublicPath } from './media-url.js'
 
 export function parseFeatures(value: unknown): string[] {
   if (!Array.isArray(value)) return []
   return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
 }
 
-export function mapPublicProgram(program: Program) {
+type ProgramWithCover = Program & { coverMedia?: MediaAsset | null }
+
+export function mapPublicProgram(program: ProgramWithCover) {
   return {
     id: program.id,
     slug: program.slug,
@@ -18,5 +21,8 @@ export function mapPublicProgram(program: Program) {
     iconKey: program.iconKey,
     features: parseFeatures(program.features),
     sortOrder: program.sortOrder,
+    coverImageUrl: program.coverMedia ? mediaPublicPath(program.coverMedia.id) : null,
   }
 }
+
+export const programIncludeCover = { coverMedia: true } as const

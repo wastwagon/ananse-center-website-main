@@ -9,6 +9,7 @@ export type ApiEvent = {
   location: string
   type: string
   image: string
+  coverImageUrl: string | null
   featured: boolean
 }
 
@@ -31,6 +32,7 @@ export type ApiProgram = {
   iconKey: string
   features: string[]
   sortOrder: number
+  coverImageUrl: string | null
 }
 
 function trimSlash(value: string) {

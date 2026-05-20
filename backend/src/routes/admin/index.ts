@@ -9,6 +9,7 @@ import { adminSystemRoutes } from './system.js'
 import { adminContentRoutes } from './content.js'
 import { adminDashboardRoutes } from './dashboard.js'
 import { adminNewsletterRoutes } from './newsletter.js'
+import { adminMediaRoutes } from './media.js'
 
 export async function adminRoutes(app: FastifyInstance) {
   await app.register(adminAuthRoutes)
@@ -21,4 +22,5 @@ export async function adminRoutes(app: FastifyInstance) {
   await app.register(adminContactRoutes)
   await app.register(adminDonationRoutes)
   await app.register(adminNewsletterRoutes)
+  await app.register(adminMediaRoutes)
 }

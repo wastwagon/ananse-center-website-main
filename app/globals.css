@@ -3030,6 +3030,197 @@ p {
   font-size: 0.8125rem !important;
 }
 
+.admin-media-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.admin-media-search {
+  flex: 1;
+  min-width: 12rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.admin-media-filter {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.admin-media-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-media-grid--page {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.admin-media-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-media-item:hover,
+.admin-media-item--selected {
+  border-color: #b45309;
+}
+
+.admin-media-thumb {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.admin-media-item-name {
+  font-size: 0.75rem;
+  margin-top: 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-media-item-meta {
+  font-size: 0.6875rem;
+  color: #64748b;
+}
+
+.admin-media-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  font-size: 2rem;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.admin-media-file-icon--large {
+  width: 100%;
+  min-height: 120px;
+}
+
+.admin-media-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.admin-media-modal {
+  width: min(960px, 100%);
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+.admin-media-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-media-modal-header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.admin-media-grid-wrap {
+  padding: 1rem 1.25rem 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.admin-media-empty {
+  color: #64748b;
+  margin: 0;
+}
+
+.admin-media-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.admin-media-card-preview {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: #f8fafc;
+}
+
+.admin-media-card-image {
+  object-fit: cover;
+}
+
+.admin-media-card-body {
+  padding: 0.75rem;
+}
+
+.admin-media-card-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-media-card-meta {
+  font-size: 0.6875rem;
+  color: #64748b;
+  margin: 0 0 0.5rem;
+}
+
+.admin-cover-preview {
+  margin-top: 0.35rem;
+}
+
+.admin-cover-preview-image {
+  border-radius: 8px;
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+}
+
 @media (max-width: 768px) {
   .admin-root {
     flex-direction: column;

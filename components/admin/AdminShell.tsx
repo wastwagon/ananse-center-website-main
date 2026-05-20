@@ -7,6 +7,7 @@ import { adminLogout } from '../../lib/admin-api'
 const links = [
   { href: '/admin', label: 'Dashboard', exact: true },
   { href: '/admin/content', label: 'Site content' },
+  { href: '/admin/media', label: 'Media library' },
   { href: '/admin/events', label: 'Events' },
   { href: '/admin/programs', label: 'Programs' },
   { href: '/admin/contact', label: 'Contact messages' },

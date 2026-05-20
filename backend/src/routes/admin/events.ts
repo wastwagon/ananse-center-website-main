@@ -19,6 +19,7 @@ const eventBodySchema = z.object({
   featured: z.boolean().optional(),
   published: z.boolean().optional(),
   slug: z.string().min(2).max(200).optional(),
+  coverMediaId: z.string().cuid().optional().nullable(),
 })
 
 function mapEvent(event: {
@@ -36,6 +37,7 @@ function mapEvent(event: {
   highlights: unknown
   featured: boolean
   published: boolean
+  coverMediaId: string | null
   createdAt: Date
   updatedAt: Date
 }) {
@@ -54,6 +56,7 @@ function mapEvent(event: {
     highlights: parseHighlights(event.highlights),
     featured: event.featured,
     published: event.published,
+    coverMediaId: event.coverMediaId,
     createdAt: event.createdAt.toISOString(),
     updatedAt: event.updatedAt.toISOString(),
   }
@@ -103,6 +106,7 @@ export async function adminEventRoutes(app: FastifyInstance) {
         highlights: data.highlights ?? [],
         featured: data.featured ?? false,
         published: data.published ?? true,
+        coverMediaId: data.coverMediaId ?? null,
       },
     })
 
@@ -142,6 +146,7 @@ export async function adminEventRoutes(app: FastifyInstance) {
         ...(data.highlights !== undefined ? { highlights: data.highlights } : {}),
         ...(data.featured !== undefined ? { featured: data.featured } : {}),
         ...(data.published !== undefined ? { published: data.published } : {}),
+        ...(data.coverMediaId !== undefined ? { coverMediaId: data.coverMediaId } : {}),
       },
     })
 
