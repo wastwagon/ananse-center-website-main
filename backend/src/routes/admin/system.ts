@@ -9,6 +9,7 @@ import {
   systemOpsAllowed,
   validateSystemConfirm,
 } from '../../lib/system-ops.js'
+import { collectProductionEnvIssues } from '../../lib/validate-production-env.js'
 import { getSiteSettings, mapSiteSettings } from '../../lib/site-settings.js'
 
 const actionSchema = z.object({
@@ -29,6 +30,9 @@ export async function adminSystemRoutes(app: FastifyInstance) {
 
     const jwtSecret = process.env.ADMIN_JWT_SECRET?.trim() ?? ''
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? ''
+    const paystackSecret = process.env.PAYSTACK_SECRET_KEY?.trim() ?? ''
+    const paystackPublic = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY?.trim() ?? ''
+    const envIssues = collectProductionEnvIssues()
 
     return {
       data: {
@@ -43,7 +47,13 @@ export async function adminSystemRoutes(app: FastifyInstance) {
           systemOpsLocked: !systemOpsAllowed(),
           corsConfigured: Boolean(process.env.CORS_ORIGIN?.trim()),
           trustProxy: process.env.TRUST_PROXY === 'true',
+          paystackConfigured: Boolean(paystackSecret && paystackPublic),
+          paystackLiveKeys:
+            paystackSecret.startsWith('sk_live_') && paystackPublic.startsWith('pk_live_'),
+          searchIndexingAllowed: process.env.NEXT_PUBLIC_ROBOTS_NOINDEX !== 'true',
+          strictEnvValidation: process.env.STRICT_PRODUCTION_ENV === 'true',
         },
+        envWarnings: envIssues.map((i) => i.message),
         confirmPhrases: systemConfirmHints,
         counts: {
           events,

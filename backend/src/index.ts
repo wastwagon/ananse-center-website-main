@@ -19,6 +19,7 @@ import { ensureUploadDir, maxUploadBytes } from './lib/media-path.js'
 import { syncRegistryContent } from './lib/sync-content.js'
 import { syncIntegrationEnvDefaults } from './lib/sync-integrations.js'
 import { registerSecurityHeaders } from './lib/security-headers.js'
+import { validateProductionEnvOnBoot } from './lib/validate-production-env.js'
 
 const port = Number(process.env.BACKEND_PORT || 4000)
 const host = process.env.BACKEND_HOST || '0.0.0.0'
@@ -35,6 +36,7 @@ const app = Fastify({
 })
 
 await registerSecurityHeaders(app)
+validateProductionEnvOnBoot(app.log)
 
 await app.register(cors, {
   origin: corsOrigin,

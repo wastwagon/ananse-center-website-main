@@ -6,6 +6,8 @@ Self-hosted stack only (no WordPress or third-party CMS). Set variables on the C
 
 Copy-paste production baseline: [`config/coolify-production.env.example`](config/coolify-production.env.example)
 
+Staging / preview: [`config/coolify-staging.env.example`](config/coolify-staging.env.example) (`NEXT_PUBLIC_ROBOTS_NOINDEX=true`).
+
 ---
 
 ## Production — recommended settings
@@ -80,7 +82,20 @@ Copy-paste production baseline: [`config/coolify-production.env.example`](config
 3. First boot only: `SKIP_PRISMA_SEED=false` → deploy → verify admin login → set `SKIP_PRISMA_SEED=true` → redeploy.
 4. Admin → **Settings → Integrations** (LMS, GA, legacy host) or rely on env.
 5. Admin → **System** — confirm “Seed on deploy: No” and “System ops: disabled” in production.
-6. Smoke-test: `GET /api/v1/health`, legacy 301, donate flow, `/admin/login`.
+6. Smoke-test: `GET /api/v1/health`, `GET /api/health` (web), legacy 301, donate flow, `/admin/login`.
+7. Admin → **System** — production checklist green; fix any **Environment warnings**.
+
+---
+
+## Backups & monitoring (recommended)
+
+| Task | Recommendation |
+|------|----------------|
+| **Postgres** | Schedule volume snapshots or `pg_dump` from the `postgres` container |
+| **Media uploads** | Backup Docker volume `media_uploads` (program/event images) |
+| **Logs** | Coolify log retention; watch API boot for `[production-env]` warnings |
+| **Uptime** | HTTP check `GET /api/v1/health` (API) and `GET /api/health` (web) |
+| **Strict deploy** | After env is stable, set `STRICT_PRODUCTION_ENV=true` so bad secrets block boot |
 
 ---
 
@@ -97,6 +112,8 @@ Copy-paste production baseline: [`config/coolify-production.env.example`](config
 ## Security (built into the stack)
 
 - Admin session: httpOnly cookie, `secure` when HTTPS / `COOKIE_SECURE=true`
-- API: security headers, rate limiting, role-based admin routes
-- Next.js: security headers via `next.config.mjs`
+- API: security headers, rate limiting (general + forms + auth + donations), role-based admin routes
+- API boot: production env validation logs warnings; optional `STRICT_PRODUCTION_ENV=true`
+- Next.js: security headers + HSTS when site URL is HTTPS (`next.config.mjs`)
+- Staging: `NEXT_PUBLIC_ROBOTS_NOINDEX=true` blocks crawlers
 - Production: disable `ADMIN_ALLOW_SYSTEM_OPS`; use entrypoint migrations only

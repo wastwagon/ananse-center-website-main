@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma.js'
 import { notifyCrmWebhook } from '../lib/crm-webhook.js'
+import { donationRateLimit } from '../lib/rate-limit-route.js'
 import {
   fromSubunit,
   getPaystackCurrency,
@@ -39,7 +40,7 @@ export async function donationRoutes(app: FastifyInstance) {
     }
   })
 
-  app.post('/api/v1/donations/initialize', async (request, reply) => {
+  app.post('/api/v1/donations/initialize', donationRateLimit(), async (request, reply) => {
     if (!isPaystackConfigured()) {
       return reply.status(503).send({ error: 'Online donations are not configured yet' })
     }

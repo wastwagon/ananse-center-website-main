@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { formRateLimit } from '../lib/rate-limit-route.js'
 import { prisma } from '../lib/prisma.js'
 import { notifyCrmWebhook } from '../lib/crm-webhook.js'
 
@@ -8,7 +9,7 @@ const subscribeSchema = z.object({
 })
 
 export async function newsletterRoutes(app: FastifyInstance) {
-  app.post('/api/v1/newsletter/subscribe', async (request, reply) => {
+  app.post('/api/v1/newsletter/subscribe', formRateLimit(), async (request, reply) => {
     const parsed = subscribeSchema.safeParse(request.body)
 
     if (!parsed.success) {

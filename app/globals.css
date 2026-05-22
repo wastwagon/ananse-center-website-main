@@ -4008,6 +4008,12 @@ p {
   font-size: 0.875rem;
 }
 
+.admin-notice--warn {
+  color: #92400e;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
 .admin-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

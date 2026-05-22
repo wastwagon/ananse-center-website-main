@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { authRateLimit } from '../../lib/rate-limit-route.js'
 import { prisma } from '../../lib/prisma.js'
 import { verifyPassword } from '../../lib/password.js'
 import { signAdminToken } from '../../lib/jwt.js'
@@ -11,18 +12,9 @@ const loginSchema = z.object({
 })
 
 export async function adminAuthRoutes(app: FastifyInstance) {
-  const authRateMax = Number(process.env.RATE_LIMIT_AUTH_MAX || 10)
-
   app.post(
     '/api/v1/admin/auth/login',
-    {
-      config: {
-        rateLimit: {
-          max: authRateMax,
-          timeWindow: '1 minute',
-        },
-      },
-    },
+    authRateLimit(),
     async (request, reply) => {
     try {
       const parsed = loginSchema.safeParse(request.body)

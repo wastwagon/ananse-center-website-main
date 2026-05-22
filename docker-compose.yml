@@ -77,6 +77,9 @@ services:
       TRUST_PROXY: ${TRUST_PROXY:-true}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-60}
       RATE_LIMIT_AUTH_MAX: ${RATE_LIMIT_AUTH_MAX:-10}
+      RATE_LIMIT_FORM_MAX: ${RATE_LIMIT_FORM_MAX:-8}
+      RATE_LIMIT_DONATION_MAX: ${RATE_LIMIT_DONATION_MAX:-15}
+      STRICT_PRODUCTION_ENV: ${STRICT_PRODUCTION_ENV:-false}
       MEDIA_UPLOAD_DIR: /app/backend/uploads
     volumes:
       - media_uploads:/app/backend/uploads
@@ -105,6 +108,7 @@ services:
         NEXT_PUBLIC_LMS_PORTAL_URL: ${NEXT_PUBLIC_LMS_PORTAL_URL:-}
         NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
         NEXT_PUBLIC_LEGACY_SITE_HOST: ${NEXT_PUBLIC_LEGACY_SITE_HOST:-}
+        NEXT_PUBLIC_ROBOTS_NOINDEX: ${NEXT_PUBLIC_ROBOTS_NOINDEX:-false}
     container_name: ananse-web
     restart: unless-stopped
     networks:
@@ -120,12 +124,19 @@ services:
       LEGACY_SITE_HOST: ${LEGACY_SITE_HOST:-}
       API_INTERNAL_URL: ${API_INTERNAL_URL:-http://backend:4000}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      NEXT_PUBLIC_ROBOTS_NOINDEX: ${NEXT_PUBLIC_ROBOTS_NOINDEX:-false}
       RUNNING_IN_DOCKER: "true"
     ports:
       - "${FRONTEND_PORT:-3035}:3000"
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
 
 volumes:
   postgres_data:

@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { formRateLimit } from '../lib/rate-limit-route.js'
 import { prisma } from '../lib/prisma.js'
 
 export async function registrationRoutes(app: FastifyInstance) {
@@ -11,7 +12,7 @@ export async function registrationRoutes(app: FastifyInstance) {
       phone?: string
       notes?: string
     }
-  }>('/api/v1/events/register', async (request, reply) => {
+  }>('/api/v1/events/register', formRateLimit(), async (request, reply) => {
     const { eventSlug = '', eventTitle = '', name, email, phone = '', notes = '' } = request.body ?? {}
 
     if (!name?.trim() || !email?.trim()) {

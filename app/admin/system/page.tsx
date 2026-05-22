@@ -117,7 +117,39 @@ export default function AdminSystemPage() {
                 Trust proxy:{' '}
                 {status.productionChecklist.trustProxy ? '✓ TRUST_PROXY=true' : '○ optional behind Coolify'}
               </li>
+              <li>
+                Paystack configured:{' '}
+                {status.productionChecklist.paystackConfigured ? '✓' : '✗ set live/test keys'}
+              </li>
+              <li>
+                Paystack live keys:{' '}
+                {status.productionChecklist.paystackLiveKeys
+                  ? '✓ sk_live_ / pk_live_'
+                  : '○ test keys OK on staging only'}
+              </li>
+              <li>
+                Search indexing:{' '}
+                {status.productionChecklist.searchIndexingAllowed
+                  ? '✓ public robots allowed'
+                  : '✗ NEXT_PUBLIC_ROBOTS_NOINDEX=true'}
+              </li>
+              <li>
+                Strict env validation:{' '}
+                {status.productionChecklist.strictEnvValidation
+                  ? '✓ STRICT_PRODUCTION_ENV=true'
+                  : '○ optional — fails boot on critical env errors'}
+              </li>
             </ul>
+            {status.envWarnings.length > 0 ? (
+              <div className="admin-notice admin-notice--warn" style={{ marginTop: '1rem' }}>
+                <strong>Environment warnings</strong>
+                <ul className="admin-list">
+                  {status.envWarnings.map((msg) => (
+                    <li key={msg}>{msg}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
 
           <div className="admin-card admin-card--spaced">

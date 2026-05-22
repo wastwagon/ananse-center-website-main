@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { formRateLimit } from '../lib/rate-limit-route.js'
 import { prisma } from '../lib/prisma.js'
 
 export async function communityRoutes(app: FastifyInstance) {
@@ -21,7 +22,7 @@ export async function communityRoutes(app: FastifyInstance) {
 
   app.post<{
     Body: { type?: string; name?: string; email?: string; org?: string; title?: string; body?: string }
-  }>('/api/v1/community/submit', async (request, reply) => {
+  }>('/api/v1/community/submit', formRateLimit(), async (request, reply) => {
     const { type = 'story', name, email, org, title, body } = request.body ?? {}
 
     if (!name?.trim() || !email?.trim() || !title?.trim() || !body?.trim()) {

@@ -225,7 +225,12 @@ export type SystemStatus = {
     systemOpsLocked: boolean
     corsConfigured: boolean
     trustProxy: boolean
+    paystackConfigured: boolean
+    paystackLiveKeys: boolean
+    searchIndexingAllowed: boolean
+    strictEnvValidation: boolean
   }
+  envWarnings: string[]
   confirmPhrases: { migrate: string; seed: string }
   counts: {
     events: number
