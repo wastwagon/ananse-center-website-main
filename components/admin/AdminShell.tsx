@@ -1,22 +1,36 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { adminLogout } from '../../lib/admin-api'
+import { adminLogout, adminMe } from '../../lib/admin-api'
 
-const links = [
-  { href: '/admin', label: 'Dashboard', exact: true },
-  { href: '/admin/content', label: 'Site content' },
-  { href: '/admin/media', label: 'Media library' },
-  { href: '/admin/events', label: 'Events' },
-  { href: '/admin/programs', label: 'Programs' },
-  { href: '/admin/contact', label: 'Contact messages' },
-  { href: '/admin/inbox', label: 'Inbox' },
-  { href: '/admin/newsletter', label: 'Newsletter' },
-  { href: '/admin/donations', label: 'Donations' },
-  { href: '/admin/settings', label: 'Settings' },
-  { href: '/admin/system', label: 'System' },
+type AdminRole = 'superadmin' | 'admin' | 'editor' | 'finance'
+
+const links: {
+  href: string
+  label: string
+  exact?: boolean
+  roles: AdminRole[]
+}[] = [
+  { href: '/admin', label: 'Dashboard', exact: true, roles: ['superadmin', 'admin', 'editor', 'finance'] },
+  { href: '/admin/content', label: 'Site content', roles: ['superadmin', 'admin', 'editor'] },
+  { href: '/admin/media', label: 'Media library', roles: ['superadmin', 'admin', 'editor'] },
+  { href: '/admin/events', label: 'Events', roles: ['superadmin', 'admin', 'editor'] },
+  { href: '/admin/programs', label: 'Programs', roles: ['superadmin', 'admin', 'editor'] },
+  { href: '/admin/archives', label: 'Archives', roles: ['superadmin', 'admin', 'editor'] },
+  { href: '/admin/inbox', label: 'Inbox', roles: ['superadmin', 'admin', 'editor'] },
+  { href: '/admin/contact', label: 'Contact messages', roles: ['superadmin', 'admin', 'editor', 'finance'] },
+  { href: '/admin/newsletter', label: 'Newsletter', roles: ['superadmin', 'admin', 'editor'] },
+  { href: '/admin/donations', label: 'Donations', roles: ['superadmin', 'admin', 'finance'] },
+  { href: '/admin/settings', label: 'Settings', roles: ['superadmin', 'admin'] },
+  { href: '/admin/system', label: 'System', roles: ['superadmin', 'admin'] },
 ]
+
+function normalizeRole(role: string): AdminRole {
+  if (links.some((l) => l.roles.includes(role as AdminRole))) return role as AdminRole
+  return 'admin'
+}
 
 export default function AdminShell({
   title,
@@ -27,6 +41,15 @@ export default function AdminShell({
 }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [role, setRole] = useState<AdminRole>('admin')
+
+  useEffect(() => {
+    void adminMe()
+      .then(({ user }) => setRole(normalizeRole(user.role)))
+      .catch(() => setRole('admin'))
+  }, [])
+
+  const visibleLinks = links.filter((link) => link.roles.includes(role))
 
   async function handleLogout() {
     await adminLogout()
@@ -42,7 +65,7 @@ export default function AdminShell({
           <span>Content management</span>
         </div>
         <nav className="admin-nav" aria-label="Admin">
-          {links.map((link) => {
+          {visibleLinks.map((link) => {
             const active = link.exact
               ? pathname === link.href
               : pathname.startsWith(link.href)

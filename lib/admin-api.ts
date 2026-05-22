@@ -209,6 +209,7 @@ export type AdminDashboardData = {
   events: { total: number; published: number }
   contactMessages: { total: number; new: number }
   donations: { total: number; successful: number }
+  inbox: { pendingStories: number; newRegistrations: number }
   site: SiteSettings
 }
 
@@ -286,10 +287,26 @@ export type CommunitySubmissionRow = {
   type: string
   name: string
   email: string
+  org: string
   title: string
   body: string
   status: string
   createdAt: string
+}
+
+export type AdminArchiveRecord = {
+  id: string
+  title: string
+  description: string
+  culture: string
+  era: string
+  rightsNote: string
+  tags: unknown
+  mediaUrl: string
+  published: boolean
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
 }
 
 export async function fetchAdminInboxRegistrations() {
@@ -298,6 +315,44 @@ export async function fetchAdminInboxRegistrations() {
 
 export async function fetchAdminInboxCommunity() {
   return adminFetch<{ data: CommunitySubmissionRow[] }>('inbox/community')
+}
+
+export async function updateCommunitySubmissionStatus(
+  id: string,
+  status: 'pending' | 'published' | 'rejected',
+) {
+  return adminFetch<{ data: CommunitySubmissionRow }>(`inbox/community/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  })
+}
+
+export async function fetchAdminArchives() {
+  return adminFetch<{ data: AdminArchiveRecord[] }>('archives')
+}
+
+export async function createAdminArchive(
+  body: Pick<AdminArchiveRecord, 'title' | 'description'> & Partial<AdminArchiveRecord>,
+) {
+  return adminFetch<{ data: { id: string } }>('archives', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function updateAdminArchive(id: string, body: Partial<AdminArchiveRecord>) {
+  return adminFetch<{ data: { id: string } }>(`archives/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function deleteAdminArchive(id: string) {
+  return adminFetch<{ ok: boolean }>(`archives/${id}`, { method: 'DELETE' })
+}
+
+export function donationsExportUrl() {
+  return '/api/admin/export/donations.csv'
 }
 
 export async function updateAdminSettings(body: AdminSettingsPatch) {

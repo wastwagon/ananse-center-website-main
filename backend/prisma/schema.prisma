@@ -164,12 +164,30 @@ model CommunitySubmission {
   type      String   @default("story")
   name      String
   email     String
+  org       String   @default("")
   title     String
   body      String   @db.Text
   status    String   @default("pending")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("community_submissions")
+}
+
+model ArchiveRecord {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  culture     String   @default("")
+  era         String   @default("")
+  rightsNote  String   @default("") @map("rights_note")
+  tags        Json     @default("[]")
+  mediaUrl    String   @default("") @map("media_url")
+  published   Boolean  @default(true)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("archive_records")
 }
 
 model Donation {

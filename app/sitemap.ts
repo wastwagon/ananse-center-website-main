@@ -23,6 +23,7 @@ const staticPaths = [
   '/archives',
   '/news',
   '/search',
+  '/partnerships',
 ] as const
 
 async function fetchSlugs(endpoint: string): Promise<string[]> {

@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma.js'
+import { notifyCrmWebhook } from '../lib/crm-webhook.js'
 import {
   fromSubunit,
   getPaystackCurrency,
@@ -149,7 +150,7 @@ export async function donationRoutes(app: FastifyInstance) {
 
       const paidAt = verified.paid_at ? new Date(verified.paid_at) : new Date()
 
-      await prisma.donation.update({
+      const updated = await prisma.donation.update({
         where: { id: donation.id },
         data: {
           status: 'success',
@@ -157,6 +158,14 @@ export async function donationRoutes(app: FastifyInstance) {
           channel: verified.channel,
           paidAt,
         },
+      })
+
+      void notifyCrmWebhook('donation.success', {
+        reference: updated.reference,
+        email: updated.email,
+        donorName: updated.donorName,
+        amount: fromSubunit(updated.amount),
+        currency: updated.currency,
       })
 
       return reply.send({

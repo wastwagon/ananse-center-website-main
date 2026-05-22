@@ -170,7 +170,7 @@ export default async function Home() {
                   <div className="premium-card-image-wrapper">
                     <Image
                       src={images.goals[idx % images.goals.length]}
-                      alt=""
+                      alt={`${goal.title} — Ananse Center program pillar`}
                       fill
                       className="object-cover"
                       sizes={cardImageSizes}
@@ -211,7 +211,7 @@ export default async function Home() {
                 <div className="premium-card-image-wrapper">
                   <Image
                     src={images.programs[idx % images.programs.length]}
-                    alt=""
+                    alt={`${prog.title} — Sankofa program at Ananse Center`}
                     fill
                     className="object-cover"
                     sizes={cardImageSizes}

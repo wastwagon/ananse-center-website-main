@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma.js'
+import { notifyCrmWebhook } from '../lib/crm-webhook.js'
 
 const contactSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -22,6 +23,13 @@ export async function contactRoutes(app: FastifyInstance) {
 
     const message = await prisma.contactMessage.create({
       data: parsed.data,
+    })
+
+    void notifyCrmWebhook('contact.created', {
+      id: message.id,
+      name: message.name,
+      email: message.email,
+      subject: message.subject,
     })
 
     return reply.status(201).send({

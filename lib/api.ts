@@ -186,10 +186,54 @@ export async function verifyDonation(reference: string) {
   }
 }
 
+export type ApiArchiveRecord = {
+  id?: string
+  title: string
+  description: string
+  culture: string
+  era: string
+  rightsNote: string
+  tags?: string[]
+  mediaUrl?: string
+}
+
+export type ApiSpotlight = {
+  id: string
+  name: string
+  org: string
+  title: string
+  description: string
+}
+
 export type SearchResults = {
   programs: { title: string; path: string; snippet: string }[]
   events: { title: string; path: string; snippet: string }[]
+  archives: { title: string; path: string; snippet: string }[]
   pages: { title: string; path: string; snippet: string }[]
+}
+
+export async function fetchArchiveRecords(): Promise<ApiArchiveRecord[]> {
+  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
+  try {
+    const response = await fetch(`${base}/api/v1/archives`, { next: { revalidate: 60 } })
+    if (!response.ok) return []
+    const payload = (await response.json()) as { data: ApiArchiveRecord[] }
+    return payload.data
+  } catch {
+    return []
+  }
+}
+
+export async function fetchPublishedSpotlights(): Promise<ApiSpotlight[]> {
+  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
+  try {
+    const response = await fetch(`${base}/api/v1/community/spotlights`, { next: { revalidate: 60 } })
+    if (!response.ok) return []
+    const payload = (await response.json()) as { data: ApiSpotlight[] }
+    return payload.data
+  } catch {
+    return []
+  }
 }
 
 export async function searchSite(query: string): Promise<SearchResults> {
@@ -228,6 +272,7 @@ export async function submitCommunityStory(body: {
   type?: 'story' | 'spotlight'
   name: string
   email: string
+  org?: string
   title: string
   body: string
 }) {

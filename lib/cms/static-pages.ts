@@ -401,4 +401,49 @@ export const STATIC_PAGE_REGISTRY = {
     section: 'programs',
     defaultBody: 'Enrolled students: sign in to access coursework, schedules, and resources.',
   },
+  'partnerships.badge': {
+    label: 'Partnerships — badge',
+    section: 'partnerships',
+    defaultBody: 'Collaborate',
+  },
+  'partnerships.heading': {
+    label: 'Partnerships — heading',
+    section: 'partnerships',
+    defaultBody: 'Partnerships & Corporate Engagement',
+  },
+  'partnerships.lead': {
+    label: 'Partnerships — intro',
+    section: 'partnerships',
+    defaultBody:
+      'We co-design programs with schools, NGOs, and corporate partners who share our commitment to restorative arts and youth leadership in Ghana and the diaspora.',
+  },
+  'partnerships.body': {
+    label: 'Partnerships — body',
+    section: 'partnerships',
+    defaultBody:
+      'Partnerships may include program sponsorship, in-kind resources, artist residencies, and diaspora engagement campaigns. All collaborations are guided by community ownership and transparent stewardship.',
+  },
+  'partnerships.tiers': {
+    label: 'Partnerships — tiers (JSON)',
+    section: 'partnerships',
+    hint: 'JSON: [{ "title", "description" }]',
+    defaultBody: JSON.stringify(
+      [
+        {
+          title: 'Program sponsor',
+          description: 'Fund a cohort workshop or Sankofa mentorship series with named recognition.',
+        },
+        {
+          title: 'Corporate CSR partner',
+          description: 'Multi-year support for arts education, archives digitization, or community festivals.',
+        },
+        {
+          title: 'Institutional collaborator',
+          description: 'Research, exchange, and co-hosted events with universities and cultural institutions.',
+        },
+      ],
+      null,
+      2,
+    ),
+  },
 } as const satisfies Record<string, ContentRegistryEntry>

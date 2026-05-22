@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
-import { type AdminDonation, fetchAdminDonations } from '../../../lib/admin-api'
+import { donationsExportUrl, type AdminDonation, fetchAdminDonations } from '../../../lib/admin-api'
 
 function formatAmount(amount: number, currency: string) {
   const value = amount / 100
@@ -33,6 +33,12 @@ export default function AdminDonationsPage() {
   return (
     <AdminShell title="Donations">
       {error ? <p className="admin-error" style={{ marginBottom: '1rem' }}>{error}</p> : null}
+      <p className="admin-help" style={{ marginBottom: '1rem' }}>
+        <a href={donationsExportUrl()} className="content-cta-link">
+          Download donations CSV
+        </a>{' '}
+        for CRM import (set CRM_WEBHOOK_URL for live sync).
+      </p>
       <div className="admin-card">
         {loading ? (
           <p>Loading donations…</p>

@@ -25,6 +25,7 @@ const mobileSheetLinks = [
   { key: 'nav.visit', href: '/visit' },
   { key: 'nav.admissions', href: '/admissions' },
   { key: 'nav.community', href: '/community' },
+  { key: 'nav.partnerships', href: '/partnerships' },
   { key: 'nav.news', href: '/news' },
   { key: 'nav.resources', href: '/resources' },
   { key: 'nav.archives', href: '/archives' },

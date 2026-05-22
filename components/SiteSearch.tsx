@@ -80,6 +80,21 @@ export default function SiteSearch() {
               </ul>
             </section>
           ) : null}
+          {results.archives?.length > 0 ? (
+            <section>
+              <h2 className="content-block-title content-block-title--plain">Archives</h2>
+              <ul className="content-highlight-list">
+                {results.archives.map((item) => (
+                  <li key={item.title} className="content-highlight-item">
+                    <LocalizedLink href={item.path} className="content-cta-link">
+                      {item.title}
+                    </LocalizedLink>
+                    <span className="text-body-sm">{item.snippet}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {results.pages.length > 0 ? (
             <section>
               <h2 className="content-block-title content-block-title--plain">Pages</h2>
@@ -97,6 +112,7 @@ export default function SiteSearch() {
           ) : null}
           {results.programs.length === 0 &&
           results.events.length === 0 &&
+          (results.archives?.length ?? 0) === 0 &&
           results.pages.length === 0 ? (
             <p className="page-body-text">No results found.</p>
           ) : null}

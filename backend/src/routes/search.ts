@@ -15,6 +15,7 @@ const PAGE_LABELS: Record<string, string> = {
   'news.heading': 'News',
   'visit.heading': 'Visit',
   'admissions.heading': 'Admissions',
+  'partnerships.heading': 'Partnerships',
 }
 
 const PAGE_PATHS: Record<string, string> = {
@@ -31,6 +32,7 @@ const PAGE_PATHS: Record<string, string> = {
   news: '/news',
   visit: '/visit',
   admissions: '/admissions',
+  partnerships: '/partnerships',
 }
 
 function pathForContentKey(key: string): string | null {
@@ -47,7 +49,7 @@ export async function searchRoutes(app: FastifyInstance) {
 
     const contains = { contains: q, mode: 'insensitive' as const }
 
-    const [programs, events, blocks] = await Promise.all([
+    const [programs, events, archives, blocks] = await Promise.all([
       prisma.program.findMany({
         where: {
           published: true,
@@ -63,6 +65,19 @@ export async function searchRoutes(app: FastifyInstance) {
         },
         take: 12,
         orderBy: { createdAt: 'desc' },
+      }),
+      prisma.archiveRecord.findMany({
+        where: {
+          published: true,
+          OR: [
+            { title: contains },
+            { description: contains },
+            { culture: contains },
+            { era: contains },
+          ],
+        },
+        take: 8,
+        orderBy: { sortOrder: 'asc' },
       }),
       prisma.contentBlock.findMany({
         where: {
@@ -92,13 +107,18 @@ export async function searchRoutes(app: FastifyInstance) {
       data: {
         programs: programs.map((p) => ({
           title: p.title,
-          path: `/programs#catalog`,
+          path: `/programs/${p.slug}`,
           snippet: p.description.slice(0, 140),
         })),
         events: events.map((e) => ({
           title: e.title,
           path: `/events/${e.slug}`,
           snippet: e.description.slice(0, 140),
+        })),
+        archives: archives.map((a) => ({
+          title: a.title,
+          path: '/archives',
+          snippet: `${a.culture} · ${a.era} — ${a.description.slice(0, 100)}`,
         })),
         pages,
       },

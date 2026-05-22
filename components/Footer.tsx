@@ -56,6 +56,7 @@ const quickLinks = [
   { key: 'nav.admissions', href: '/admissions' },
   { key: 'nav.events', href: '/events' },
   { key: 'nav.community', href: '/community' },
+  { key: 'nav.partnerships', href: '/partnerships' },
   { key: 'nav.donate', href: '/support' },
   { key: 'nav.transparency', href: '/transparency' },
   { key: 'nav.visit', href: '/visit' },

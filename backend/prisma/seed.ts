@@ -208,11 +208,47 @@ async function seedPrograms() {
   console.log(`Seeded ${PROGRAMS_SEED.length} programs`)
 }
 
+async function seedArchives() {
+  const items = [
+    {
+      title: 'Adinkra symbol folio',
+      culture: 'Akan',
+      era: '20th century teaching collection',
+      description:
+        'Digitized reference set for symbolism workshops and school programs.',
+      rightsNote:
+        'Community attribution; educational use with credit to originating stewards.',
+      sortOrder: 0,
+    },
+    {
+      title: 'Sankofa oral history excerpt',
+      culture: 'Pan-African diaspora',
+      era: 'Contemporary',
+      description:
+        'Recorded narrative on repatriation and healing practices near Cape Coast.',
+      rightsNote: 'Participant consent on file; metadata includes interviewer and locale.',
+      sortOrder: 1,
+    },
+  ]
+
+  for (const item of items) {
+    const existing = await prisma.archiveRecord.findFirst({
+      where: { title: item.title },
+    })
+    if (existing) continue
+    await prisma.archiveRecord.create({
+      data: { ...item, tags: [], published: true },
+    })
+  }
+  console.log('Seeded archive records')
+}
+
 async function main() {
   await seedSiteSettings()
   await seedContentBlocks()
   await seedPrograms()
   await seedEvents()
+  await seedArchives()
   await seedAdmin()
 }
 

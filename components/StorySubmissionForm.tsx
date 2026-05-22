@@ -6,6 +6,7 @@ import { submitCommunityStory } from '../lib/api'
 export default function StorySubmissionForm() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [org, setOrg] = useState('')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
@@ -21,6 +22,7 @@ export default function StorySubmissionForm() {
       setMessage(result.data.message)
       setName('')
       setEmail('')
+      setOrg('')
       setTitle('')
       setBody('')
     } catch (error) {
@@ -54,6 +56,18 @@ export default function StorySubmissionForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+        />
+      </div>
+      <div className="form-group">
+        <label htmlFor="story-org" className="form-label">
+          Organization (optional)
+        </label>
+        <input
+          id="story-org"
+          className="form-input"
+          value={org}
+          onChange={(e) => setOrg(e.target.value)}
+          placeholder="Cooperative, school, or partner name"
         />
       </div>
       <div className="form-group">
