@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
+import LocalizedLink from '../../../components/LocalizedLink'
+import PageCtaBand from '../../../components/PageCtaBand'
 import { fetchEvents, subscribeNewsletter, type ApiEvent } from '../../../lib/api'
 import { fallbackEvents } from './events-data'
 import HeroSplit from '../../../components/HeroSplit'
@@ -13,6 +14,7 @@ import {
   DEFAULT_EVENTS_FILTER_CATEGORIES,
   DEFAULT_EVENTS_HERO_CTA_PRIMARY,
   DEFAULT_EVENTS_HERO_CTA_SECONDARY,
+  DEFAULT_PROGRAMS_HERO_CTA_PRIMARY,
   DEFAULT_EVENTS_HERO_STATS,
   DEFAULT_EVENTS_HERO_TITLE,
   DEFAULT_EVENTS_HIGHLIGHTS_METRICS,
@@ -26,6 +28,7 @@ import {
 import EventTypeIcon from '../../../components/EventTypeIcon'
 import { Calendar, MapPin } from 'lucide-react'
 import { cardImageSizes, images, resolveEventCoverImage } from '../../../lib/images'
+import { formatEventDateDisplay } from '../../../lib/format'
 
 const EVENTS_CMS_KEYS = [
   'events.hero.lead',
@@ -46,6 +49,7 @@ const EVENTS_CMS_KEYS = [
   'events.newsletter.lead',
   'events.cta.heading',
   'events.cta.body',
+  'home.events.cardCta',
 ] as const
 
 
@@ -135,7 +139,7 @@ export default function EventsPage() {
   }
 
   return (
-    <div>
+    <div className="events-page">
       <HeroSplit
         compact
         imageSrc={images.hero.events}
@@ -148,74 +152,41 @@ export default function EventsPage() {
       />
 
       {/* ─── Featured Section ─── */}
-      <section id="calendar" className="page-section bg-white py-16">
+      <section id="calendar" className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{cms['events.featured.badge']}</span>
             <h2 className="page-section-heading">{cms['events.featured.heading']}</h2>
           </div>
 
-          <div className="grid-cards">
+          <div className="grid-cards grid-cards--stack-narrow">
             {events.filter(e => e.featured).map((event) => (
               <article
                 key={event.id}
-                className="program-card"
-                style={{ borderTop: '4px solid #fbbf24' }}
+                className="program-card program-card--featured"
                 aria-label={event.title}
               >
-                {/* ── Consistent 16:9 image slot ── */}
                 <div className="card-image-wrapper">
                   <Image
                     src={resolveEventCoverImage(event)}
                     alt={event.title}
                     fill
-                    style={{ objectFit: 'cover' }}
+                    className="object-cover"
                     sizes={cardImageSizes}
                   />
                 </div>
 
-                {/* ── Badge row — flex-start so badge & "Featured" label don't shift layout ── */}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    marginBottom: '0.875rem',
-                  }}
-                >
+                <div className="program-card-header-row">
                   <EventTypeIcon type={event.type} />
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      color: '#d97706',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      paddingTop: '2px',
-                    }}
-                  >
-                    Featured
-                  </span>
+                  <span className="program-card-featured-label">Featured</span>
                 </div>
 
-                {/* ── Title ── */}
-                <h3
-                  style={{
-                    fontSize: '1.125rem',
-                    fontWeight: 600,
-                    color: '#1A1A1A',
-                    marginBottom: '0.5rem',
-                    lineHeight: 1.35,
-                  }}
-                >
-                  {event.title}
-                </h3>
+                <h3 className="program-card-title-lg">{event.title}</h3>
 
-                {/* ── Date + location ── */}
-                <div className="flex flex-col gap-1 mb-4" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div className="event-card-meta">
                   <div className="text-[12px] font-semibold text-[#1A1A1A] flex items-center gap-1.5">
                     <Calendar size={14} className="text-accent shrink-0" aria-hidden />
-                    {event.date}
+                    {formatEventDateDisplay(event.date)}
                   </div>
                   <div className="text-[12px] text-[#475569] flex items-center gap-1.5">
                     <MapPin size={14} className="shrink-0" aria-hidden />
@@ -227,13 +198,12 @@ export default function EventsPage() {
                 <p className="program-card-description">{event.description}</p>
 
                 {/* ── CTA pinned to bottom ── */}
-                <Link
+                <LocalizedLink
                   href={`/events/${event.slug}`}
-                  className="btn-primary"
-                  style={{ textAlign: 'center', justifyContent: 'center', marginTop: '1.5rem' }}
+                  className="btn-primary program-card-cta-bottom"
                 >
-                  Event details
-                </Link>
+                  {cms['home.events.cardCta'] ?? 'Event details'}
+                </LocalizedLink>
               </article>
             ))}
           </div>
@@ -241,90 +211,56 @@ export default function EventsPage() {
       </section>
 
       {/* ─── Full Catalog ─── */}
-      <section className="page-section bg-slate-50 py-16">
+      <section className="page-section section-reveal bg-slate-50 py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <h2 className="page-section-heading">{cms['events.catalog.heading']}</h2>
           </div>
 
-          {/* Filter tabs */}
-          <div
-            role="tablist"
-            aria-label="Event category filter"
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '0.625rem',
-              flexWrap: 'wrap',
-              marginBottom: '3.5rem',
-            }}
-          >
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                role="tab"
-                aria-selected={activeTab === cat}
-                onClick={() => setActiveTab(cat)}
-                className={`filter-btn ${activeTab === cat ? 'filter-btn-active' : ''}`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="filter-scroll">
+            <div className="segmented-control" role="tablist" aria-label="Event category filter">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  role="tab"
+                  aria-selected={activeTab === cat}
+                  onClick={() => setActiveTab(cat)}
+                  className={`filter-btn ${activeTab === cat ? 'filter-btn-active' : ''}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Cards — height:100% on insight-card + align-items:stretch on grid = equal rows */}
-          <div className="grid-cards">
+          <div className="grid-cards grid-cards--stack-narrow">
             {filteredEvents.map((event) => (
               <article key={event.id} className="insight-card" aria-label={event.title}>
                 <div className="insight-card-bar" />
                 <div className="insight-card-body">
 
                   {/* ── Type tag + icon ── */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '0.875rem',
-                    }}
-                  >
+                  <div className="insight-card-header-row">
                     <span className="insight-card-tag">{event.type}</span>
                     <EventTypeIcon type={event.type} className="program-card-icon" />
                   </div>
 
-                  {/* ── Title ── */}
-                  <h3 className="insight-card-title" style={{ fontSize: '1.0625rem' }}>
-                    {event.title}
-                  </h3>
+                  <h3 className="insight-card-title">{event.title}</h3>
 
-                  {/* ── Date ── */}
-                  <p
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#d97706',
-                      marginBottom: '0.625rem',
-                    }}
-                  >
-                    {event.date}
-                  </p>
+                  <p className="insight-card-date">{formatEventDateDisplay(event.date)}</p>
 
                   {/* ── Description grows ── */}
                   <p className="insight-card-description">{event.description}</p>
 
                   {/* ── Footer always at bottom ── */}
-                  <div className="mt-4 flex flex-col items-start gap-1" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
+                  <div className="insight-card-footer">
                     <div className="text-sm text-gray-500 flex items-center gap-1.5">
                       <MapPin size={14} className="shrink-0" aria-hidden />
                       {event.location}
                     </div>
-                    <Link
-                      href={`/events/${event.slug}`}
-                      className="program-card-link"
-                      style={{ display: 'block' }}
-                    >
-                      Event details →
-                    </Link>
+                    <LocalizedLink href={`/events/${event.slug}`} className="program-card-link">
+                      {cms['home.events.cardCta'] ?? 'Event details'} →
+                    </LocalizedLink>
                   </div>
                 </div>
               </article>
@@ -334,38 +270,36 @@ export default function EventsPage() {
       </section>
 
       {/* ─── Impact & Stories ─── */}
-      <section className="page-section bg-white py-16">
+      <section className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
           <div className="two-col-section">
             <div>
               <span className="section-badge">{cms['events.highlights.badge']}</span>
               <h2 className="page-section-heading">{cms['events.highlights.heading']}</h2>
-              <p className="page-body-text" style={{ marginBottom: '2.5rem' }}>
+              <p className="page-body-text mb-section">
                 {cms['events.highlights.lead']}
               </p>
 
-              <div className="grid-cards">
+              <div className="grid-cards events-metrics-grid">
                 {highlightMetrics.map((s) => (
                   <div key={s.label}>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#d97706' }}>{s.value}</div>
-                    <div style={{ fontSize: '12px', color: '#1A1A1A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      {s.label}
-                    </div>
+                    <div className="metric-stat-value">{s.value}</div>
+                    <div className="metric-stat-label">{s.label}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="about-visual-card">
-              <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🌟</div>
-              <blockquote style={{ fontSize: '1.125rem', color: '#1A1A1A', fontStyle: 'italic', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+              <div className="testimonial-emoji" aria-hidden>🌟</div>
+              <blockquote className="testimonial-quote-block">
                 &quot;{highlightTestimonial.quote}&quot;
               </blockquote>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div className="testimonial-attribution">
                 <div className="testimonial-avatar">{highlightTestimonial.initials}</div>
                 <div>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#1A1A1A', margin: 0 }}>{highlightTestimonial.name}</p>
-                  <p style={{ fontSize: '12px', color: '#1A1A1A', margin: 0 }}>{highlightTestimonial.role}</p>
+                  <p className="testimonial-name">{highlightTestimonial.name}</p>
+                  <p className="testimonial-role-sm">{highlightTestimonial.role}</p>
                 </div>
               </div>
             </div>
@@ -374,7 +308,7 @@ export default function EventsPage() {
       </section>
 
       {/* ─── Newsletter ─── */}
-      <section className="page-section bg-slate-50">
+      <section id="newsletter" className="page-section bg-slate-50 section-reveal">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <h2 className="page-section-heading">{cms['events.newsletter.heading']}</h2>
@@ -385,16 +319,16 @@ export default function EventsPage() {
             <input
               id="newsletter-email"
               type="email"
-              className="form-input"
+              inputMode="email"
+              autoComplete="email"
+              className="form-input newsletter-form-input"
               placeholder="Enter your email"
-              style={{ flex: 1, minWidth: '180px' }}
               value={newsletterEmail}
               onChange={(e) => setNewsletterEmail(e.target.value)}
             />
             <button
               type="button"
-              className="btn-primary"
-              style={{ padding: '0 24px' }}
+              className="btn-primary newsletter-form-btn"
               onClick={handleNewsletterSubmit}
               disabled={newsletterStatus === 'loading'}
             >
@@ -402,28 +336,26 @@ export default function EventsPage() {
             </button>
           </div>
           {newsletterMessage ? (
-            <p className="page-body-text" style={{ marginTop: '1rem', fontSize: '14px' }}>
+            <p className="page-body-text text-body-md mt-note">
               {newsletterMessage}
             </p>
           ) : null}
         </div>
       </section>
 
-      {/* ─── Final CTA ─── */}
-      <section className="page-cta-section">
-        <div className="page-section-container page-cta-inner">
-          <h2 className="page-cta-heading">{cms['events.cta.heading']}</h2>
-          <p className="page-cta-body">{cms['events.cta.body']}</p>
-          <div className="page-cta-buttons">
-            <Link href="/programs" className="btn-primary page-cta-btn">
-              Explore Programs
-            </Link>
-            <Link href="/contact#form" className="btn-outline-white page-cta-btn">
-              Volunteer With Us
-            </Link>
-          </div>
-        </div>
-      </section>
+      <PageCtaBand
+        heading={cms['events.cta.heading']}
+        body={cms['events.cta.body']}
+        primary={{
+          label: DEFAULT_PROGRAMS_HERO_CTA_PRIMARY.label,
+          href: '/programs',
+        }}
+        secondary={{
+          label: heroSecondaryCta.label,
+          href: heroSecondaryCta.href,
+          variant: 'outline-white',
+        }}
+      />
     </div>
   )
 }

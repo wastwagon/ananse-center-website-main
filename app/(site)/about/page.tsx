@@ -1,6 +1,9 @@
-import Link from 'next/link'
+import type { Metadata } from 'next'
 import Image from 'next/image'
+import LocalizedLink from '../../../components/LocalizedLink'
+import PageCtaBand from '../../../components/PageCtaBand'
 import HeroSplit from '../../../components/HeroSplit'
+import { buildPageMetadata } from '../../../lib/page-meta'
 import { cmsIconForKey } from '../../../lib/cms-icons'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import {
@@ -23,7 +26,15 @@ import {
 } from '../../../lib/cms/content'
 import { cardImageSizes, images } from '../../../lib/images'
 
-export default async function About() {
+export const metadata: Metadata = buildPageMetadata({
+  title: 'About',
+  description:
+    'Our mission, Sankofa philosophy, and approach to Pan-African arts education and leadership development in Ghana.',
+  path: '/about',
+  ogImage: images.hero.about,
+})
+
+export default async function AboutPage() {
   const cms = await getCmsTexts([
     'about.hero.lead',
     'about.hero.title',
@@ -79,7 +90,7 @@ export default async function About() {
   )
 
   return (
-    <div>
+    <div className="about-page">
       <HeroSplit
         compact
         imageSrc={images.hero.about}
@@ -91,16 +102,16 @@ export default async function About() {
         stats={heroStats}
       />
 
-      <section className="page-section bg-white">
+      <section className="page-section section-reveal bg-white">
         <div className="page-section-container">
           <div className="two-col-section gap-xl">
             <div>
               <h2 className="page-section-heading">{cms['about.mission.heading']}</h2>
               <div className="page-body-stack">
-                <p className="page-body-text" style={{ fontSize: '16px' }}>
+                <p className="page-body-text text-body-lg">
                   {cms['about.mission']}
                 </p>
-                <p className="page-body-text" style={{ fontSize: '16px' }}>
+                <p className="page-body-text text-body-lg">
                   {cms['about.mission.continuation']}
                 </p>
               </div>
@@ -110,7 +121,7 @@ export default async function About() {
               <h2 className="page-section-heading">{cms['about.vision.heading']}</h2>
               <div className="page-body-stack">
                 {visionParagraphs.map((paragraph) => (
-                  <p key={paragraph.slice(0, 40)} className="page-body-text" style={{ fontSize: '16px' }}>
+                  <p key={paragraph.slice(0, 40)} className="page-body-text text-body-lg">
                     {paragraph}
                   </p>
                 ))}
@@ -120,7 +131,7 @@ export default async function About() {
         </div>
       </section>
 
-      <section className="page-section bg-slate-50">
+      <section className="page-section section-reveal bg-slate-50">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{cms['about.philosophy.badge']}</span>
@@ -133,7 +144,7 @@ export default async function About() {
               const Icon = cmsIconForKey(item.iconKey)
               return (
                 <article key={item.title} className="premium-card">
-                  <div className="premium-card-image-wrapper" style={{ height: '180px' }}>
+                  <div className="premium-card-image-wrapper premium-card-image-wrapper--short">
                     <Image
                       src={`/images/image (${idx + 7}).jpeg`}
                       alt={item.title}
@@ -150,9 +161,9 @@ export default async function About() {
                   </div>
                   <h3 className="premium-card-title">{item.title}</h3>
                   <p className="premium-card-description">{item.description}</p>
-                  <Link href="/programs" className="btn-primary premium-card-cta">
+                  <LocalizedLink href="/programs" className="btn-primary premium-card-cta">
                     {cms['about.philosophy.cardCta']}
-                  </Link>
+                  </LocalizedLink>
                 </article>
               )
             })}
@@ -160,50 +171,28 @@ export default async function About() {
         </div>
       </section>
 
-      <section className="page-section bg-white">
+      <section className="page-section section-reveal bg-white">
         <div className="page-section-container">
           <div className="two-col-section">
             <div className="max-w-md">
               <span className="section-badge">{cms['about.approach.badge']}</span>
               <h2 className="page-section-heading">{cms['about.approach.heading']}</h2>
-              <p className="page-body-text" style={{ marginBottom: '2.5rem' }}>
+              <p className="page-body-text mb-section">
                 {cms['about.approach.lead']}
               </p>
 
-              <div className="flex-column" style={{ gap: '2rem' }}>
+              <div className="flex-column gap-medium">
                 {approaches.map((step) => (
-                  <div key={step.title} style={{ display: 'flex', gap: '1.25rem' }}>
+                  <div key={step.title} className="approach-step">
                     <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        backgroundColor: step.backgroundColor,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        fontWeight: 700,
-                        color: step.textColor,
-                        fontSize: '14px',
-                      }}
+                      className="approach-step-num"
+                      style={{ backgroundColor: step.backgroundColor, color: step.textColor }}
                     >
                       {step.num}
                     </div>
                     <div>
-                      <h4
-                        style={{
-                          fontSize: '15px',
-                          fontWeight: 600,
-                          color: '#1A1A1A',
-                          marginBottom: '4px',
-                        }}
-                      >
-                        {step.title}
-                      </h4>
-                      <p className="page-body-text" style={{ fontSize: '14px', color: '#1A1A1A' }}>
-                        {step.description}
-                      </p>
+                      <h4 className="approach-step-title">{step.title}</h4>
+                      <p className="page-body-text text-body-md">{step.description}</p>
                     </div>
                   </div>
                 ))}
@@ -215,50 +204,35 @@ export default async function About() {
                 <span className="premium-card-featured-label">{cms['about.impact.cardBadge']}</span>
               </div>
 
-              <h3 className="premium-card-title" style={{ fontSize: '1.5rem', marginTop: '1rem' }}>
+              <h3 className="premium-card-title premium-card-title--lg">
                 {cms['about.impact.cardHeading']}
               </h3>
 
-              <div className="flex-column" style={{ gap: '1rem', marginTop: '1rem' }}>
+              <div className="flex-column flex-column--snug" style={{ marginTop: '1rem' }}>
                 {impactMetrics.map((row) => (
-                  <div
-                    key={row.label}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      paddingBottom: '1rem',
-                      borderBottom: '1px solid #e2e8f0',
-                    }}
-                  >
-                    <span style={{ fontSize: '14px', color: '#1A1A1A' }}>{row.label}</span>
-                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#1A1A1A' }}>{row.value}</span>
+                  <div key={row.label} className="impact-metric-row">
+                    <span className="text-body-md">{row.label}</span>
+                    <span className="text-body-lg" style={{ fontWeight: 700 }}>
+                      {row.value}
+                    </span>
                   </div>
                 ))}
               </div>
 
-              <Link href="/support" className="btn-primary premium-card-cta" style={{ marginTop: '2.5rem' }}>
+              <LocalizedLink href="/support" className="btn-primary premium-card-cta card-cta-spaced">
                 {cms['about.impact.cardCta']}
-              </Link>
+              </LocalizedLink>
             </article>
           </div>
         </div>
       </section>
 
-      <section className="page-cta-section">
-        <div className="page-section-container page-cta-inner">
-          <h2 className="page-cta-heading">{cms['about.cta.heading']}</h2>
-          <p className="page-cta-body">{cms['about.cta.body']}</p>
-          <div className="page-cta-buttons">
-            <Link href={aboutCtaPrimary.href} className="btn-primary page-cta-btn">
-              {aboutCtaPrimary.label}
-            </Link>
-            <Link href={aboutCtaSecondary.href} className="btn-outline-white page-cta-btn">
-              {aboutCtaSecondary.label}
-            </Link>
-          </div>
-        </div>
-      </section>
+      <PageCtaBand
+        heading={cms['about.cta.heading']}
+        body={cms['about.cta.body']}
+        primary={{ label: aboutCtaPrimary.label, href: aboutCtaPrimary.href }}
+        secondary={{ label: aboutCtaSecondary.label, href: aboutCtaSecondary.href, variant: 'outline-white' }}
+      />
     </div>
   )
 }

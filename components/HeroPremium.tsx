@@ -1,6 +1,8 @@
+'use client'
+
 import Image from 'next/image'
-import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
+import LocalizedLink from './LocalizedLink'
 import { site } from '../lib/site'
 import { images } from '../lib/images'
 import { renderHomeHeroTitle } from '../lib/cms/hero'
@@ -46,13 +48,13 @@ export default function HeroPremium({ lead, title, stats, primaryCta, secondaryC
           <p className="hero-premium-lead">{lead}</p>
 
           <div className="hero-premium-actions">
-            <Link href={primaryCta.href} className="hero-premium-btn hero-premium-btn--primary">
+            <LocalizedLink href={primaryCta.href} className="hero-premium-btn hero-premium-btn--primary">
               {primaryCta.label}
               <ArrowRight size={18} strokeWidth={2} aria-hidden />
-            </Link>
-            <Link href={secondaryCta.href} className="hero-premium-btn hero-premium-btn--ghost">
+            </LocalizedLink>
+            <LocalizedLink href={secondaryCta.href} className="hero-premium-btn hero-premium-btn--ghost">
               {secondaryCta.label}
-            </Link>
+            </LocalizedLink>
           </div>
         </div>
 

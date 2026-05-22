@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import LocalizedLink from './LocalizedLink'
 import {
   fetchDonationConfig,
   initializeDonation,
@@ -176,7 +176,7 @@ export default function DonateSection({
   const paymentsReady = Boolean(config?.enabled && config?.publicKey)
 
   return (
-    <section id="donate" className="page-section bg-slate-50">
+    <section id="donate" className="page-section bg-slate-50 section-reveal">
       <div className="page-section-container">
         <div className="page-section-center-header">
           <h2 className="page-section-heading">{heading ?? 'Ways to Give'}</h2>
@@ -198,6 +198,7 @@ export default function DonateSection({
                 id="donor-name"
                 type="text"
                 autoComplete="name"
+                className="form-input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Optional"
@@ -208,8 +209,10 @@ export default function DonateSection({
               <input
                 id="donor-email"
                 type="email"
+                inputMode="email"
                 required
                 autoComplete="email"
+                className="form-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
@@ -249,8 +252,10 @@ export default function DonateSection({
                 <input
                   id="custom-amount"
                   type="number"
+                  inputMode="numeric"
                   min={config?.minAmount || paystack.minDonation}
                   step="1"
+                  className="form-input"
                   value={customAmount}
                   onChange={(e) => setCustomAmount(e.target.value)}
                   placeholder={`Min ${config?.minAmount || paystack.minDonation}`}
@@ -269,9 +274,9 @@ export default function DonateSection({
 
           {!paymentsReady ? (
             <p className="page-body-text text-center" style={{ marginTop: '1.5rem' }}>
-              <Link href="/contact#form" className="program-card-link">
+              <LocalizedLink href="/contact#form" className="program-card-link">
                 Contact us to give offline →
-              </Link>
+              </LocalizedLink>
             </p>
           ) : null}
 

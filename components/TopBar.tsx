@@ -1,5 +1,3 @@
-'use client'
-
 import { Phone, Mail } from 'lucide-react'
 import { contact as staticContact, site, social as defaultSocial } from '../lib/site'
 
@@ -70,16 +68,24 @@ export default function TopBar({
     <div className="topbar-root">
       <div className="topbar-container">
         <div className="topbar-contact">
-          <a href={contact.phoneHref} className="topbar-contact-item topbar-contact-link">
+          <a
+            href={contact.phoneHref}
+            className="topbar-contact-item topbar-contact-link tap-target"
+            aria-label={`Call ${contact.phone}`}
+          >
             <Phone size={14} className="topbar-icon" aria-hidden />
-            {contact.phone}
+            <span className="topbar-contact-text">{contact.phone}</span>
           </a>
           <span className="topbar-contact-divider" aria-hidden>
             |
           </span>
-          <a href={`mailto:${contact.email}`} className="topbar-contact-item topbar-contact-link">
+          <a
+            href={`mailto:${contact.email}`}
+            className="topbar-contact-item topbar-contact-link tap-target"
+            aria-label={`Email ${contact.email}`}
+          >
             <Mail size={14} className="topbar-icon" aria-hidden />
-            {contact.email}
+            <span className="topbar-contact-text topbar-contact-text--email">{contact.email}</span>
           </a>
         </div>
 
@@ -91,7 +97,7 @@ export default function TopBar({
               target="_blank"
               rel="noopener noreferrer"
               aria-label={label}
-              className="topbar-social-link"
+              className="topbar-social-link tap-target"
             >
               <Icon />
             </a>

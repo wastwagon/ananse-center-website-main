@@ -1,8 +1,10 @@
+'use client'
+
 import Image from 'next/image'
-import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { site } from '../lib/site'
+import LocalizedLink from './LocalizedLink'
 
 export type HeroStat = { value: string; label: string }
 
@@ -62,14 +64,14 @@ export default function HeroSplit({
           <p className="hero-page-lead">{description}</p>
 
           <div className="hero-page-actions">
-            <Link href={primaryCta.href} className="hero-page-btn hero-page-btn--primary">
+            <LocalizedLink href={primaryCta.href} className="hero-page-btn hero-page-btn--primary">
               {primaryCta.label}
               <ArrowRight size={17} strokeWidth={2} aria-hidden />
-            </Link>
+            </LocalizedLink>
             {secondaryCta ? (
-              <Link href={secondaryCta.href} className="hero-page-btn hero-page-btn--ghost">
+              <LocalizedLink href={secondaryCta.href} className="hero-page-btn hero-page-btn--ghost">
                 {secondaryCta.label}
-              </Link>
+              </LocalizedLink>
             ) : null}
           </div>
         </div>

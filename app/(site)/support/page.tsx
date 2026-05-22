@@ -1,6 +1,9 @@
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
+import LocalizedLink from '../../../components/LocalizedLink'
+import PageCtaBand from '../../../components/PageCtaBand'
+import { buildPageMetadata } from '../../../lib/page-meta'
 import HeroSplit from '../../../components/HeroSplit'
 import { cmsIconForKey } from '../../../lib/cms-icons'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
@@ -28,6 +31,13 @@ import FeatureIcon from '../../../components/FeatureIcon'
 import DonateSection from '../../../components/DonateSection'
 import DonationStatusBanner from '../../../components/DonationStatusBanner'
 import { cardImageSizes, images } from '../../../lib/images'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Support',
+  description: 'Donate to The Ananse Center and help fund arts, education, and community programs in Ghana and beyond.',
+  path: '/support',
+  ogImage: images.hero.support,
+})
 
 export default async function SupportPage() {
   const cms = await getCmsTexts([
@@ -84,7 +94,7 @@ export default async function SupportPage() {
   )
 
   return (
-    <div>
+    <div className="support-page">
       <HeroSplit
         compact
         imageSrc={images.hero.support}
@@ -96,7 +106,7 @@ export default async function SupportPage() {
         stats={heroStats}
       />
 
-      <section className="page-section bg-white">
+      <section className="page-section section-reveal bg-white">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{cms['support.impact.badge']}</span>
@@ -104,7 +114,7 @@ export default async function SupportPage() {
             <p className="page-body-text">{cms['support.impact.lead']}</p>
           </div>
 
-          <div className="grid-cards">
+          <div className="grid-cards grid-cards--keep-cols">
             {donationTiers.map((stat) => {
               const Icon = cmsIconForKey(stat.iconKey)
               return (
@@ -113,8 +123,8 @@ export default async function SupportPage() {
                   className="feature-card text-center flex flex-col items-center justify-center gap-3"
                 >
                   <FeatureIcon icon={Icon} size={22} />
-                  <div style={{ fontSize: '2rem', fontWeight: 800, color: '#d97706' }}>{stat.amount}</div>
-                  <p className="page-body-text" style={{ fontSize: '14px', color: '#1A1A1A', margin: 0 }}>
+                  <div className="support-stat-amount">{stat.amount}</div>
+                  <p className="page-body-text text-body-md">
                     {stat.label}
                   </p>
                 </div>
@@ -134,7 +144,7 @@ export default async function SupportPage() {
         presets={donatePresets}
       />
 
-      <section className="page-section bg-white">
+      <section className="page-section section-reveal bg-white">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <h2 className="page-section-heading">{cms['support.beyond.heading']}</h2>
@@ -146,10 +156,7 @@ export default async function SupportPage() {
               const Icon = cmsIconForKey(way.iconKey)
               return (
                 <div key={way.title} className="insight-card p-0">
-                  <div
-                    className="premium-card-image-wrapper"
-                    style={{ height: '160px', marginBottom: 0, borderRadius: '12px 12px 0 0' }}
-                  >
+                  <div className="premium-card-image-wrapper premium-card-image-wrapper--card-top">
                     <Image
                       src={`/images/image (${idx + 12}).jpeg`}
                       alt={way.title}
@@ -162,12 +169,12 @@ export default async function SupportPage() {
                   <div className="insight-card-body">
                     <FeatureIcon icon={Icon} size={22} />
                     <h3 className="insight-card-title">{way.title}</h3>
-                    <p className="page-body-text" style={{ fontSize: '13px', marginBottom: '1.5rem', flex: 1 }}>
+                    <p className="page-body-text text-body-sm" style={{ marginBottom: '1.5rem', flex: 1 }}>
                       {way.description}
                     </p>
-                    <Link href="/contact#form" className="program-card-link">
+                    <LocalizedLink href="/contact#form" className="program-card-link">
                       {way.linkText} →
-                    </Link>
+                    </LocalizedLink>
                   </div>
                 </div>
               )
@@ -176,37 +183,28 @@ export default async function SupportPage() {
         </div>
       </section>
 
-      <section className="page-section bg-slate-50">
+      <section className="page-section section-reveal bg-slate-50">
         <div className="page-section-container">
           <div className="two-col-section">
             <div className="insight-card p-0">
-              <div
-                className="premium-card-image-wrapper"
-                style={{ height: '180px', marginBottom: 0, borderRadius: '12px 12px 0 0' }}
-              >
+              <div className="premium-card-image-wrapper premium-card-image-wrapper--insight-top">
                 <Image src="/images/image (15).jpeg" alt="Transparency" fill className="object-cover" />
               </div>
               <div className="insight-card-bar" />
               <div className="insight-card-body p-20">
-                <h2 className="page-section-heading" style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>
+                <h2 className="page-section-heading section-heading-sm">
                   {cms['support.transparency.heading']}
                 </h2>
-                <p className="page-body-text" style={{ fontSize: '14px', marginBottom: '2rem' }}>
+                <p className="page-body-text text-body-md mb-section">
                   {cms['support.transparency.body']}
                 </p>
-                <div className="flex-column" style={{ gap: '1rem' }}>
+                <div className="flex-column flex-column--snug">
                   {transparencyAllocation.map((r) => (
-                    <div
-                      key={r.label}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        paddingBottom: '0.75rem',
-                        borderBottom: '1px solid #e2e8f0',
-                      }}
-                    >
-                      <span style={{ fontSize: '13px', color: '#1A1A1A' }}>{r.label}</span>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#1A1A1A' }}>{r.value}</span>
+                    <div key={r.label} className="transparency-row">
+                      <span className="text-body-sm">{r.label}</span>
+                      <span className="text-body-md" style={{ fontWeight: 700 }}>
+                        {r.value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -216,18 +214,13 @@ export default async function SupportPage() {
             <div className="flex flex-col justify-center">
               <span className="section-badge">{cms['support.standards.badge']}</span>
               <h2 className="page-section-heading">{cms['support.standards.heading']}</h2>
-              <p className="page-body-text" style={{ marginBottom: '2rem' }}>
+              <p className="page-body-text mb-section">
                 {cms['support.standards.lead']}
               </p>
-              <ul className="flex-column" style={{ gap: '0.75rem', padding: 0 }}>
+              <ul className="flex-column standards-list flex-column--tight">
                 {standardsItems.map((li) => (
-                  <li
-                    key={li}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#1A1A1A' }}
-                  >
-                    <div
-                      style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b' }}
-                    />
+                  <li key={li} className="standards-list-item">
+                    <div className="standards-list-dot" aria-hidden />
                     {li}
                   </li>
                 ))}
@@ -237,20 +230,12 @@ export default async function SupportPage() {
         </div>
       </section>
 
-      <section className="page-cta-section">
-        <div className="page-section-container page-cta-inner">
-          <h2 className="page-cta-heading">{cms['support.cta.heading']}</h2>
-          <p className="page-cta-body">{cms['support.cta.body']}</p>
-          <div className="page-cta-buttons">
-            <Link href="/support#donate" className="btn-primary page-cta-btn">
-              Make a Donation
-            </Link>
-            <Link href="/contact#form" className="btn-outline-white page-cta-btn">
-              Partner With Us
-            </Link>
-          </div>
-        </div>
-      </section>
+      <PageCtaBand
+        heading={cms['support.cta.heading']}
+        body={cms['support.cta.body']}
+        primary={{ label: heroPrimaryCta.label, href: heroPrimaryCta.href }}
+        secondary={{ label: heroSecondaryCta.label, href: heroSecondaryCta.href, variant: 'outline-white' }}
+      />
     </div>
   )
 }

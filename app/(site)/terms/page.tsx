@@ -1,30 +1,25 @@
-import Link from 'next/link'
-import { site } from '../../../lib/site'
+import PolicyPageLayout from '../../../components/PolicyPageLayout'
+import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts } from '../../../lib/cms/content'
 
-export const metadata = {
-  title: `Terms of Service | ${site.shortName}`,
-}
+export const metadata = buildPageMetadata({
+  title: 'Terms of Service',
+  description: 'Terms and conditions for using The Ananse Center website and services.',
+  path: '/terms',
+})
 
 export default async function TermsPage() {
   const cms = await getCmsTexts(['legal.badge', 'terms.heading', 'terms.lead', 'terms.body'] as const)
 
   return (
-    <div className="page-section bg-white">
-      <div className="page-section-container legal-page">
-        <span className="section-badge">{cms['legal.badge']}</span>
-        <h1 className="page-section-heading">{cms['terms.heading']}</h1>
-        <p className="page-body-text legal-lead">{cms['terms.lead']}</p>
-        <p className="page-body-text">{cms['terms.body']}</p>
-        <div className="legal-cta-row">
-          <Link href="/contact#form" className="btn-primary page-inline-cta">
-            Contact us
-          </Link>
-          <Link href="/" className="btn-outline page-inline-cta">
-            Return home
-          </Link>
-        </div>
-      </div>
-    </div>
+    <PolicyPageLayout
+      badge={cms['legal.badge']}
+      heading={cms['terms.heading']}
+      lead={cms['terms.lead']}
+      body={cms['terms.body']}
+      headingKey="terms.heading"
+      leadKey="terms.lead"
+      bodyKey="terms.body"
+    />
   )
 }

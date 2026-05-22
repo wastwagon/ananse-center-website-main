@@ -1,6 +1,10 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import LocalizedLink from '../../components/LocalizedLink'
 import HeroPremium from '../../components/HeroPremium'
+import { buildPageMetadata } from '../../lib/page-meta'
+import { formatEventDateDisplay } from '../../lib/format'
+import GlobalAudienceBand from '../../components/GlobalAudienceBand'
 import FeatureIcon from '../../components/FeatureIcon'
 import EventTypeIcon from '../../components/EventTypeIcon'
 import { cmsIconForKey } from '../../lib/cms-icons'
@@ -28,6 +32,14 @@ import {
   type CmsStoryHighlight,
   type CmsTestimonial,
 } from '../../lib/cms/content'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Home',
+  description:
+    'The Ananse Center for Arts and Culture — Sankofa programs, events, and Pan-African leadership development in Accra and across the diaspora.',
+  path: '/',
+  ogImage: images.hero.home,
+})
 
 export default async function Home() {
   const [cms, featuredEvents, sankofaPrograms] = await Promise.all([
@@ -103,7 +115,9 @@ export default async function Home() {
         secondaryCta={homeHeroSecondaryCta}
       />
 
-      <section id="our-story" className="page-section bg-white">
+      <GlobalAudienceBand />
+
+      <section id="our-story" className="page-section bg-white section-reveal">
         <div className="page-section-container">
           <div className="two-col-section">
             <div>
@@ -116,9 +130,9 @@ export default async function Home() {
                   </p>
                 ))}
               </div>
-              <Link href="/about" className="btn-primary page-inline-cta">
+              <LocalizedLink href="/about" className="btn-primary page-inline-cta">
                 {cms['home.story.cta']}
-              </Link>
+              </LocalizedLink>
             </div>
             <div className="about-visual-card">
               <div className="about-visual-grid">
@@ -138,7 +152,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="page-section page-section--muted">
+      <section className="page-section page-section--muted section-reveal">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{cms['home.pillars.badge']}</span>
@@ -166,9 +180,9 @@ export default async function Home() {
                   </div>
                   <h3 className="premium-card-title">{goal.title}</h3>
                   <p className="premium-card-description">{goal.description}</p>
-                  <Link href="/about" className="btn-secondary premium-card-cta">
+                  <LocalizedLink href="/about" className="btn-secondary premium-card-cta">
                     {cms['home.pillars.cardCta']}
-                  </Link>
+                  </LocalizedLink>
                 </article>
               )
             })}
@@ -176,7 +190,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="page-section bg-white">
+      <section className="page-section bg-white section-reveal">
         <div className="page-section-container">
           <div className="section-header-split">
             <div>
@@ -184,9 +198,9 @@ export default async function Home() {
               <h2 className="page-section-heading">{cms['home.programs.heading']}</h2>
               <p className="page-body-text">{cms['home.programs.lead']}</p>
             </div>
-            <Link href="/programs" className="btn-outline page-section-cta-link">
+            <LocalizedLink href="/programs" className="btn-outline page-section-cta-link">
               {cms['home.programs.link']}
-            </Link>
+            </LocalizedLink>
           </div>
           <div className="grid-cards">
             {sankofaPrograms.map((prog, idx) => (
@@ -208,16 +222,16 @@ export default async function Home() {
                 </div>
                 <h3 className="premium-card-title">{prog.title}</h3>
                 <p className="premium-card-description">{prog.description}</p>
-                <Link href={prog.href} className="btn-primary premium-card-cta">
+                <LocalizedLink href={prog.href} className="btn-primary premium-card-cta">
                   {cms['home.programs.cardCta']}
-                </Link>
+                </LocalizedLink>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="page-section page-section--muted">
+      <section className="page-section page-section--muted section-reveal">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{cms['home.events.badge']}</span>
@@ -242,26 +256,26 @@ export default async function Home() {
                 </div>
                 <h3 className="premium-card-title">{event.title}</h3>
                 <div className="premium-card-meta">
-                  <span className="premium-card-date">{event.date}</span>
+                  <span className="premium-card-date">{formatEventDateDisplay(event.date)}</span>
                   <span className="text-slate-300">·</span>
                   <span className="premium-card-location">{event.location}</span>
                 </div>
                 <p className="premium-card-description">{event.description}</p>
-                <Link href={`/events/${event.slug}`} className="btn-primary premium-card-cta">
+                <LocalizedLink href={`/events/${event.slug}`} className="btn-primary premium-card-cta">
                   {cms['home.events.cardCta']}
-                </Link>
+                </LocalizedLink>
               </article>
             ))}
           </div>
-          <p className="text-center" style={{ marginTop: '2.5rem' }}>
-            <Link href="/events" className="btn-outline">
+          <p className="text-center mt-section">
+            <LocalizedLink href="/events" className="btn-outline">
               {cms['home.events.calendarLink']}
-            </Link>
+            </LocalizedLink>
           </p>
         </div>
       </section>
 
-      <section className="page-section bg-white">
+      <section className="page-section bg-white section-reveal">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{cms['home.testimonials.badge']}</span>
@@ -286,7 +300,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="page-section page-section--muted">
+      <section className="page-section page-section--muted section-reveal">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{cms['home.sectors.badge']}</span>
@@ -307,19 +321,19 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="page-cta-section">
+      <section className="page-cta-section section-reveal">
         <div className="page-section-container page-cta-inner">
           <h2 className="page-cta-heading">{cms['home.cta.heading']}</h2>
           <p className="page-cta-body">{cms['home.cta.body']}</p>
           <div className="page-cta-buttons">
             {homeCtaButtons.map((btn, index) => (
-              <Link
+              <LocalizedLink
                 key={btn.label}
                 href={btn.href}
                 className={index === 0 ? 'btn-primary page-cta-btn' : 'btn-outline-white page-cta-btn'}
               >
                 {btn.label}
-              </Link>
+              </LocalizedLink>
             ))}
           </div>
         </div>

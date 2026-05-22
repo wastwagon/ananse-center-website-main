@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { cookies } from 'next/headers'
+import { parseLocale, t } from '../lib/i18n'
+import { LOCALE_COOKIE, localizedPath } from '../lib/locale-path'
 import {
   Mail,
   Phone,
@@ -11,6 +14,7 @@ import {
 import { contact as defaultContact, site as defaultSite, social as defaultSocial } from '../lib/site'
 import { DEFAULT_IMPACT_STATS, type ImpactStat } from '../lib/site-impact'
 import type { PublicSiteProfile } from '../lib/site-profile'
+import LocaleSwitcher from './LocaleSwitcher'
 
 type FooterProps = {
   site?: PublicSiteProfile['site']
@@ -45,14 +49,14 @@ function YoutubeIcon() {
 }
 
 const quickLinks = [
-  { name: 'Home', href: '/' },
-  { name: 'About Us', href: '/about' },
-  { name: 'Programs', href: '/programs' },
-  { name: 'Events', href: '/events' },
-  { name: 'Videos', href: '/videos' },
-  { name: 'Support', href: '/support' },
-  { name: 'Contact', href: '/contact#form' },
-]
+  { key: 'nav.home', href: '/' },
+  { key: 'nav.about', href: '/about' },
+  { key: 'nav.programs', href: '/programs' },
+  { key: 'nav.events', href: '/events' },
+  { key: 'nav.videos', href: '/videos' },
+  { key: 'nav.donate', href: '/support' },
+  { key: 'nav.contact', href: '/contact#form' },
+] as const
 
 const programLinks = [
   { name: 'Sankofa Mentorship', href: '/programs' },
@@ -61,13 +65,15 @@ const programLinks = [
   { name: 'Storytelling', href: '/programs' },
 ]
 
-export default function Footer({
+export default async function Footer({
   site = defaultSite,
   contact = { ...defaultContact, address: defaultSite.address },
   social = defaultSocial,
   impactStats = DEFAULT_IMPACT_STATS,
   footerMission = defaultSite.footerMission,
 }: FooterProps) {
+  const cookieStore = await cookies()
+  const locale = parseLocale(cookieStore.get(LOCALE_COOKIE)?.value)
   const year = new Date().getFullYear()
   const socialLinks = [
     { label: 'Facebook', href: social.facebook, Icon: FacebookIcon },
@@ -110,11 +116,11 @@ export default function Footer({
             <p className="footer-desc">{footerMission}</p>
 
             <div className="footer-cta-group">
-              <Link href="/support" className="footer-cta footer-cta--primary">
+              <Link href={localizedPath('/support', locale)} className="footer-cta footer-cta--primary">
                 <Heart size={16} aria-hidden />
                 Support our mission
               </Link>
-              <Link href="/contact#form" className="footer-cta footer-cta--outline">
+              <Link href={`${localizedPath('/contact', locale)}#form`} className="footer-cta footer-cta--outline">
                 Get in touch
                 <ArrowRight size={16} aria-hidden />
               </Link>
@@ -137,13 +143,21 @@ export default function Footer({
           </div>
 
           <div className="footer-col">
-            <p className="footer-col-heading">Quick Links</p>
+            <p className="footer-col-heading">{t('footer.explore', locale)}</p>
             <nav className="footer-links" aria-label="Quick links">
-              {quickLinks.map((link) => (
-                <Link key={link.name} href={link.href} className="footer-link">
-                  {link.name}
-                </Link>
-              ))}
+              {quickLinks.map((link) => {
+                const base = link.href.split('#')[0]
+                const hash = link.href.includes('#') ? '#form' : ''
+                return (
+                  <Link
+                    key={link.key}
+                    href={localizedPath(base, locale) + hash}
+                    className="footer-link"
+                  >
+                    {t(link.key, locale)}
+                  </Link>
+                )
+              })}
             </nav>
           </div>
 
@@ -151,7 +165,7 @@ export default function Footer({
             <p className="footer-col-heading">Programs</p>
             <nav className="footer-links" aria-label="Programs">
               {programLinks.map((link) => (
-                <Link key={link.name} href={link.href} className="footer-link">
+                <Link key={link.name} href={localizedPath(link.href, locale)} className="footer-link">
                   {link.name}
                 </Link>
               ))}
@@ -159,7 +173,7 @@ export default function Footer({
           </div>
 
           <div className="footer-col">
-            <p className="footer-col-heading">Contact</p>
+            <p className="footer-col-heading">{t('footer.connect', locale)}</p>
             <address className="footer-contact not-italic">
               <div className="footer-contact-item">
                 <MapPin size={17} className="footer-contact-icon" aria-hidden />
@@ -186,18 +200,19 @@ export default function Footer({
         </div>
 
         <div className="footer-bottom">
+          <LocaleSwitcher />
           <p className="footer-copy">
             © {year} {site.name}. All rights reserved.
           </p>
           <nav className="footer-legal" aria-label="Legal">
-            <Link href="/privacy" className="footer-legal-link">
-              Privacy Policy
+            <Link href={localizedPath('/privacy', locale)} className="footer-legal-link">
+              {t('nav.privacy', locale)}
             </Link>
             <span className="footer-legal-sep" aria-hidden>
               ·
             </span>
-            <Link href="/terms" className="footer-legal-link">
-              Terms of Service
+            <Link href={localizedPath('/terms', locale)} className="footer-legal-link">
+              {t('nav.terms', locale)}
             </Link>
           </nav>
         </div>

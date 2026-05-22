@@ -1,9 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import HeroSplit from '../../../components/HeroSplit'
+import LocalizedLink from '../../../components/LocalizedLink'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import type { CmsHeroCta, CmsHeroStat, CmsHeroTitle } from '../../../lib/cms/registry'
 import FeatureIcon from '../../../components/FeatureIcon'
@@ -83,7 +83,7 @@ export default function ProgramsPageClient({
     activeTab === 'All Programs' ? programs : programs.filter((p) => p.category === activeTab)
 
   return (
-    <div>
+    <div className="programs-page">
       <HeroSplit
         compact
         imageSrc={images.hero.programs}
@@ -95,32 +95,28 @@ export default function ProgramsPageClient({
         stats={heroStats}
       />
 
-      <section id="catalog" className="page-section bg-white py-16">
+      <section id="catalog" className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <h2 className="page-section-heading">{catalogHeading}</h2>
             <p className="page-body-text">{catalogLead}</p>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '0.75rem',
-              flexWrap: 'wrap',
-              marginBottom: '3.5rem',
-            }}
-          >
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setActiveTab(cat)}
-                className={`filter-btn ${activeTab === cat ? 'filter-btn-active' : ''}`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="filter-scroll">
+            <div className="filter-row-center" role="tablist" aria-label="Program category filter">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === cat}
+                  onClick={() => setActiveTab(cat)}
+                  className={`filter-btn ${activeTab === cat ? 'filter-btn-active' : ''}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid-cards">
@@ -145,10 +141,7 @@ export default function ProgramsPageClient({
                   </div>
                   <h3 className="premium-card-title">{program.title}</h3>
                   {program.duration || program.level ? (
-                    <div
-                      className="flex justify-between items-center py-4 border-b border-gray-100 mb-6"
-                      style={{ width: '100%' }}
-                    >
+                    <div className="flex justify-between items-center py-4 border-b border-gray-100 mb-6 w-full">
                       {program.duration ? (
                         <div className="flex flex-col">
                           <span className="text-[11px] font-bold text-gray-400 uppercase letter-spacing-wide">
@@ -169,44 +162,22 @@ export default function ProgramsPageClient({
                   ) : null}
                   <p className="premium-card-description">{program.description}</p>
                   {program.features.length > 0 ? (
-                    <div className="flex-column" style={{ gap: '0.75rem', marginBottom: '2.5rem', flex: 1 }}>
+                    <div className="program-feature-list">
                       {program.features.map((feature) => (
-                        <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div
-                            style={{
-                              width: '5px',
-                              height: '5px',
-                              borderRadius: '50%',
-                              backgroundColor: '#f59e0b',
-                              flexShrink: 0,
-                            }}
-                          />
-                          <span style={{ fontSize: '14px', color: '#1A1A1A' }}>{feature}</span>
+                        <div key={feature} className="program-feature-item">
+                          <div className="program-feature-dot" aria-hidden />
+                          <span className="text-body-md">{feature}</span>
                         </div>
                       ))}
                     </div>
                   ) : null}
-                  <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
-                    <Link href="/contact#form" className="btn-primary premium-card-cta" style={{ flex: 1 }}>
+                  <div className="program-card-actions">
+                    <LocalizedLink href="/contact#form" className="btn-primary premium-card-cta">
                       {cardCtaPrimary}
-                    </Link>
-                    <Link
-                      href="/contact#form"
-                      className="btn-outline-dark"
-                      style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        borderRadius: '8px',
-                        border: '1px solid #e2e8f0',
-                        color: '#1A1A1A',
-                      }}
-                    >
+                    </LocalizedLink>
+                    <LocalizedLink href="/contact#form" className="btn-outline-dark">
                       {cardCtaSecondary}
-                    </Link>
+                    </LocalizedLink>
                   </div>
                 </article>
               )
@@ -215,7 +186,7 @@ export default function ProgramsPageClient({
         </div>
       </section>
 
-      <section className="page-section bg-slate-50 py-16">
+      <section className="page-section section-reveal bg-slate-50 py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{benefitsBadge}</span>
@@ -227,7 +198,7 @@ export default function ProgramsPageClient({
               const BenefitIcon = programIconForKey(benefit.iconKey)
               return (
               <article key={benefit.title} className="premium-card">
-                <div className="premium-card-image-wrapper" style={{ height: '180px' }}>
+                <div className="premium-card-image-wrapper premium-card-image-wrapper--short">
                   <Image
                     src={`/images/image (${idx + 7}).jpeg`}
                     alt={benefit.title}
@@ -251,7 +222,7 @@ export default function ProgramsPageClient({
         </div>
       </section>
 
-      <section className="page-section bg-white py-16">
+      <section className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{testimonialsBadge}</span>
@@ -266,7 +237,7 @@ export default function ProgramsPageClient({
                   <div className="testimonial-avatar">{t.initials}</div>
                   <div>
                     <p className="testimonial-name">{t.name}</p>
-                    <p style={{ fontSize: '11px', color: '#1A1A1A', margin: 0 }}>{t.role}</p>
+                    <p className="testimonial-role-sm">{t.role}</p>
                   </div>
                 </div>
               </div>
@@ -275,7 +246,7 @@ export default function ProgramsPageClient({
         </div>
       </section>
 
-      <section className="page-cta-section">
+      <section className="page-cta-section section-reveal">
         <div className="page-section-container page-cta-inner">
           <h2 className="page-cta-heading">{ctaHeading}</h2>
           <p className="page-cta-body">{ctaBody}</p>
@@ -290,9 +261,9 @@ export default function ProgramsPageClient({
             >
               {ctaPrimary.label}
             </button>
-            <Link href={ctaSecondary.href} className="btn-outline-white page-cta-btn">
+            <LocalizedLink href={ctaSecondary.href} className="btn-outline-white page-cta-btn">
               {ctaSecondary.label}
-            </Link>
+            </LocalizedLink>
           </div>
         </div>
       </section>

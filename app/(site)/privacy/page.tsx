@@ -1,10 +1,13 @@
-import Link from 'next/link'
-import { site } from '../../../lib/site'
+import PolicyPageLayout from '../../../components/PolicyPageLayout'
+import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts } from '../../../lib/cms/content'
 
-export const metadata = {
-  title: `Privacy Policy | ${site.shortName}`,
-}
+export const metadata = buildPageMetadata({
+  title: 'Privacy Policy',
+  description:
+    'How The Ananse Center collects, uses, and protects your personal information.',
+  path: '/privacy',
+})
 
 export default async function PrivacyPage() {
   const cms = await getCmsTexts([
@@ -15,21 +18,14 @@ export default async function PrivacyPage() {
   ] as const)
 
   return (
-    <div className="page-section bg-white">
-      <div className="page-section-container legal-page">
-        <span className="section-badge">{cms['legal.badge']}</span>
-        <h1 className="page-section-heading">{cms['privacy.heading']}</h1>
-        <p className="page-body-text legal-lead">{cms['privacy.lead']}</p>
-        <p className="page-body-text">{cms['privacy.body']}</p>
-        <div className="legal-cta-row">
-          <Link href="/contact#form" className="btn-primary page-inline-cta">
-            Contact us
-          </Link>
-          <Link href="/" className="btn-outline page-inline-cta">
-            Return home
-          </Link>
-        </div>
-      </div>
-    </div>
+    <PolicyPageLayout
+      badge={cms['legal.badge']}
+      heading={cms['privacy.heading']}
+      lead={cms['privacy.lead']}
+      body={cms['privacy.body']}
+      headingKey="privacy.heading"
+      leadKey="privacy.lead"
+      bodyKey="privacy.body"
+    />
   )
 }

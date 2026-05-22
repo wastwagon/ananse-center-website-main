@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import LocalizedLink from '../../../components/LocalizedLink'
 import { MapPin, Mail, Phone, Clock } from 'lucide-react'
 import HeroSplit from '../../../components/HeroSplit'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
@@ -86,7 +86,7 @@ export default function ContactPageClient({
   }
 
   return (
-    <div>
+    <div className="contact-page">
       <HeroSplit
         compact
         imageSrc={images.hero.contact}
@@ -98,39 +98,40 @@ export default function ContactPageClient({
         stats={heroStats}
       />
 
-      <section className="page-section bg-white">
+      <section className="page-section section-reveal bg-white">
         <div className="page-section-container">
-          <div className="grid-cards">
+          <div className="grid-cards grid-cards--keep-cols">
             {contactInfo.map((item) => (
               <div key={item.title} className="feature-card text-center">
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                <div className="feature-card-icon-wrap">
                   <FeatureIcon icon={item.icon} variant="gold" />
                 </div>
                 <h3 className="feature-card-title">{item.title}</h3>
-                <p className="page-body-text" style={{ fontSize: '13px', whiteSpace: 'pre-line' }}>
-                  {item.desc}
-                </p>
+                <p className="page-body-text feature-card-desc">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="form" className="page-section bg-slate-50">
+      <section id="form" className="page-section section-reveal bg-slate-50">
         <div className="page-section-container">
           <div className="two-col-section">
             <div className="insight-card p-0">
               <div className="insight-card-bar" />
               <div className="insight-card-body p-20">
-                <h2 className="page-section-heading" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>
-                  {formHeading}
-                </h2>
+                <h2 className="page-section-heading contact-form-heading">{formHeading}</h2>
                 <form onSubmit={handleSubmit}>
                   <div className="contact-form-grid">
                     <div className="form-group">
-                      <label className="form-label">Full Name</label>
+                      <label htmlFor="contact-name" className="form-label">
+                        Full Name
+                      </label>
                       <input
+                        id="contact-name"
+                        name="name"
                         type="text"
+                        autoComplete="name"
                         className="form-input"
                         placeholder="Your name"
                         value={name}
@@ -139,9 +140,15 @@ export default function ContactPageClient({
                       />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Email Address</label>
+                      <label htmlFor="contact-email" className="form-label">
+                        Email Address
+                      </label>
                       <input
+                        id="contact-email"
+                        name="email"
                         type="email"
+                        inputMode="email"
+                        autoComplete="email"
                         className="form-input"
                         placeholder="your@email.com"
                         value={email}
@@ -152,8 +159,12 @@ export default function ContactPageClient({
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Subject</label>
+                    <label htmlFor="contact-subject" className="form-label">
+                      Subject
+                    </label>
                     <select
+                      id="contact-subject"
+                      name="subject"
                       className="form-input form-select"
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
@@ -165,8 +176,12 @@ export default function ContactPageClient({
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Message</label>
+                    <label htmlFor="contact-message" className="form-label">
+                      Message
+                    </label>
                     <textarea
+                      id="contact-message"
+                      name="message"
                       className="form-input form-textarea"
                       placeholder="Tell us how we can help..."
                       value={message}
@@ -177,14 +192,13 @@ export default function ContactPageClient({
 
                   <button
                     type="submit"
-                    className="btn-primary w-full"
-                    style={{ padding: '14px', justifyContent: 'center' }}
+                    className="btn-primary w-full contact-form-submit"
                     disabled={status === 'loading'}
                   >
                     {status === 'loading' ? 'Sending...' : 'Send Message'}
                   </button>
                   {feedback ? (
-                    <p className="page-body-text" style={{ marginTop: '1rem', fontSize: '14px' }}>
+                    <p className="page-body-text text-body-md mt-note">
                       {feedback}
                     </p>
                   ) : null}
@@ -192,49 +206,28 @@ export default function ContactPageClient({
               </div>
             </div>
 
-            <div className="flex-column" style={{ gap: '2rem' }}>
-              <div
-                className="about-visual-card p-0"
-                style={{
-                  height: '350px',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#f1f5f9',
-                }}
-              >
-                <div className="text-center" style={{ position: 'relative', zIndex: 1 }}>
-                  <span style={{ fontSize: '4rem', marginBottom: '1rem', display: 'block' }}>🗺️</span>
-                  <h4 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1A1A1A', marginBottom: '4px' }}>
-                    {mapHeading}
-                  </h4>
-                  <p style={{ fontSize: '13px', color: '#1A1A1A' }}>{mapSubtitle}</p>
+            <div className="flex-column contact-sidebar">
+              <div className="about-visual-card contact-map-card p-0">
+                <div className="text-center contact-map-overlay">
+                  <span className="contact-map-emoji" aria-hidden>🗺️</span>
+                  <h4 className="contact-visit-title">{mapHeading}</h4>
+                  <p className="contact-visit-sub">{mapSubtitle}</p>
                 </div>
               </div>
 
               <div className="about-mini-card">
-                <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1A1A1A', marginBottom: '8px' }}>
-                  {visitHeading}
-                </h4>
-                <p className="page-body-text" style={{ fontSize: '13px' }}>
-                  {visitBlurb}
-                </p>
-                <Link
-                  href="/about"
-                  className="program-card-link"
-                  style={{ fontSize: '12px', display: 'inline-block', marginTop: '1rem' }}
-                >
+                <h4 className="contact-visit-card-title">{visitHeading}</h4>
+                <p className="page-body-text contact-visit-card-body">{visitBlurb}</p>
+                <LocalizedLink href="/about" className="program-card-link visit-card-link">
                   {visitLinkText}
-                </Link>
+                </LocalizedLink>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="page-cta-section">
+      <section className="page-cta-section section-reveal">
         <div className="page-section-container page-cta-inner">
           <h2 className="page-cta-heading">{ctaHeading}</h2>
           <p className="page-cta-body">{ctaBody}</p>

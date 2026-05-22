@@ -1,3 +1,6 @@
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '../../../lib/page-meta'
+import { images } from '../../../lib/images'
 import {
   DEFAULT_CONTACT_FORM_SUBJECTS,
   DEFAULT_CONTACT_HERO_CTA_PRIMARY,
@@ -13,6 +16,13 @@ import {
 } from '../../../lib/cms/content'
 import { getPublicSiteProfile } from '../../../lib/site-profile'
 import ContactPageClient from './ContactPageClient'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Contact',
+  description: 'Get in touch with The Ananse Center in Accra — programs, partnerships, and general inquiries worldwide.',
+  path: '/contact',
+  ogImage: images.hero.contact,
+})
 
 export default async function ContactPage() {
   const [cms, profile] = await Promise.all([

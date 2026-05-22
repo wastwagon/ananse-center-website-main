@@ -1,4 +1,15 @@
+import type { Metadata } from 'next'
 import { fetchPrograms } from '../../../lib/api'
+import { buildPageMetadata } from '../../../lib/page-meta'
+import { images } from '../../../lib/images'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Programs',
+  description:
+    'Sankofa arts and culture programs for youth and community — in Accra and connecting with the global diaspora.',
+  path: '/programs',
+  ogImage: images.hero.programs,
+})
 import {
   DEFAULT_PROGRAMS_HERO_CTA_PRIMARY,
   DEFAULT_PROGRAMS_HERO_CTA_SECONDARY,

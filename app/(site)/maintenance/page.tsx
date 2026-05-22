@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { getCmsText } from '../../../lib/cms/content'
 import { getServerApiUrl } from '../../../lib/server-api-url'
+import { t } from '../../../lib/i18n'
+import { getServerLocale } from '../../../lib/locale-server'
 
 async function getMaintenanceCopy() {
   try {
@@ -16,26 +18,25 @@ async function getMaintenanceCopy() {
 }
 
 export default async function MaintenancePage() {
-  const [copy, maintenanceBadge] = await Promise.all([
+  const [copy, maintenanceBadge, locale] = await Promise.all([
     getMaintenanceCopy(),
     getCmsText('site.maintenance.badge'),
+    getServerLocale(),
   ])
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-6 py-16">
-      <div className="max-w-lg text-center">
-        <p className="text-sm font-semibold uppercase tracking-widest text-amber-600 mb-3">
-          {maintenanceBadge}
-        </p>
-        <h1 className="heading-section mb-4">
+    <div className="maintenance-page">
+      <div className="maintenance-page-card section-reveal">
+        <span className="section-badge">{maintenanceBadge}</span>
+        <h1 className="content-page-hero-title">
           {copy?.maintenanceTitle || "We'll be back soon"}
         </h1>
-        <p className="text-muted mb-8" style={{ color: '#475569', lineHeight: 1.7 }}>
+        <p className="content-page-hero-lead">
           {copy?.maintenanceMessage ||
             'The Ananse Center website is undergoing scheduled updates. Thank you for your patience.'}
         </p>
-        <Link href="/admin/login" className="btn-primary inline-flex">
-          Admin sign in
+        <Link href="/admin/login" className="btn-primary maintenance-page-btn">
+          {t('maintenance.admin', locale)}
         </Link>
       </div>
     </div>

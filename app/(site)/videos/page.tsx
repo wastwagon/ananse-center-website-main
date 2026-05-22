@@ -1,5 +1,8 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+import PageCtaBand from '../../../components/PageCtaBand'
 import HeroSplit from '../../../components/HeroSplit'
+import { buildPageMetadata } from '../../../lib/page-meta'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import {
   DEFAULT_VIDEOS_HERO_CTA_PRIMARY,
@@ -15,6 +18,13 @@ import {
   type CmsVideoItem,
 } from '../../../lib/cms/content'
 import { images } from '../../../lib/images'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Videos',
+  description: 'Watch stories, performances, and program highlights from The Ananse Center for Arts and Culture.',
+  path: '/videos',
+  ogImage: images.hero.videos,
+})
 
 export default async function VideosPage() {
   const cms = await getCmsTexts([
@@ -35,7 +45,7 @@ export default async function VideosPage() {
   const videos = parseCmsJson<CmsVideoItem[]>(cms['videos.items'], DEFAULT_VIDEOS_ITEMS)
 
   return (
-    <div>
+    <div className="videos-page">
       <HeroSplit
         compact
         imageSrc={images.hero.videos}
@@ -47,7 +57,7 @@ export default async function VideosPage() {
         stats={heroStats}
       />
 
-      <section className="page-section bg-white" style={{ paddingTop: '2rem' }}>
+      <section className="page-section section-reveal bg-white page-section--after-hero">
         <div className="page-section-container">
           <div className="grid-cards">
             {videos.map((video) => {
@@ -71,7 +81,7 @@ export default async function VideosPage() {
                 >
                   <article className="premium-card h-full relative transition-all group-hover:border-f59e0b">
                     <div className="absolute inset-0 z-10 w-full h-full" aria-hidden />
-                    <div className="premium-card-image-wrapper" style={{ height: 'auto', aspectRatio: '16/9' }}>
+                    <div className="premium-card-image-wrapper premium-card-image-wrapper--video">
                       <iframe
                         src={video.url}
                         title={video.title}
@@ -82,7 +92,7 @@ export default async function VideosPage() {
                         loading="lazy"
                       />
                     </div>
-                    <div className="premium-card-header" style={{ marginBottom: '0.75rem' }}>
+                    <div className="premium-card-header premium-card-header--compact">
                       <span className="premium-card-featured-label">Video</span>
                     </div>
                     <h3 className="premium-card-title group-hover:text-accent transition-colors">{video.title}</h3>
@@ -94,20 +104,12 @@ export default async function VideosPage() {
         </div>
       </section>
 
-      <section className="page-cta-section">
-        <div className="page-section-container page-cta-inner">
-          <h2 className="page-cta-heading">{cms['videos.cta.heading']}</h2>
-          <p className="page-cta-body">{cms['videos.cta.body']}</p>
-          <div className="page-cta-buttons">
-            <Link href="/events" className="btn-primary page-cta-btn">
-              View Events
-            </Link>
-            <Link href="/contact#form" className="btn-outline-white page-cta-btn">
-              Get in Touch
-            </Link>
-          </div>
-        </div>
-      </section>
+      <PageCtaBand
+        heading={cms['videos.cta.heading']}
+        body={cms['videos.cta.body']}
+        primary={{ label: 'View Events', href: '/events' }}
+        secondary={{ label: 'Get in Touch', href: '/contact#form', variant: 'outline-white' }}
+      />
     </div>
   )
 }

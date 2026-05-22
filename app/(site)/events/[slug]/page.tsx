@@ -1,9 +1,14 @@
-import Link from 'next/link'
+import type { Metadata } from 'next'
+import LocalizedLink from '../../../../components/LocalizedLink'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { Calendar, MapPin } from 'lucide-react'
+import JsonLd from '../../../../components/JsonLd'
 import { fetchEventBySlug } from '../../../../lib/api'
+import { formatEventDateDisplay } from '../../../../lib/format'
 import { resolveEventCoverImage } from '../../../../lib/images'
+import { buildPageMetadata } from '../../../../lib/page-meta'
+import { eventJsonLd } from '../../../../lib/structured-data'
 import {
   DEFAULT_EVENTS_DETAIL_HIGHLIGHTS_FALLBACK,
   getCmsTexts,
@@ -12,12 +17,31 @@ import {
   type CmsHeroCta,
 } from '../../../../lib/cms/content'
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const event = await fetchEventBySlug(slug)
+  if (!event) {
+    return buildPageMetadata({ title: 'Event', path: `/events/${slug}` })
+  }
+  return buildPageMetadata({
+    title: event.title,
+    description: event.description,
+    path: `/events/${slug}`,
+    ogImage: resolveEventCoverImage(event),
+  })
+}
+
 export default async function EventDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
   const [event, cms] = await Promise.all([
     fetchEventBySlug(slug),
     getCmsTexts([
@@ -50,8 +74,26 @@ export default async function EventDetailPage({
     href: '/contact#form',
   })
 
+  const displayDate = formatEventDateDisplay(event.date)
+
   return (
-    <div className="min-h-screen bg-white pb-20 font-body">
+    <article className="content-page">
+      {siteUrl ? (
+        <JsonLd
+          data={eventJsonLd(
+            {
+              title: event.title,
+              description: event.description,
+              slug: event.slug,
+              date: event.date,
+              location: event.location,
+              image: resolveEventCoverImage(event),
+            },
+            siteUrl,
+          )}
+        />
+      ) : null}
+
       <section className="event-detail-hero">
         <Image
           src={resolveEventCoverImage(event)}
@@ -69,7 +111,7 @@ export default async function EventDetailPage({
             <div className="event-detail-meta">
               <span className="event-detail-meta-item">
                 <Calendar size={16} className="text-accent" aria-hidden />
-                {event.date}
+                {displayDate}
               </span>
               <span className="event-detail-meta-item">
                 <MapPin size={16} className="text-accent" aria-hidden />
@@ -80,68 +122,60 @@ export default async function EventDetailPage({
         </div>
       </section>
 
-      <section className="page-section bg-white py-16">
-        <div className="page-section-container">
-          <div className="mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1A1A1A] mb-6 border-l-4 border-accent pl-4 font-heading">
-              {storyTitle}
-            </h2>
-            <div className="space-y-6">
+      <section className="page-section bg-white section-reveal">
+        <div className="page-section-container content-prose">
+          <div className="content-block">
+            <h2 className="content-block-title">{storyTitle}</h2>
+            <div className="content-prose-body">
               {storyParagraphs.map((paragraph) => (
-                <p key={paragraph.slice(0, 48)} className="text-base leading-relaxed text-slate-600">
+                <p key={paragraph.slice(0, 48)} className="page-body-text content-prose-p">
                   {paragraph}
                 </p>
               ))}
             </div>
           </div>
 
-          <div className="grid-cards mb-12">
-            <div className="p-6 rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                {cms['events.detail.whenLabel']}
-              </h3>
-              <p className="text-[#1A1A1A] text-lg font-medium">{event.date}</p>
+          <div className="detail-info-grid">
+            <div className="detail-info-card">
+              <h3 className="detail-info-label">{cms['events.detail.whenLabel']}</h3>
+              <p className="detail-info-value">{displayDate}</p>
             </div>
-            <div className="p-6 rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                {cms['events.detail.whereLabel']}
-              </h3>
-              <p className="text-[#1A1A1A] text-lg font-medium">{event.location}</p>
-              {event.venue ? (
-                <p className="text-slate-500 mt-1 text-sm">{event.venue}</p>
-              ) : null}
+            <div className="detail-info-card">
+              <h3 className="detail-info-label">{cms['events.detail.whereLabel']}</h3>
+              <p className="detail-info-value">{event.location}</p>
+              {event.venue ? <p className="detail-info-sub">{event.venue}</p> : null}
             </div>
           </div>
 
-          <div className="mb-16">
-            <h3 className="text-2xl font-bold text-[#1A1A1A] mb-6 font-heading">
+          <div className="content-block">
+            <h2 className="content-block-title content-block-title--plain">
               {cms['events.detail.highlightsHeading']}
-            </h3>
-            <ul className="space-y-4">
+            </h2>
+            <ul className="content-highlight-list">
               {highlights.map((highlight) => (
-                <li key={highlight} className="flex items-start gap-4 group">
-                  <span className="text-accent mt-1 flex-shrink-0 text-xl leading-none" aria-hidden>
+                <li key={highlight} className="content-highlight-item">
+                  <span className="content-highlight-mark" aria-hidden>
                     ✦
                   </span>
-                  <span className="text-slate-600 text-base leading-relaxed">{highlight}</span>
+                  <span>{highlight}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="text-center pt-10 border-t border-slate-100 mt-10">
-            <Link href={reserveCta.href} className="btn-primary hero-cta-primary">
+          <div className="content-cta-bar">
+            <LocalizedLink href="/contact#form" className="btn-primary">
               {reserveCta.label}
-            </Link>
-            <p className="mt-6 text-sm text-slate-500">
+            </LocalizedLink>
+            <p className="content-cta-note">
               {cms['events.detail.questionsPrefix']}{' '}
-              <Link href="/contact#form" className="text-accent font-medium hover:underline">
+              <LocalizedLink href="/contact#form" className="content-cta-link">
                 {cms['events.detail.contactLinkText']}
-              </Link>
+              </LocalizedLink>
             </p>
           </div>
         </div>
       </section>
-    </div>
+    </article>
   )
 }
