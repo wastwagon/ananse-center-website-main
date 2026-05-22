@@ -2,6 +2,7 @@ import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
 import { DEFAULT_ARCHIVE_ITEMS, type CmsArchiveItem } from '../../../lib/cms/static-pages'
+import ArchivesExplorer from '../../../components/ArchivesExplorer'
 import { fetchArchiveRecords, type ApiArchiveRecord } from '../../../lib/api'
 
 export const metadata = buildPageMetadata({
@@ -10,25 +11,6 @@ export const metadata = buildPageMetadata({
     'Digitized cultural heritage with community-centered metadata at The Ananse Center.',
   path: '/archives',
 })
-
-function ArchiveGrid({ items }: { items: ApiArchiveRecord[] }) {
-  return (
-    <div className="grid-cards grid-cards--stack-narrow">
-      {items.map((item) => (
-        <article key={item.id ?? item.title} className="premium-card">
-          <span className="insight-card-tag">
-            {item.culture} · {item.era}
-          </span>
-          <h3 className="premium-card-title">{item.title}</h3>
-          <p className="premium-card-description">{item.description}</p>
-          <p className="page-body-text text-body-sm">
-            <strong>Rights:</strong> {item.rightsNote}
-          </p>
-        </article>
-      ))}
-    </div>
-  )
-}
 
 export default async function ArchivesPage() {
   const cms = await getCmsTexts([
@@ -70,7 +52,7 @@ export default async function ArchivesPage() {
           </p>
         ))}
       </div>
-      <ArchiveGrid items={items} />
+      <ArchivesExplorer items={items} />
     </LocalizedCmsPageShell>
   )
 }

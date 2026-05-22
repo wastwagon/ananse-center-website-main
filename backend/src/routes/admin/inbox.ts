@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 import { prisma } from '../../lib/prisma.js'
+import { adminInboxTimelineRoutes } from './inbox-timeline.js'
 
 const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
 
@@ -14,6 +15,8 @@ const registrationStatusSchema = z.object({
 })
 
 export async function adminInboxRoutes(app: FastifyInstance) {
+  await app.register(adminInboxTimelineRoutes)
+
   app.get('/api/v1/admin/inbox/registrations', guard, async () => {
     const rows = await prisma.eventRegistration.findMany({
       orderBy: { createdAt: 'desc' },

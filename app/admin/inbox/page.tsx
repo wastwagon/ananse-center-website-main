@@ -2,16 +2,28 @@
 
 import { useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
+import Link from 'next/link'
 import {
   fetchAdminInboxCommunity,
   fetchAdminInboxRegistrations,
+  fetchAdminInboxTimeline,
   updateCommunitySubmissionStatus,
   updateEventRegistrationStatus,
   type CommunitySubmissionRow,
   type EventRegistrationRow,
+  type InboxTimelineItem,
 } from '../../../lib/admin-api'
 
+const TIMELINE_LABELS: Record<InboxTimelineItem['kind'], string> = {
+  contact: 'Contact',
+  donation: 'Donation',
+  registration: 'Registration',
+  community: 'Community',
+  newsletter: 'Newsletter',
+}
+
 export default function AdminInboxPage() {
+  const [timeline, setTimeline] = useState<InboxTimelineItem[]>([])
   const [registrations, setRegistrations] = useState<EventRegistrationRow[]>([])
   const [stories, setStories] = useState<CommunitySubmissionRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -22,10 +34,12 @@ export default function AdminInboxPage() {
     setLoading(true)
     setError(null)
     try {
-      const [regRes, storyRes] = await Promise.all([
+      const [timelineRes, regRes, storyRes] = await Promise.all([
+        fetchAdminInboxTimeline(),
         fetchAdminInboxRegistrations(),
         fetchAdminInboxCommunity(),
       ])
+      setTimeline(timelineRes.data)
       setRegistrations(regRes.data)
       setStories(storyRes.data)
     } catch (err) {
@@ -69,6 +83,54 @@ export default function AdminInboxPage() {
 
       {!loading && !error ? (
         <>
+          <div className="admin-card admin-card--spaced">
+            <h2 className="admin-card-title">CRM timeline</h2>
+            <p className="admin-help">
+              Recent contact, donations, registrations, community stories, and newsletter signups.
+            </p>
+            {timeline.length === 0 ? (
+              <p className="admin-help">No activity yet.</p>
+            ) : (
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>When</th>
+                      <th>Type</th>
+                      <th>Title</th>
+                      <th>Contact</th>
+                      <th>Status</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {timeline.map((row) => (
+                      <tr key={`${row.kind}-${row.id}`}>
+                        <td>{new Date(row.at).toLocaleString()}</td>
+                        <td>{TIMELINE_LABELS[row.kind]}</td>
+                        <td>
+                          <strong>{row.title}</strong>
+                          <p className="admin-help" style={{ marginTop: '0.25rem' }}>
+                            {row.summary}
+                          </p>
+                        </td>
+                        <td>
+                          <a href={`mailto:${row.email}`}>{row.email}</a>
+                        </td>
+                        <td>{row.status}</td>
+                        <td>
+                          <Link href={row.adminPath} className="admin-btn admin-btn--ghost admin-btn--sm">
+                            Open
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
           <div className="admin-card admin-card--spaced">
             <h2 className="admin-card-title">Event registrations</h2>
             <p className="admin-help">RSVPs submitted from public event pages.</p>

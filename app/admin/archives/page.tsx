@@ -16,8 +16,20 @@ const emptyForm = {
   culture: '',
   era: '',
   rightsNote: '',
+  tagsText: '',
   published: true,
   sortOrder: 0,
+}
+
+function tagsToText(tags: unknown) {
+  return Array.isArray(tags) ? tags.filter((t) => typeof t === 'string').join(', ') : ''
+}
+
+function textToTags(text: string) {
+  return text
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
 }
 
 export default function AdminArchivesPage() {
@@ -54,6 +66,7 @@ export default function AdminArchivesPage() {
       culture: record.culture,
       era: record.era,
       rightsNote: record.rightsNote,
+      tagsText: tagsToText(record.tags),
       published: record.published,
       sortOrder: record.sortOrder,
     })
@@ -70,11 +83,21 @@ export default function AdminArchivesPage() {
     setError(null)
     setNotice(null)
     try {
+      const payload = {
+        title: form.title,
+        description: form.description,
+        culture: form.culture,
+        era: form.era,
+        rightsNote: form.rightsNote,
+        tags: textToTags(form.tagsText),
+        published: form.published,
+        sortOrder: form.sortOrder,
+      }
       if (editingId) {
-        await updateAdminArchive(editingId, form)
+        await updateAdminArchive(editingId, payload)
         setNotice('Archive record updated.')
       } else {
-        await createAdminArchive(form)
+        await createAdminArchive(payload)
         setNotice('Archive record created.')
       }
       resetForm()
@@ -138,6 +161,15 @@ export default function AdminArchivesPage() {
             id="archive-era"
             value={form.era}
             onChange={(e) => setForm((f) => ({ ...f, era: e.target.value }))}
+          />
+        </div>
+        <div className="admin-field">
+          <label htmlFor="archive-tags">Tags (comma-separated)</label>
+          <input
+            id="archive-tags"
+            value={form.tagsText}
+            onChange={(e) => setForm((f) => ({ ...f, tagsText: e.target.value }))}
+            placeholder="oral-history, textiles, sankofa"
           />
         </div>
         <div className="admin-field">

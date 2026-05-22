@@ -17,6 +17,7 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
         paidDonations,
         pendingStories,
         newRegistrations,
+        newsletterSubscribers,
         settings,
       ] = await Promise.all([
         prisma.event.count(),
@@ -27,6 +28,7 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
         prisma.donation.count({ where: { status: 'success' } }),
         prisma.communitySubmission.count({ where: { status: 'pending' } }),
         prisma.eventRegistration.count({ where: { status: 'new' } }),
+        prisma.newsletterSubscriber.count(),
         getSiteSettings(),
       ])
 
@@ -39,6 +41,7 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
             pendingStories,
             newRegistrations,
           },
+          newsletter: { subscribers: newsletterSubscribers },
           site: mapSiteSettings(settings),
         },
       }

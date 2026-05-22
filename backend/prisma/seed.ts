@@ -219,6 +219,7 @@ async function seedArchives() {
         'Digitized reference set for symbolism workshops and school programs.',
       rightsNote:
         'Community attribution; educational use with credit to originating stewards.',
+      tags: ['adinkra', 'textiles', 'education'],
       sortOrder: 0,
     },
     {
@@ -228,6 +229,7 @@ async function seedArchives() {
       description:
         'Recorded narrative on repatriation and healing practices near Cape Coast.',
       rightsNote: 'Participant consent on file; metadata includes interviewer and locale.',
+      tags: ['oral-history', 'repatriation', 'sankofa'],
       sortOrder: 1,
     },
   ]
@@ -238,7 +240,11 @@ async function seedArchives() {
     })
     if (existing) continue
     await prisma.archiveRecord.create({
-      data: { ...item, tags: [], published: true },
+      data: {
+        ...item,
+        tags: 'tags' in item && Array.isArray(item.tags) ? item.tags : [],
+        published: true,
+      },
     })
   }
   console.log('Seeded archive records')

@@ -210,6 +210,7 @@ export type AdminDashboardData = {
   contactMessages: { total: number; new: number }
   donations: { total: number; successful: number }
   inbox: { pendingStories: number; newRegistrations: number }
+  newsletter: { subscribers: number }
   site: SiteSettings
 }
 
@@ -322,6 +323,21 @@ export type AdminArchiveRecord = {
   sortOrder: number
   createdAt: string
   updatedAt: string
+}
+
+export type InboxTimelineItem = {
+  id: string
+  kind: 'contact' | 'donation' | 'registration' | 'community' | 'newsletter'
+  at: string
+  title: string
+  summary: string
+  email: string
+  status: string
+  adminPath: string
+}
+
+export async function fetchAdminInboxTimeline() {
+  return adminFetch<{ data: InboxTimelineItem[] }>('inbox/timeline')
 }
 
 export async function fetchAdminInboxRegistrations() {

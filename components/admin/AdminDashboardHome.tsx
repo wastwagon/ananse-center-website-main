@@ -73,6 +73,13 @@ export default function AdminDashboardHome() {
             View registrations
           </Link>
         </div>
+        <div className="admin-stat-card">
+          <span className="admin-stat-value">{data.newsletter.subscribers}</span>
+          <span className="admin-stat-label">Newsletter subscribers</span>
+          <Link href="/admin/newsletter" className="admin-stat-meta">
+            View list
+          </Link>
+        </div>
       </div>
 
       <div className="admin-card">
