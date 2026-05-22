@@ -342,6 +342,44 @@ export async function updateCommunitySubmissionStatus(
   })
 }
 
+export type AdminNewsPost = {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  body: string
+  dateLabel: string
+  linkHref: string
+  published: boolean
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export async function fetchAdminNews() {
+  return adminFetch<{ data: AdminNewsPost[] }>('news')
+}
+
+export async function createAdminNews(
+  body: Pick<AdminNewsPost, 'title' | 'excerpt'> & Partial<AdminNewsPost>,
+) {
+  return adminFetch<{ data: { id: string } }>('news', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function updateAdminNews(id: string, body: Partial<AdminNewsPost>) {
+  return adminFetch<{ data: { id: string } }>(`news/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function deleteAdminNews(id: string) {
+  return adminFetch<{ ok: boolean }>(`news/${id}`, { method: 'DELETE' })
+}
+
 export async function fetchAdminArchives() {
   return adminFetch<{ data: AdminArchiveRecord[] }>('archives')
 }

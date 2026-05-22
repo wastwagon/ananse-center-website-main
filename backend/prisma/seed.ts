@@ -3,6 +3,7 @@ import { CONTENT_KEYS, CONTENT_REGISTRY } from '../src/cms/registry.js'
 import { EVENT_DETAIL_SEED } from '../src/cms/event-detail-seed.js'
 import { PROGRAMS_SEED } from '../src/cms/programs-seed.js'
 import { DEFAULT_IMPACT_STATS, DEFAULT_SITE_PROFILE } from '../src/cms/site-defaults.js'
+import { DEFAULT_NEWS } from '../src/cms/static-pages.js'
 import { slugify } from '../src/lib/slug.js'
 import { hashPassword } from '../src/lib/password.js'
 
@@ -243,12 +244,40 @@ async function seedArchives() {
   console.log('Seeded archive records')
 }
 
+async function seedNews() {
+  const count = await prisma.newsPost.count()
+  if (count > 0) {
+    console.log('News posts already present — skipping seed')
+    return
+  }
+
+  let order = 0
+  for (const item of DEFAULT_NEWS) {
+    const slug = slugify(item.title)
+    const linkHref = item.href?.trim() ?? ''
+    await prisma.newsPost.create({
+      data: {
+        title: item.title,
+        slug,
+        excerpt: item.excerpt,
+        body: item.excerpt,
+        dateLabel: item.date,
+        linkHref,
+        published: true,
+        sortOrder: order++,
+      },
+    })
+  }
+  console.log(`Seeded ${DEFAULT_NEWS.length} news posts`)
+}
+
 async function main() {
   await seedSiteSettings()
   await seedContentBlocks()
   await seedPrograms()
   await seedEvents()
   await seedArchives()
+  await seedNews()
   await seedAdmin()
 }
 

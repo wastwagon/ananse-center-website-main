@@ -19,6 +19,7 @@ const links: {
   { href: '/admin/events', label: 'Events', roles: ['superadmin', 'admin', 'editor'] },
   { href: '/admin/programs', label: 'Programs', roles: ['superadmin', 'admin', 'editor'] },
   { href: '/admin/archives', label: 'Archives', roles: ['superadmin', 'admin', 'editor'] },
+  { href: '/admin/news', label: 'News', roles: ['superadmin', 'admin', 'editor'] },
   { href: '/admin/inbox', label: 'Inbox', roles: ['superadmin', 'admin', 'editor'] },
   { href: '/admin/contact', label: 'Contact messages', roles: ['superadmin', 'admin', 'editor', 'finance'] },
   { href: '/admin/newsletter', label: 'Newsletter', roles: ['superadmin', 'admin', 'editor'] },

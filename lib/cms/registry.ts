@@ -163,7 +163,7 @@ const CONTACT_HERO_TITLE_DEFAULT: CmsHeroTitle = { prefix: 'Visit & ', accent: '
 const CONTACT_HERO_STATS_DEFAULT: CmsHeroStat[] = [
   { value: 'Accra', label: 'Main Center' },
   { value: '48h', label: 'Typical Reply' },
-  { value: 'Mon–Sat', label: 'Office Hours' },
+  { value: 'Sun–Fri', label: 'Office Hours' },
   { value: 'Join', label: 'Our Community' },
 ]
 const CONTACT_HERO_CTA_PRIMARY_DEFAULT: CmsHeroCta = { label: 'Send a Message', href: '/contact#form' }

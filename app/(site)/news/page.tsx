@@ -3,6 +3,7 @@ import LocalizedLink from '../../../components/LocalizedLink'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 import { DEFAULT_NEWS, type CmsNewsItem } from '../../../lib/cms/static-pages'
+import { fetchNewsPosts } from '../../../lib/api'
 
 export const metadata = buildPageMetadata({
   title: 'News & Updates',
@@ -12,7 +13,27 @@ export const metadata = buildPageMetadata({
 
 export default async function NewsPage() {
   const cms = await getCmsTexts(['news.badge', 'news.heading', 'news.lead', 'news.items'] as const)
-  const items = parseCmsJson<CmsNewsItem[]>(cms['news.items'], DEFAULT_NEWS)
+  const dbPosts = await fetchNewsPosts()
+  const cmsItems = parseCmsJson<CmsNewsItem[]>(cms['news.items'], DEFAULT_NEWS)
+
+  const items =
+    dbPosts.length > 0
+      ? dbPosts.map((post) => ({
+          key: post.id,
+          date: post.date,
+          title: post.title,
+          excerpt: post.excerpt,
+          href: post.isExternal ? post.href : `/news/${post.slug}`,
+          external: post.isExternal,
+        }))
+      : cmsItems.map((item) => ({
+          key: item.title,
+          date: item.date,
+          title: item.title,
+          excerpt: item.excerpt,
+          href: item.href ?? '',
+          external: Boolean(item.href?.startsWith('http')),
+        }))
 
   return (
     <LocalizedCmsPageShell
@@ -25,7 +46,7 @@ export default async function NewsPage() {
     >
       <ul className="content-highlight-list">
         {items.map((item) => (
-          <li key={item.title} className="content-highlight-item">
+          <li key={item.key} className="content-highlight-item">
             <span className="content-highlight-mark" aria-hidden>
               {item.date}
             </span>
@@ -35,9 +56,15 @@ export default async function NewsPage() {
               </h3>
               <p className="page-body-text text-body-md">{item.excerpt}</p>
               {item.href ? (
-                <LocalizedLink href={item.href} className="program-card-link">
-                  Read more →
-                </LocalizedLink>
+                item.external ? (
+                  <a href={item.href} className="program-card-link" rel="noopener noreferrer">
+                    Read more →
+                  </a>
+                ) : (
+                  <LocalizedLink href={item.href} className="program-card-link">
+                    Read more →
+                  </LocalizedLink>
+                )
               ) : null}
             </div>
           </li>

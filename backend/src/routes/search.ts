@@ -49,7 +49,7 @@ export async function searchRoutes(app: FastifyInstance) {
 
     const contains = { contains: q, mode: 'insensitive' as const }
 
-    const [programs, events, archives, blocks] = await Promise.all([
+    const [programs, events, archives, newsPosts, blocks] = await Promise.all([
       prisma.program.findMany({
         where: {
           published: true,
@@ -78,6 +78,14 @@ export async function searchRoutes(app: FastifyInstance) {
         },
         take: 8,
         orderBy: { sortOrder: 'asc' },
+      }),
+      prisma.newsPost.findMany({
+        where: {
+          published: true,
+          OR: [{ title: contains }, { excerpt: contains }, { body: contains }],
+        },
+        take: 8,
+        orderBy: { createdAt: 'desc' },
       }),
       prisma.contentBlock.findMany({
         where: {
@@ -119,6 +127,13 @@ export async function searchRoutes(app: FastifyInstance) {
           title: a.title,
           path: '/archives',
           snippet: `${a.culture} · ${a.era} — ${a.description.slice(0, 100)}`,
+        })),
+        news: newsPosts.map((n) => ({
+          title: n.title,
+          path: n.linkHref?.trim() && /^https?:\/\//i.test(n.linkHref)
+            ? n.linkHref
+            : `/news/${n.slug}`,
+          snippet: n.excerpt.slice(0, 140),
         })),
         pages,
       },

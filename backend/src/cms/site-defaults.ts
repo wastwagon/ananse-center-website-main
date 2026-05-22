@@ -16,7 +16,7 @@ export const DEFAULT_SITE_PROFILE = {
   contactPhoneHref: 'tel:+233257127205',
   contactEmail: 'info@anansecenter.org',
   programsEmail: 'programs@anansecenter.org',
-  contactHours: 'Mon–Fri 9:00–17:00 · Sat 10:00–14:00',
+  contactHours: 'Sun–Fri 9:00–17:00',
   contactAddress: 'The Ananse Center for Arts and Culture\nAkatakyiwa, Central Region\nGhana',
   lmsPortalUrl: '',
   googleAnalyticsId: '',

@@ -44,15 +44,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!base) return []
 
   const now = new Date()
-  const [eventSlugs, programSlugs] = await Promise.all([
+  const [eventSlugs, programSlugs, newsSlugs] = await Promise.all([
     fetchSlugs('/api/v1/events'),
     fetchSlugs('/api/v1/programs'),
+    fetchSlugs('/api/v1/news'),
   ])
 
   const paths = [
     ...staticPaths,
     ...eventSlugs.map((slug) => `/events/${slug}` as const),
     ...programSlugs.map((slug) => `/programs/${slug}` as const),
+    ...newsSlugs.map((slug) => `/news/${slug}` as const),
   ]
 
   return paths.flatMap((path) =>

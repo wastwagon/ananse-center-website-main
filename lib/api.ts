@@ -205,11 +205,49 @@ export type ApiSpotlight = {
   description: string
 }
 
+export type ApiNewsPost = {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  body: string
+  date: string
+  href: string
+  isExternal: boolean
+}
+
 export type SearchResults = {
   programs: { title: string; path: string; snippet: string }[]
   events: { title: string; path: string; snippet: string }[]
   archives: { title: string; path: string; snippet: string }[]
+  news: { title: string; path: string; snippet: string }[]
   pages: { title: string; path: string; snippet: string }[]
+}
+
+export async function fetchNewsPosts(): Promise<ApiNewsPost[]> {
+  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
+  try {
+    const response = await fetch(`${base}/api/v1/news`, { next: { revalidate: 60 } })
+    if (!response.ok) return []
+    const payload = (await response.json()) as { data: ApiNewsPost[] }
+    return payload.data
+  } catch {
+    return []
+  }
+}
+
+export async function fetchNewsPostBySlug(slug: string): Promise<ApiNewsPost | null> {
+  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
+  try {
+    const response = await fetch(`${base}/api/v1/news/${encodeURIComponent(slug)}`, {
+      next: { revalidate: 60 },
+    })
+    if (!response.ok) return null
+    const payload = (await response.json()) as { data: ApiNewsPost }
+    return payload.data
+  } catch {
+    return null
+  }
 }
 
 export async function fetchArchiveRecords(): Promise<ApiArchiveRecord[]> {

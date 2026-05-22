@@ -38,7 +38,9 @@ Staging / preview: [`config/coolify-staging.env.example`](config/coolify-staging
 | `NEXT_PUBLIC_LEGACY_SITE_HOST` | Same, for build + middleware |
 | `NEXT_PUBLIC_LMS_PORTAL_URL` | Your LMS portal link |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | `G-…` analytics |
-| `CRM_WEBHOOK_URL` | Outbound webhook (donation, contact, newsletter) |
+| `CRM_WEBHOOK_URL` | Outbound webhook (donations, contact, newsletter, registrations, community) |
+| `NOTIFY_EMAIL_TO` | Comma-separated staff inboxes (optional) |
+| `NOTIFY_FROM_EMAIL` + `SMTP_*` or `RESEND_API_KEY` | Email alerts when `NOTIFY_EMAIL_TO` is set |
 
 ### Rate limits (optional)
 

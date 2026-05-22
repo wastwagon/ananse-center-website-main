@@ -15,7 +15,7 @@ export const contact = {
   phoneHref: 'tel:+233257127205',
   email: 'info@anansecenter.org',
   programsEmail: 'programs@anansecenter.org',
-  hours: 'Mon–Fri 9:00–17:00 · Sat 10:00–14:00',
+  hours: 'Sun–Fri 9:00–17:00',
 } as const
 
 /** Replace with your live channel URLs before launch */

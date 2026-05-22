@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { formRateLimit } from '../lib/rate-limit-route.js'
 import { prisma } from '../lib/prisma.js'
+import { notifyStaff } from '../lib/staff-notify.js'
 
 export async function communityRoutes(app: FastifyInstance) {
   app.get('/api/v1/community/spotlights', async () => {
@@ -38,6 +39,14 @@ export async function communityRoutes(app: FastifyInstance) {
         title: title.trim(),
         body: body.trim(),
       },
+    })
+
+    void notifyStaff('community.submitted', {
+      id: row.id,
+      type: row.type,
+      name: row.name,
+      email: row.email,
+      title: row.title,
     })
 
     return {

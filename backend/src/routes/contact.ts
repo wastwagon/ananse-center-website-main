@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { formRateLimit } from '../lib/rate-limit-route.js'
 import { prisma } from '../lib/prisma.js'
-import { notifyCrmWebhook } from '../lib/crm-webhook.js'
+import { notifyStaff } from '../lib/staff-notify.js'
 
 const contactSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -26,7 +26,7 @@ export async function contactRoutes(app: FastifyInstance) {
       data: parsed.data,
     })
 
-    void notifyCrmWebhook('contact.created', {
+    void notifyStaff('contact.created', {
       id: message.id,
       name: message.name,
       email: message.email,

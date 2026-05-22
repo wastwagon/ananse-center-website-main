@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { formRateLimit } from '../lib/rate-limit-route.js'
 import { prisma } from '../lib/prisma.js'
+import { notifyStaff } from '../lib/staff-notify.js'
 
 export async function registrationRoutes(app: FastifyInstance) {
   app.post<{
@@ -28,6 +29,14 @@ export async function registrationRoutes(app: FastifyInstance) {
         phone: phone.trim(),
         notes: notes.trim(),
       },
+    })
+
+    void notifyStaff('registration.created', {
+      id: row.id,
+      eventSlug: row.eventSlug,
+      eventTitle: row.eventTitle,
+      name: row.name,
+      email: row.email,
     })
 
     return {

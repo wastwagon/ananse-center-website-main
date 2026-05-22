@@ -119,7 +119,7 @@ model SiteSettings {
   contactPhoneHref    String   @default("tel:+233257127205") @map("contact_phone_href")
   contactEmail        String   @default("info@anansecenter.org") @map("contact_email")
   programsEmail       String   @default("programs@anansecenter.org") @map("programs_email")
-  contactHours        String   @default("Mon–Fri 9:00–17:00 · Sat 10:00–14:00") @map("contact_hours")
+  contactHours        String   @default("Sun–Fri 9:00–17:00") @map("contact_hours")
   contactAddress      String   @default("The Ananse Center for Arts and Culture\nAkatakyiwa, Central Region\nGhana") @map("contact_address") @db.Text
   impactStats         Json     @default("[{\"value\":\"500+\",\"label\":\"Lives Impacted\"},{\"value\":\"50+\",\"label\":\"Programs Delivered\"},{\"value\":\"15+\",\"label\":\"Communities Reached\"},{\"value\":\"6\",\"label\":\"Mission Pillars\"}]") @map("impact_stats")
   socialFacebook      String   @default("https://www.facebook.com/anansecenter") @map("social_facebook")
@@ -188,6 +188,23 @@ model ArchiveRecord {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("archive_records")
+}
+
+model NewsPost {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  excerpt   String   @db.Text
+  body      String   @default("") @db.Text
+  dateLabel String   @default("") @map("date_label")
+  linkHref  String   @default("") @map("link_href")
+  published Boolean  @default(true)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([published, sortOrder])
+  @@map("news_posts")
 }
 
 model Donation {

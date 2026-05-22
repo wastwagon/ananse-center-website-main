@@ -1,6 +1,11 @@
 /** Optional CRM webhook (HubSpot/Zapier/etc.) — fire-and-forget. */
 export async function notifyCrmWebhook(
-  event: 'donation.success' | 'contact.created' | 'newsletter.subscribed',
+  event:
+    | 'donation.success'
+    | 'contact.created'
+    | 'newsletter.subscribed'
+    | 'registration.created'
+    | 'community.submitted',
   payload: Record<string, unknown>,
 ) {
   const url = process.env.CRM_WEBHOOK_URL?.trim()

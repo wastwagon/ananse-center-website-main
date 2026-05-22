@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma.js'
-import { notifyCrmWebhook } from '../lib/crm-webhook.js'
+import { notifyStaff } from '../lib/staff-notify.js'
 import { donationRateLimit } from '../lib/rate-limit-route.js'
 import {
   fromSubunit,
@@ -161,7 +161,7 @@ export async function donationRoutes(app: FastifyInstance) {
         },
       })
 
-      void notifyCrmWebhook('donation.success', {
+      void notifyStaff('donation.success', {
         reference: updated.reference,
         email: updated.email,
         donorName: updated.donorName,

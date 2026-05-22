@@ -34,7 +34,7 @@ export default function SiteSearch() {
           id="site-search"
           type="search"
           className="form-input newsletter-form-input"
-          placeholder="Search programs, events, pages…"
+          placeholder="Search programs, events, news…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoComplete="off"
@@ -80,6 +80,27 @@ export default function SiteSearch() {
               </ul>
             </section>
           ) : null}
+          {results.news?.length > 0 ? (
+            <section>
+              <h2 className="content-block-title content-block-title--plain">News</h2>
+              <ul className="content-highlight-list">
+                {results.news.map((item) => (
+                  <li key={item.path} className="content-highlight-item">
+                    {item.path.startsWith('http') ? (
+                      <a href={item.path} className="content-cta-link" rel="noopener noreferrer">
+                        {item.title}
+                      </a>
+                    ) : (
+                      <LocalizedLink href={item.path} className="content-cta-link">
+                        {item.title}
+                      </LocalizedLink>
+                    )}
+                    <span className="text-body-sm">{item.snippet}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {results.archives?.length > 0 ? (
             <section>
               <h2 className="content-block-title content-block-title--plain">Archives</h2>
@@ -112,6 +133,7 @@ export default function SiteSearch() {
           ) : null}
           {results.programs.length === 0 &&
           results.events.length === 0 &&
+          (results.news?.length ?? 0) === 0 &&
           (results.archives?.length ?? 0) === 0 &&
           results.pages.length === 0 ? (
             <p className="page-body-text">No results found.</p>
