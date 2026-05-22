@@ -23,6 +23,7 @@ const links: {
   { href: '/admin/contact', label: 'Contact messages', roles: ['superadmin', 'admin', 'editor', 'finance'] },
   { href: '/admin/newsletter', label: 'Newsletter', roles: ['superadmin', 'admin', 'editor'] },
   { href: '/admin/donations', label: 'Donations', roles: ['superadmin', 'admin', 'finance'] },
+  { href: '/admin/users', label: 'Admin users', roles: ['superadmin', 'admin'] },
   { href: '/admin/settings', label: 'Settings', roles: ['superadmin', 'admin'] },
   { href: '/admin/system', label: 'System', roles: ['superadmin', 'admin'] },
 ]

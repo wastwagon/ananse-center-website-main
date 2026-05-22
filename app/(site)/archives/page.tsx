@@ -1,4 +1,4 @@
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
 import { DEFAULT_ARCHIVE_ITEMS, type CmsArchiveItem } from '../../../lib/cms/static-pages'
@@ -55,7 +55,8 @@ export default async function ArchivesPage() {
         }))
 
   return (
-    <CmsPageShell
+    <LocalizedCmsPageShell
+      i18nKey="page.archives"
       badge={cms['archives.badge']}
       title={cms['archives.heading']}
       lead={cms['archives.lead']}
@@ -70,6 +71,6 @@ export default async function ArchivesPage() {
         ))}
       </div>
       <ArchiveGrid items={items} />
-    </CmsPageShell>
+    </LocalizedCmsPageShell>
   )
 }

@@ -1,4 +1,4 @@
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import StorySubmissionForm from '../../../components/StorySubmissionForm'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
@@ -39,7 +39,8 @@ export default async function CommunityPage() {
 
   return (
     <>
-      <CmsPageShell
+      <LocalizedCmsPageShell
+        i18nKey="page.community"
         badge={cms['community.badge']}
         title={cms['community.heading']}
         lead={cms['community.lead']}
@@ -55,7 +56,7 @@ export default async function CommunityPage() {
             </article>
           ))}
         </div>
-      </CmsPageShell>
+      </LocalizedCmsPageShell>
       <section className="page-section section-reveal bg-slate-50">
         <div className="page-section-container max-w-md">
           <h2 className="page-section-heading section-heading-sm">Share a story</h2>

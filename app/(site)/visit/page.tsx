@@ -1,5 +1,5 @@
 import { buildSimpleCmsPageMetadata, loadLabeledRows } from '../../../lib/cms-page-factory'
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import { getCmsTexts } from '../../../lib/cms/content'
 
 export const metadata = buildSimpleCmsPageMetadata({
@@ -23,7 +23,8 @@ export default async function VisitPage() {
   ])
 
   return (
-    <CmsPageShell
+    <LocalizedCmsPageShell
+      i18nKey="page.visit"
       badge={cms['visit.badge']}
       title={cms['visit.heading']}
       lead={cms['visit.lead']}
@@ -45,6 +46,6 @@ export default async function VisitPage() {
           </div>
         ))}
       </div>
-    </CmsPageShell>
+    </LocalizedCmsPageShell>
   )
 }

@@ -39,4 +39,38 @@ export async function adminExportRoutes(app: FastifyInstance) {
     reply.header('Content-Disposition', 'attachment; filename="donations.csv"')
     return reply.send(lines.join('\n'))
   })
+
+  app.get('/api/v1/admin/export/contacts.csv', financeGuard, async (_request, reply) => {
+    const messages = await prisma.contactMessage.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 500,
+    })
+    const header = ['name', 'email', 'subject', 'status', 'created_at', 'message']
+    const lines = [
+      header.join(','),
+      ...messages.map((m) =>
+        [m.name, m.email, m.subject, m.status, m.createdAt.toISOString(), m.message]
+          .map(csvEscape)
+          .join(','),
+      ),
+    ]
+    reply.header('Content-Type', 'text/csv; charset=utf-8')
+    reply.header('Content-Disposition', 'attachment; filename="contact-messages.csv"')
+    return reply.send(lines.join('\n'))
+  })
+
+  app.get('/api/v1/admin/export/newsletter.csv', financeGuard, async (_request, reply) => {
+    const rows = await prisma.newsletterSubscriber.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 2000,
+    })
+    const header = ['email', 'created_at']
+    const lines = [
+      header.join(','),
+      ...rows.map((r) => [r.email, r.createdAt.toISOString()].map(csvEscape).join(',')),
+    ]
+    reply.header('Content-Type', 'text/csv; charset=utf-8')
+    reply.header('Content-Disposition', 'attachment; filename="newsletter-subscribers.csv"')
+    return reply.send(lines.join('\n'))
+  })
 }

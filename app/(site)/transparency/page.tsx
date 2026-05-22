@@ -1,4 +1,4 @@
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
 import { DEFAULT_FINANCIAL_REPORTS, type CmsFinancialReport } from '../../../lib/cms/static-pages'
@@ -21,7 +21,8 @@ export default async function TransparencyPage() {
   const reports = parseCmsJson<CmsFinancialReport[]>(cms['transparency.reports'], DEFAULT_FINANCIAL_REPORTS)
 
   return (
-    <CmsPageShell
+    <LocalizedCmsPageShell
+      i18nKey="page.transparency"
       badge={cms['transparency.badge']}
       title={cms['transparency.heading']}
       lead={cms['transparency.lead']}
@@ -42,12 +43,24 @@ export default async function TransparencyPage() {
             <span className="content-highlight-mark" aria-hidden>
               {report.year}
             </span>
-            <LocalizedLink href={report.url} className="content-cta-link">
-              {report.title}
-            </LocalizedLink>
+            {report.url.startsWith('http') ? (
+              <a
+                href={report.url}
+                className="content-cta-link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {report.title}
+                {/\.pdf($|\?)/i.test(report.url) ? ' (PDF)' : ''}
+              </a>
+            ) : (
+              <LocalizedLink href={report.url} className="content-cta-link">
+                {report.title}
+              </LocalizedLink>
+            )}
           </li>
         ))}
       </ul>
-    </CmsPageShell>
+    </LocalizedCmsPageShell>
   )
 }

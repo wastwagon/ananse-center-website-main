@@ -275,10 +275,12 @@ export type AdminSettingsPatch = {
 export type EventRegistrationRow = {
   id: string
   eventSlug: string
+  eventTitle?: string
   name: string
   email: string
   phone: string | null
   notes: string | null
+  status: string
   createdAt: string
 }
 
@@ -353,6 +355,60 @@ export async function deleteAdminArchive(id: string) {
 
 export function donationsExportUrl() {
   return '/api/admin/export/donations.csv'
+}
+
+export function contactsExportUrl() {
+  return '/api/admin/export/contacts.csv'
+}
+
+export function newsletterExportUrl() {
+  return '/api/admin/export/newsletter.csv'
+}
+
+export async function updateEventRegistrationStatus(id: string, status: 'new' | 'reviewed') {
+  return adminFetch<{ data: EventRegistrationRow }>(`inbox/registrations/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  })
+}
+
+export type AdminUserRow = {
+  id: string
+  email: string
+  name: string
+  role: string
+  createdAt: string
+  updatedAt: string
+}
+
+export async function fetchAdminUsers() {
+  return adminFetch<{ data: AdminUserRow[] }>('users')
+}
+
+export async function createAdminUser(body: {
+  email: string
+  password: string
+  name: string
+  role?: string
+}) {
+  return adminFetch<{ data: AdminUserRow }>('users', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function updateAdminUser(
+  id: string,
+  body: { name?: string; role?: string; password?: string },
+) {
+  return adminFetch<{ data: AdminUserRow }>(`users/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function deleteAdminUser(id: string) {
+  return adminFetch<{ ok: boolean }>(`users/${id}`, { method: 'DELETE' })
 }
 
 export async function updateAdminSettings(body: AdminSettingsPatch) {

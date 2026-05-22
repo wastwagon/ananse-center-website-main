@@ -1,4 +1,4 @@
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import LocalizedLink from '../../../components/LocalizedLink'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
@@ -15,7 +15,8 @@ export default async function NewsPage() {
   const items = parseCmsJson<CmsNewsItem[]>(cms['news.items'], DEFAULT_NEWS)
 
   return (
-    <CmsPageShell
+    <LocalizedCmsPageShell
+      i18nKey="page.news"
       badge={cms['news.badge']}
       title={cms['news.heading']}
       lead={cms['news.lead']}
@@ -42,6 +43,6 @@ export default async function NewsPage() {
           </li>
         ))}
       </ul>
-    </CmsPageShell>
+    </LocalizedCmsPageShell>
   )
 }

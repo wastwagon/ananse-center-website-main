@@ -1,4 +1,4 @@
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
 import { DEFAULT_FACULTY, type CmsFaculty } from '../../../lib/cms/static-pages'
@@ -26,7 +26,8 @@ export default async function AdmissionsPage() {
 
   return (
     <>
-      <CmsPageShell
+      <LocalizedCmsPageShell
+        i18nKey="page.admissions"
         badge={cms['admissions.badge']}
         title={cms['admissions.heading']}
         lead={cms['admissions.lead']}
@@ -68,7 +69,7 @@ export default async function AdmissionsPage() {
           </LocalizedLink>
           .
         </p>
-      </CmsPageShell>
+      </LocalizedCmsPageShell>
       <LmsPortalBanner />
     </>
   )

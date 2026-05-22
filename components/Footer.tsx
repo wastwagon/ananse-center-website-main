@@ -106,7 +106,7 @@ export default async function Footer({
             <div className="footer-brand">
               <Image
                 src="/ananse-logo.png"
-                alt=""
+                alt="The Ananse Center for Arts and Culture"
                 width={52}
                 height={52}
                 className="footer-logo-img"

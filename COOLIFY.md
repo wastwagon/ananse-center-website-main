@@ -39,7 +39,7 @@ Set these on the **same Coolify application** that uses `docker-compose.yml` at 
 | `PAYSTACK_CURRENCY` | `GHS` | Donation currency |
 | `ADMIN_NAME` | Site Administrator | Seed admin display name |
 | `ADMIN_ROLE` | `admin` | Seed role: `superadmin`, `admin`, `editor`, `finance` |
-| `CRM_WEBHOOK_URL` | — | Optional Zapier/HubSpot webhook for donations & contact |
+| `CRM_WEBHOOK_URL` | — | Optional Zapier/HubSpot webhook for donations, contact & newsletter |
 | `SKIP_PRISMA_SEED` | `false` | Skip background seed on API boot |
 
 ## Deploy checklist

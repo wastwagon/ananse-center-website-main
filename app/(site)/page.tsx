@@ -172,6 +172,7 @@ export default async function Home() {
                       src={images.goals[idx % images.goals.length]}
                       alt={`${goal.title} — Ananse Center program pillar`}
                       fill
+                      loading="lazy"
                       className="object-cover"
                       sizes={cardImageSizes}
                     />
@@ -213,6 +214,7 @@ export default async function Home() {
                     src={images.programs[idx % images.programs.length]}
                     alt={`${prog.title} — Sankofa program at Ananse Center`}
                     fill
+                    loading="lazy"
                     className="object-cover"
                     sizes={cardImageSizes}
                   />

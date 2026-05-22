@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
-import { type AdminContactMessage, fetchAdminContactMessages } from '../../../lib/admin-api'
+import {
+  contactsExportUrl,
+  type AdminContactMessage,
+  fetchAdminContactMessages,
+} from '../../../lib/admin-api'
 
 export default function AdminContactPage() {
   const [messages, setMessages] = useState<AdminContactMessage[]>([])
@@ -24,6 +28,11 @@ export default function AdminContactPage() {
 
   return (
     <AdminShell title="Contact messages">
+      <p className="admin-help" style={{ marginBottom: '1rem' }}>
+        <a href={contactsExportUrl()} className="content-cta-link">
+          Download contacts CSV
+        </a>
+      </p>
       {error ? <p className="admin-error" style={{ marginBottom: '1rem' }}>{error}</p> : null}
       <div className="admin-card">
         {loading ? (

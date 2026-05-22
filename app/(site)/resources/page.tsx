@@ -1,4 +1,4 @@
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 import { DEFAULT_CSO_DIRECTORY, type CmsCsoEntry } from '../../../lib/cms/static-pages'
@@ -20,7 +20,8 @@ export default async function ResourcesPage() {
   const entries = parseCmsJson<CmsCsoEntry[]>(cms['resources.entries'], DEFAULT_CSO_DIRECTORY)
 
   return (
-    <CmsPageShell
+    <LocalizedCmsPageShell
+      i18nKey="page.resources"
       badge={cms['resources.badge']}
       title={cms['resources.heading']}
       lead={cms['resources.lead']}
@@ -44,6 +45,6 @@ export default async function ResourcesPage() {
           </article>
         ))}
       </div>
-    </CmsPageShell>
+    </LocalizedCmsPageShell>
   )
 }

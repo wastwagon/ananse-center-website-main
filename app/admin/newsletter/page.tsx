@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
-import { fetchNewsletterSubscribers, type NewsletterSubscriber } from '../../../lib/admin-api'
+import {
+  fetchNewsletterSubscribers,
+  newsletterExportUrl,
+  type NewsletterSubscriber,
+} from '../../../lib/admin-api'
 
 export default function AdminNewsletterPage() {
   const [rows, setRows] = useState<NewsletterSubscriber[]>([])
@@ -25,7 +29,10 @@ export default function AdminNewsletterPage() {
   return (
     <AdminShell title="Newsletter">
       <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        Email addresses collected from the events page newsletter form.
+        Email addresses collected from the events page newsletter form.{' '}
+        <a href={newsletterExportUrl()} className="content-cta-link">
+          Download CSV
+        </a>
       </p>
       {error ? <p className="admin-error">{error}</p> : null}
       <div className="admin-card">

@@ -5,8 +5,12 @@ import { prisma } from '../../lib/prisma.js'
 
 const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
 
-const statusSchema = z.object({
+const storyStatusSchema = z.object({
   status: z.enum(['pending', 'published', 'rejected']),
+})
+
+const registrationStatusSchema = z.object({
+  status: z.enum(['new', 'reviewed']),
 })
 
 export async function adminInboxRoutes(app: FastifyInstance) {
@@ -30,7 +34,7 @@ export async function adminInboxRoutes(app: FastifyInstance) {
     '/api/v1/admin/inbox/community/:id',
     guard,
     async (request, reply) => {
-      const parsed = statusSchema.safeParse(request.body)
+      const parsed = storyStatusSchema.safeParse(request.body)
       if (!parsed.success) {
         return reply.status(400).send({ error: 'Invalid status' })
       }
@@ -42,6 +46,26 @@ export async function adminInboxRoutes(app: FastifyInstance) {
         return { data: row }
       } catch {
         return reply.status(404).send({ error: 'Submission not found' })
+      }
+    },
+  )
+
+  app.patch<{ Params: { id: string } }>(
+    '/api/v1/admin/inbox/registrations/:id',
+    guard,
+    async (request, reply) => {
+      const parsed = registrationStatusSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Invalid status' })
+      }
+      try {
+        const row = await prisma.eventRegistration.update({
+          where: { id: request.params.id },
+          data: { status: parsed.data.status },
+        })
+        return { data: row }
+      } catch {
+        return reply.status(404).send({ error: 'Registration not found' })
       }
     },
   )

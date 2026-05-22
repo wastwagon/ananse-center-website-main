@@ -1,4 +1,4 @@
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
 
@@ -22,7 +22,8 @@ export default async function PartnershipsPage() {
   const tiers = parseCmsJson<PartnershipTier[]>(cms['partnerships.tiers'], [])
 
   return (
-    <CmsPageShell
+    <LocalizedCmsPageShell
+      i18nKey="page.partnerships"
       badge={cms['partnerships.badge']}
       title={cms['partnerships.heading']}
       lead={cms['partnerships.lead']}
@@ -44,6 +45,6 @@ export default async function PartnershipsPage() {
           </article>
         ))}
       </div>
-    </CmsPageShell>
+    </LocalizedCmsPageShell>
   )
 }

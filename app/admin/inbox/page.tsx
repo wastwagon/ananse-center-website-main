@@ -6,6 +6,7 @@ import {
   fetchAdminInboxCommunity,
   fetchAdminInboxRegistrations,
   updateCommunitySubmissionStatus,
+  updateEventRegistrationStatus,
   type CommunitySubmissionRow,
   type EventRegistrationRow,
 } from '../../../lib/admin-api'
@@ -37,6 +38,17 @@ export default function AdminInboxPage() {
   useEffect(() => {
     void load()
   }, [])
+
+  async function setRegistrationStatus(id: string, status: 'new' | 'reviewed') {
+    setNotice(null)
+    try {
+      await updateEventRegistrationStatus(id, status)
+      setNotice('Registration updated.')
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Update failed')
+    }
+  }
 
   async function setStoryStatus(id: string, status: 'published' | 'rejected' | 'pending') {
     setNotice(null)
@@ -70,8 +82,9 @@ export default function AdminInboxPage() {
                       <th>Event</th>
                       <th>Name</th>
                       <th>Email</th>
-                      <th>Phone</th>
+                      <th>Status</th>
                       <th>When</th>
+                      <th />
                     </tr>
                   </thead>
                   <tbody>
@@ -82,8 +95,19 @@ export default function AdminInboxPage() {
                         <td>
                           <a href={`mailto:${row.email}`}>{row.email}</a>
                         </td>
-                        <td>{row.phone ?? '—'}</td>
+                        <td>{row.status}</td>
                         <td>{new Date(row.createdAt).toLocaleString()}</td>
+                        <td>
+                          {row.status !== 'reviewed' ? (
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn--ghost admin-btn--sm"
+                              onClick={() => void setRegistrationStatus(row.id, 'reviewed')}
+                            >
+                              Mark reviewed
+                            </button>
+                          ) : null}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

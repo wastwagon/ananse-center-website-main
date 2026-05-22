@@ -98,7 +98,7 @@ export default async function EventDetailPage({
       <section className="event-detail-hero">
         <Image
           src={resolveEventCoverImage(event)}
-          alt=""
+          alt={`${event.title} — event at The Ananse Center`}
           fill
           priority
           className="event-detail-hero-image"

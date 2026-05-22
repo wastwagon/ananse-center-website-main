@@ -1,4 +1,4 @@
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
 import { DEFAULT_JOURNEY_STORIES, type CmsJourneyStory } from '../../../lib/cms/static-pages'
@@ -22,7 +22,8 @@ export default async function RepatriationPage() {
   const stories = parseCmsJson<CmsJourneyStory[]>(cms['repatriation.stories'], DEFAULT_JOURNEY_STORIES)
 
   return (
-    <CmsPageShell
+    <LocalizedCmsPageShell
+      i18nKey="page.repatriation"
       badge={cms['repatriation.badge']}
       title={cms['repatriation.heading']}
       lead={cms['repatriation.lead']}
@@ -51,6 +52,6 @@ export default async function RepatriationPage() {
           </article>
         ))}
       </div>
-    </CmsPageShell>
+    </LocalizedCmsPageShell>
   )
 }

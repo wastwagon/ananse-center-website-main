@@ -1,4 +1,4 @@
-import CmsPageShell from '../../../components/CmsPageShell'
+import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import { buildPageMetadata } from '../../../lib/page-meta'
 import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 import { DEFAULT_TRUSTEES, type CmsTrustee } from '../../../lib/cms/static-pages'
@@ -14,7 +14,8 @@ export default async function TrusteesPage() {
   const members = parseCmsJson<CmsTrustee[]>(cms['trustees.members'], DEFAULT_TRUSTEES)
 
   return (
-    <CmsPageShell
+    <LocalizedCmsPageShell
+      i18nKey="page.trustees"
       badge={cms['trustees.badge']}
       title={cms['trustees.heading']}
       lead={cms['trustees.lead']}
@@ -30,6 +31,6 @@ export default async function TrusteesPage() {
           </article>
         ))}
       </div>
-    </CmsPageShell>
+    </LocalizedCmsPageShell>
   )
 }
