@@ -1,34 +1,32 @@
 import type { ContactMessage } from '@prisma/client'
 import type { FastifyInstance } from 'fastify'
 import { prisma } from '../../lib/prisma.js'
-import { authenticateAdmin } from '../../plugins/admin-auth.js'
+import { withAdminRoles } from '../../plugins/admin-role-guard.js'
+
+const staffGuard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor', 'finance'])] }
 
 export async function adminContactRoutes(app: FastifyInstance) {
-  app.get(
-    '/api/v1/admin/contact-messages',
-    { preHandler: [authenticateAdmin] },
-    async () => {
-      const messages = await prisma.contactMessage.findMany({
-        orderBy: { createdAt: 'desc' },
-      })
+  app.get('/api/v1/admin/contact-messages', staffGuard, async () => {
+    const messages = await prisma.contactMessage.findMany({
+      orderBy: { createdAt: 'desc' },
+    })
 
-      return {
-        data: messages.map((message: ContactMessage) => ({
-          id: message.id,
-          name: message.name,
-          email: message.email,
-          subject: message.subject,
-          message: message.message,
-          status: message.status,
-          createdAt: message.createdAt.toISOString(),
-        })),
-      }
-    },
-  )
+    return {
+      data: messages.map((message: ContactMessage) => ({
+        id: message.id,
+        name: message.name,
+        email: message.email,
+        subject: message.subject,
+        message: message.message,
+        status: message.status,
+        createdAt: message.createdAt.toISOString(),
+      })),
+    }
+  })
 
   app.patch<{ Params: { id: string } }>(
     '/api/v1/admin/contact-messages/:id',
-    { preHandler: [authenticateAdmin] },
+    staffGuard,
     async (request, reply) => {
       const body = request.body as { status?: string }
       const status = body?.status?.trim()

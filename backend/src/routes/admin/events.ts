@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
 import { slugify } from '../../lib/slug.js'
 import { parseHighlights } from '../../lib/event-map.js'
-import { authenticateAdmin } from '../../plugins/admin-auth.js'
+import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 
 const eventBodySchema = z.object({
   title: z.string().min(2).max(200),
@@ -63,7 +63,7 @@ function mapEvent(event: {
 }
 
 export async function adminEventRoutes(app: FastifyInstance) {
-  const guard = { preHandler: [authenticateAdmin] }
+  const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
 
   app.get('/api/v1/admin/events', guard, async () => {
     const events = await prisma.event.findMany({

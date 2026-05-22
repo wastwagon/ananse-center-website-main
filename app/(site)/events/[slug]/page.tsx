@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import LocalizedLink from '../../../../components/LocalizedLink'
+import EventRegistrationForm from '../../../../components/EventRegistrationForm'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { Calendar, MapPin } from 'lucide-react'
@@ -161,6 +162,14 @@ export default async function EventDetailPage({
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="content-block">
+            <h2 className="content-block-title content-block-title--plain">Register</h2>
+            <p className="page-body-text text-body-md mb-section">
+              Reserve your place or register interest — our team will follow up by email.
+            </p>
+            <EventRegistrationForm eventSlug={slug} eventTitle={event.title} />
           </div>
 
           <div className="content-cta-bar">

@@ -3,7 +3,7 @@ import { unlink, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
-import { authenticateAdmin } from '../../plugins/admin-auth.js'
+import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 import {
   ALLOWED_MEDIA_MIME_TYPES,
   ensureUploadDir,
@@ -19,7 +19,7 @@ const patchSchema = z.object({
 })
 
 export async function adminMediaRoutes(app: FastifyInstance) {
-  const guard = { preHandler: [authenticateAdmin] }
+  const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
 
   app.get<{
     Querystring: { q?: string; type?: string; page?: string; limit?: string }

@@ -17,4 +17,17 @@ export async function programRoutes(app: FastifyInstance) {
 
     return { data: programs.map(mapPublicProgram) }
   })
+
+  app.get<{ Params: { slug: string } }>('/api/v1/programs/:slug', async (request, reply) => {
+    const program = await prisma.program.findFirst({
+      where: { slug: request.params.slug, published: true },
+      include: programIncludeCover,
+    })
+
+    if (!program) {
+      return reply.status(404).send({ error: 'Program not found' })
+    }
+
+    return { data: mapPublicProgram(program) }
+  })
 }

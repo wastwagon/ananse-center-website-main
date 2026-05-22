@@ -1,12 +1,14 @@
 import type { Donation } from '@prisma/client'
 import type { FastifyInstance } from 'fastify'
 import { prisma } from '../../lib/prisma.js'
-import { authenticateAdmin } from '../../plugins/admin-auth.js'
+import { withAdminRoles } from '../../plugins/admin-role-guard.js'
+
+const financeGuard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'finance'])] }
 
 export async function adminDonationRoutes(app: FastifyInstance) {
   app.get(
     '/api/v1/admin/donations',
-    { preHandler: [authenticateAdmin] },
+    financeGuard,
     async () => {
       const donations = await prisma.donation.findMany({
         orderBy: { createdAt: 'desc' },

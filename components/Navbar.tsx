@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu } from 'lucide-react'
+import { Menu, Search } from 'lucide-react'
+import LocalizedLink from './LocalizedLink'
 import MobileMenuSheet, { type MobileMenuLink } from './MobileMenuSheet'
 import { useI18n } from './I18nProvider'
 import { localizedPath, stripLocalePrefix } from '../lib/locale-path'
@@ -20,7 +21,17 @@ const navLinks = [
 
 const mobileSheetLinks = [
   { key: 'nav.about', href: '/about' },
+  { key: 'nav.repatriation', href: '/repatriation' },
+  { key: 'nav.visit', href: '/visit' },
+  { key: 'nav.admissions', href: '/admissions' },
+  { key: 'nav.community', href: '/community' },
+  { key: 'nav.news', href: '/news' },
+  { key: 'nav.resources', href: '/resources' },
+  { key: 'nav.archives', href: '/archives' },
+  { key: 'nav.trustees', href: '/trustees' },
+  { key: 'nav.transparency', href: '/transparency' },
   { key: 'nav.videos', href: '/videos' },
+  { key: 'nav.search', href: '/search' },
   { key: 'nav.contact', href: '/contact#form' },
   { key: 'nav.privacy', href: '/privacy' },
   { key: 'nav.terms', href: '/terms' },
@@ -35,6 +46,10 @@ const compactTitles: Record<string, string> = {
   '/contact': 'Contact',
   '/privacy': 'Privacy',
   '/terms': 'Terms',
+  '/visit': 'Visit',
+  '/repatriation': 'Heal',
+  '/admissions': 'Admissions',
+  '/search': 'Search',
 }
 
 function compactTitleForPath(pathname: string): string | null {
@@ -105,6 +120,14 @@ export default function Navbar() {
               </Link>
             )
           })}
+          <LocalizedLink
+            href="/search"
+            className="navbar-link navbar-search-link tap-target"
+            aria-label={translate('nav.search')}
+            title={translate('nav.search')}
+          >
+            <Search size={18} strokeWidth={2} aria-hidden />
+          </LocalizedLink>
           <Link href={localizedPath('/support', locale)} className="btn-primary navbar-cta">
             {translate('nav.donate')}
           </Link>

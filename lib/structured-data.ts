@@ -27,7 +27,8 @@ export function organizationJsonLd(siteUrl: string) {
     description: site.tagline,
     address: {
       '@type': 'PostalAddress',
-      addressLocality: 'Accra',
+      addressLocality: 'Akatakyiwa',
+      addressRegion: 'Central Region',
       addressCountry: 'GH',
     },
     contactPoint: {

@@ -51,10 +51,14 @@ function YoutubeIcon() {
 const quickLinks = [
   { key: 'nav.home', href: '/' },
   { key: 'nav.about', href: '/about' },
+  { key: 'nav.repatriation', href: '/repatriation' },
   { key: 'nav.programs', href: '/programs' },
+  { key: 'nav.admissions', href: '/admissions' },
   { key: 'nav.events', href: '/events' },
-  { key: 'nav.videos', href: '/videos' },
+  { key: 'nav.community', href: '/community' },
   { key: 'nav.donate', href: '/support' },
+  { key: 'nav.transparency', href: '/transparency' },
+  { key: 'nav.visit', href: '/visit' },
   { key: 'nav.contact', href: '/contact#form' },
 ] as const
 

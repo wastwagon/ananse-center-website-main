@@ -39,8 +39,26 @@ function isBypassPath(pathname: string) {
   )
 }
 
+function legacyRedirectHost(): string {
+  return (
+    process.env.LEGACY_SITE_HOST?.trim() ||
+    process.env.NEXT_PUBLIC_LEGACY_SITE_HOST?.trim() ||
+    'anansecenter.oceancyber.site'
+  )
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const host = request.headers.get('host')?.split(':')[0] ?? ''
+  const legacyHost = legacyRedirectHost()
+
+  if (legacyHost && host === legacyHost) {
+    const target = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+    if (target) {
+      const redirectUrl = new URL(pathname + request.nextUrl.search, target)
+      return NextResponse.redirect(redirectUrl, 301)
+    }
+  }
 
   if (stripLocalePrefix(pathname).startsWith('/admin')) {
     if (pathname === '/admin/login' || pathname === '/fr/admin/login') {

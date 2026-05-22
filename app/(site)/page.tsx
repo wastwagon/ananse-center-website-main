@@ -5,6 +5,7 @@ import HeroPremium from '../../components/HeroPremium'
 import { buildPageMetadata } from '../../lib/page-meta'
 import { formatEventDateDisplay } from '../../lib/format'
 import GlobalAudienceBand from '../../components/GlobalAudienceBand'
+import StudyHealGiveBand from '../../components/StudyHealGiveBand'
 import FeatureIcon from '../../components/FeatureIcon'
 import EventTypeIcon from '../../components/EventTypeIcon'
 import { cmsIconForKey } from '../../lib/cms-icons'
@@ -116,6 +117,8 @@ export default async function Home() {
       />
 
       <GlobalAudienceBand />
+
+      <StudyHealGiveBand />
 
       <section id="our-story" className="page-section bg-white section-reveal">
         <div className="page-section-container">

@@ -1,12 +1,12 @@
 import type { FastifyInstance } from 'fastify'
-import { authenticateAdmin } from '../../plugins/admin-auth.js'
+import { withAdminRoles, anyAdminRole } from '../../plugins/admin-role-guard.js'
 import { prisma } from '../../lib/prisma.js'
 import { getSiteSettings, mapSiteSettings } from '../../lib/site-settings.js'
 
 export async function adminDashboardRoutes(app: FastifyInstance) {
   app.get(
     '/api/v1/admin/dashboard',
-    { preHandler: [authenticateAdmin] },
+    { preHandler: [withAdminRoles(anyAdminRole)] },
     async () => {
       const [events, publishedEvents, messages, newMessages, donations, paidDonations, settings] =
         await Promise.all([

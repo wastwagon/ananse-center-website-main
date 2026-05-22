@@ -59,6 +59,17 @@ export async function fetchEvents(): Promise<ApiEvent[]> {
   return payload.data
 }
 
+export async function fetchProgramBySlug(slug: string): Promise<ApiProgram | null> {
+  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
+  const response = await fetch(`${base}/api/v1/programs/${encodeURIComponent(slug)}`, {
+    next: { revalidate: 60 },
+  })
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error(`Failed to load program (${response.status})`)
+  const payload = (await response.json()) as { data: ApiProgram }
+  return payload.data
+}
+
 export async function fetchPrograms(section?: 'catalog' | 'sankofa'): Promise<ApiProgram[]> {
   const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
   const query = section ? `?section=${encodeURIComponent(section)}` : ''
@@ -173,6 +184,63 @@ export async function verifyDonation(reference: string) {
     currency: string
     message: string
   }
+}
+
+export type SearchResults = {
+  programs: { title: string; path: string; snippet: string }[]
+  events: { title: string; path: string; snippet: string }[]
+  pages: { title: string; path: string; snippet: string }[]
+}
+
+export async function searchSite(query: string): Promise<SearchResults> {
+  const response = await fetch(
+    `${getPublicApiUrl()}/api/v1/search?q=${encodeURIComponent(query)}`,
+    { cache: 'no-store' },
+  )
+  if (!response.ok) {
+    throw new Error('Search unavailable')
+  }
+  const payload = (await response.json()) as { data: SearchResults }
+  return payload.data
+}
+
+export async function registerForEvent(body: {
+  eventSlug?: string
+  eventTitle?: string
+  name: string
+  email: string
+  phone?: string
+  notes?: string
+}) {
+  const response = await fetch(`${getPublicApiUrl()}/api/v1/events/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    throw new Error(payload.error || 'Unable to register')
+  }
+  return payload as { data: { message: string } }
+}
+
+export async function submitCommunityStory(body: {
+  type?: 'story' | 'spotlight'
+  name: string
+  email: string
+  title: string
+  body: string
+}) {
+  const response = await fetch(`${getPublicApiUrl()}/api/v1/community/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    throw new Error(payload.error || 'Unable to submit')
+  }
+  return payload as { data: { message: string } }
 }
 
 export async function subscribeNewsletter(email: string) {

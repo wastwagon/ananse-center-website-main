@@ -43,9 +43,20 @@ export async function getSiteSettings() {
       socialInstagram: DEFAULT_SITE_PROFILE.socialInstagram,
       socialYoutube: DEFAULT_SITE_PROFILE.socialYoutube,
       socialTwitter: DEFAULT_SITE_PROFILE.socialTwitter,
+      lmsPortalUrl: DEFAULT_SITE_PROFILE.lmsPortalUrl ?? '',
+      googleAnalyticsId: DEFAULT_SITE_PROFILE.googleAnalyticsId ?? '',
+      legacyRedirectHost: DEFAULT_SITE_PROFILE.legacyRedirectHost ?? 'anansecenter.oceancyber.site',
     },
     update: {},
   })
+}
+
+export function mapSiteIntegrations(settings: SiteSettingsRow) {
+  return {
+    lmsPortalUrl: settings.lmsPortalUrl?.trim() ?? '',
+    googleAnalyticsId: settings.googleAnalyticsId?.trim() ?? '',
+    legacyRedirectHost: settings.legacyRedirectHost?.trim() ?? 'anansecenter.oceancyber.site',
+  }
 }
 
 type SiteSettingsRow = Awaited<ReturnType<typeof getSiteSettings>>

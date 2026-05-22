@@ -21,6 +21,7 @@ import {
   type CmsHeroStat,
   type CmsHeroTitle,
 } from '../../../lib/cms/content'
+import LmsPortalBanner from '../../../components/LmsPortalBanner'
 import ProgramsPageClient, {
   type ProgramBenefit,
   type ProgramTestimonial,
@@ -125,6 +126,7 @@ export default async function ProgramsPage() {
   )
 
   return (
+    <>
     <ProgramsPageClient
       heroLead={cms['programs.hero.lead']}
       heroTitle={heroTitle}
@@ -149,5 +151,7 @@ export default async function ProgramsPage() {
       ctaBody={cms['programs.cta.body']}
       programs={programs}
     />
+    <LmsPortalBanner />
+    </>
   )
 }

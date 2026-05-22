@@ -6,8 +6,8 @@ export const site = {
   tagline: 'Weaving wisdom into solutions',
   footerMission:
     'Preserving cultural memory and restoring identity through arts education, community programs, and Pan-African leadership development in Ghana and across the diaspora.',
-  location: 'Accra, Ghana · West Africa',
-  address: 'The Ananse Center for Arts and Culture\nP.O. Box AN 1234\nAccra, Ghana',
+  location: 'Akatakyiwa, Central Region, Ghana',
+  address: 'The Ananse Center for Arts and Culture\nAkatakyiwa, Central Region\nGhana',
 } as const
 
 export const contact = {

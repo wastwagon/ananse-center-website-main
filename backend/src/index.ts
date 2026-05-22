@@ -9,9 +9,14 @@ import { programRoutes } from './routes/programs.js'
 import { contactRoutes } from './routes/contact.js'
 import { newsletterRoutes } from './routes/newsletter.js'
 import { donationRoutes } from './routes/donations.js'
+import { searchRoutes } from './routes/search.js'
+import { registrationRoutes } from './routes/registrations.js'
+import { communityRoutes } from './routes/community.js'
 import { adminRoutes } from './routes/admin/index.js'
 import { mediaRoutes } from './routes/media.js'
 import { ensureUploadDir, maxUploadBytes } from './lib/media-path.js'
+import { syncRegistryContent } from './lib/sync-content.js'
+import { syncIntegrationEnvDefaults } from './lib/sync-integrations.js'
 
 const port = Number(process.env.BACKEND_PORT || 4000)
 const host = process.env.BACKEND_HOST || '0.0.0.0'
@@ -51,9 +56,14 @@ await app.register(programRoutes)
 await app.register(contactRoutes)
 await app.register(newsletterRoutes)
 await app.register(donationRoutes)
+await app.register(searchRoutes)
+await app.register(registrationRoutes)
+await app.register(communityRoutes)
 await app.register(adminRoutes)
 
 try {
+  await syncRegistryContent()
+  await syncIntegrationEnvDefaults()
   await app.listen({ port, host })
   app.log.info(`Ananse API listening on http://${host}:${port}`)
 } catch (error) {

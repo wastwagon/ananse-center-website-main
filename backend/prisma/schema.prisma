@@ -111,13 +111,16 @@ model SiteSettings {
   siteName            String   @default("The Ananse Center for Arts and Culture") @map("site_name")
   siteShortName       String   @default("Ananse Center") @map("site_short_name")
   siteTagline         String   @default("Weaving wisdom into solutions") @map("site_tagline")
-  siteLocation        String   @default("Accra, Ghana · West Africa") @map("site_location")
+  siteLocation        String   @default("Akatakyiwa, Central Region, Ghana") @map("site_location")
+  lmsPortalUrl        String   @default("") @map("lms_portal_url")
+  googleAnalyticsId   String   @default("") @map("google_analytics_id")
+  legacyRedirectHost  String   @default("anansecenter.oceancyber.site") @map("legacy_redirect_host")
   contactPhone        String   @default("+233 25 712 7205") @map("contact_phone")
   contactPhoneHref    String   @default("tel:+233257127205") @map("contact_phone_href")
   contactEmail        String   @default("info@anansecenter.org") @map("contact_email")
   programsEmail       String   @default("programs@anansecenter.org") @map("programs_email")
   contactHours        String   @default("Mon–Fri 9:00–17:00 · Sat 10:00–14:00") @map("contact_hours")
-  contactAddress      String   @default("The Ananse Center for Arts and Culture\nP.O. Box AN 1234\nAccra, Ghana") @map("contact_address") @db.Text
+  contactAddress      String   @default("The Ananse Center for Arts and Culture\nAkatakyiwa, Central Region\nGhana") @map("contact_address") @db.Text
   impactStats         Json     @default("[{\"value\":\"500+\",\"label\":\"Lives Impacted\"},{\"value\":\"50+\",\"label\":\"Programs Delivered\"},{\"value\":\"15+\",\"label\":\"Communities Reached\"},{\"value\":\"6\",\"label\":\"Mission Pillars\"}]") @map("impact_stats")
   socialFacebook      String   @default("https://www.facebook.com/anansecenter") @map("social_facebook")
   socialInstagram     String   @default("https://www.instagram.com/anansecenter") @map("social_instagram")
@@ -140,6 +143,33 @@ model ContentBlock {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("content_blocks")
+}
+
+model EventRegistration {
+  id         String   @id @default(cuid())
+  eventSlug  String   @default("") @map("event_slug")
+  eventTitle String   @default("") @map("event_title")
+  name       String
+  email      String
+  phone      String   @default("")
+  notes      String   @default("") @db.Text
+  status     String   @default("new")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("event_registrations")
+}
+
+model CommunitySubmission {
+  id        String   @id @default(cuid())
+  type      String   @default("story")
+  name      String
+  email     String
+  title     String
+  body      String   @db.Text
+  status    String   @default("pending")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("community_submissions")
 }
 
 model Donation {

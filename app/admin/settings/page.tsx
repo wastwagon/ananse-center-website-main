@@ -42,6 +42,9 @@ export default function AdminSettingsPage() {
           socialInstagram: data.social.instagram,
           socialYoutube: data.social.youtube,
           socialTwitter: data.social.twitter,
+          lmsPortalUrl: data.integrations?.lmsPortalUrl ?? '',
+          googleAnalyticsId: data.integrations?.googleAnalyticsId ?? '',
+          legacyRedirectHost: data.integrations?.legacyRedirectHost ?? '',
         })
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load settings')
@@ -288,6 +291,43 @@ export default function AdminSettingsPage() {
             >
               Add metric
             </button>
+          </div>
+
+          <div className="admin-card admin-card--spaced">
+            <h2 className="admin-card-title">Integrations</h2>
+            <p className="admin-help">
+              LMS portal, Google Analytics, and legacy-domain redirect. Values set in Coolify
+              (NEXT_PUBLIC_LMS_PORTAL_URL, NEXT_PUBLIC_GA_MEASUREMENT_ID, LEGACY_SITE_HOST) take
+              precedence when non-empty; save here to persist in the database.
+            </p>
+            <div className="admin-field">
+              <label htmlFor="lmsPortalUrl">LMS portal URL</label>
+              <input
+                id="lmsPortalUrl"
+                type="url"
+                placeholder="https://lms.example.com"
+                value={patch.lmsPortalUrl ?? ''}
+                onChange={(e) => updateField('lmsPortalUrl', e.target.value)}
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="googleAnalyticsId">Google Analytics measurement ID</label>
+              <input
+                id="googleAnalyticsId"
+                placeholder="G-XXXXXXXXXX"
+                value={patch.googleAnalyticsId ?? ''}
+                onChange={(e) => updateField('googleAnalyticsId', e.target.value)}
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="legacyRedirectHost">Legacy site hostname (301 to NEXT_PUBLIC_SITE_URL)</label>
+              <input
+                id="legacyRedirectHost"
+                placeholder="anansecenter.oceancyber.site"
+                value={patch.legacyRedirectHost ?? ''}
+                onChange={(e) => updateField('legacyRedirectHost', e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="admin-card admin-card--spaced">

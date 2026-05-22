@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import SiteAnalytics from '../components/SiteAnalytics'
 import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 
@@ -29,8 +30,16 @@ export const metadata: Metadata = {
   description:
     'Empowering Africa\'s next generation of leaders through cultural arts, education, and community programs. Weaving wisdom into solutions.',
   keywords: [
-    'African arts', 'cultural center', 'Ghana', 'youth leadership',
-    'Pan-Africanism', 'community development', 'Sankofa', 'diaspora',
+    'Ananse Center',
+    'African arts',
+    'Akatakyiwa',
+    'Central Region Ghana',
+    'restorative arts',
+    'African diaspora',
+    'repatriation Ghana',
+    'Sankofa',
+    'cultural center',
+    'non-profit donation Ghana',
   ],
   metadataBase: process.env.NEXT_PUBLIC_SITE_URL
     ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
@@ -56,7 +65,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="min-h-screen flex flex-col bg-white antialiased font-body">{children}</body>
+      <body className="min-h-screen flex flex-col bg-white antialiased font-body">
+        <SiteAnalytics />
+        {children}
+      </body>
     </html>
   )
 }

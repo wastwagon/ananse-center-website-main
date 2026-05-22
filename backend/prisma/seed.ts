@@ -85,11 +85,16 @@ async function seedAdmin() {
     throw new Error('ADMIN_PASSWORD must be at least 8 characters')
   }
 
+  const allowedRoles = new Set(['superadmin', 'admin', 'editor', 'finance'])
+  const role = allowedRoles.has(process.env.ADMIN_ROLE?.trim() ?? '')
+    ? (process.env.ADMIN_ROLE!.trim() as 'superadmin' | 'admin' | 'editor' | 'finance')
+    : 'admin'
+
   const passwordHash = hashPassword(password)
   await prisma.adminUser.upsert({
     where: { email },
-    create: { email, passwordHash, name, role: 'admin' },
-    update: { passwordHash, name },
+    create: { email, passwordHash, name, role },
+    update: { passwordHash, name, role },
   })
 
   console.log(`Seeded admin user: ${email}`)

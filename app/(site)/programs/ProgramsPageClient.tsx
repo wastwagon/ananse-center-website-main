@@ -172,11 +172,11 @@ export default function ProgramsPageClient({
                     </div>
                   ) : null}
                   <div className="program-card-actions">
+                    <LocalizedLink href={`/programs/${program.slug}`} className="btn-outline-dark">
+                      View program
+                    </LocalizedLink>
                     <LocalizedLink href="/contact#form" className="btn-primary premium-card-cta">
                       {cardCtaPrimary}
-                    </LocalizedLink>
-                    <LocalizedLink href="/contact#form" className="btn-outline-dark">
-                      {cardCtaSecondary}
                     </LocalizedLink>
                   </div>
                 </article>

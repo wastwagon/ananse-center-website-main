@@ -2,6 +2,7 @@
  * CMS registry (keep in sync with ../../lib/cms/registry.ts).
  * Long-form copy only; contact/social live on SiteSettings.
  */
+import { STATIC_PAGE_REGISTRY } from './static-pages.js'
 
 export type ContentRegistryEntry = {
   label: string
@@ -1452,6 +1453,7 @@ export const CONTENT_REGISTRY = {
     defaultBody:
       'Preserving cultural memory and restoring identity through arts education, community programs, and Pan-African leadership development in Ghana and across the diaspora.',
   },
+  ...STATIC_PAGE_REGISTRY,
 } as const satisfies Record<string, ContentRegistryEntry>
 
 export type ContentKey = keyof typeof CONTENT_REGISTRY

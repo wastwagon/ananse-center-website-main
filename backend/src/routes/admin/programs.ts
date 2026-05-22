@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
 import { slugify } from '../../lib/slug.js'
 import { parseFeatures } from '../../lib/program-map.js'
-import { authenticateAdmin } from '../../plugins/admin-auth.js'
+import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 
 const programBodySchema = z.object({
   title: z.string().min(2).max(200),
@@ -57,7 +57,7 @@ function mapProgram(program: {
 }
 
 export async function adminProgramRoutes(app: FastifyInstance) {
-  const guard = { preHandler: [authenticateAdmin] }
+  const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
 
   app.get('/api/v1/admin/programs', guard, async () => {
     const programs = await prisma.program.findMany({

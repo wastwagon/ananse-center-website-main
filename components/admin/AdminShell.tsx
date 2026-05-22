@@ -11,6 +11,7 @@ const links = [
   { href: '/admin/events', label: 'Events' },
   { href: '/admin/programs', label: 'Programs' },
   { href: '/admin/contact', label: 'Contact messages' },
+  { href: '/admin/inbox', label: 'Inbox' },
   { href: '/admin/newsletter', label: 'Newsletter' },
   { href: '/admin/donations', label: 'Donations' },
   { href: '/admin/settings', label: 'Settings' },

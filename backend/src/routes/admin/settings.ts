@@ -1,7 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { authenticateAdmin } from '../../plugins/admin-auth.js'
-import { getSiteSettings, mapSiteProfile, mapSiteSettings } from '../../lib/site-settings.js'
+import { withAdminRoles } from '../../plugins/admin-role-guard.js'
+import {
+  getSiteSettings,
+  mapSiteIntegrations,
+  mapSiteProfile,
+  mapSiteSettings,
+} from '../../lib/site-settings.js'
 import { prisma } from '../../lib/prisma.js'
 
 const patchSchema = z.object({
@@ -32,10 +37,13 @@ const patchSchema = z.object({
   socialInstagram: z.string().url().optional(),
   socialYoutube: z.string().url().optional(),
   socialTwitter: z.string().url().optional(),
+  lmsPortalUrl: z.string().max(500).optional(),
+  googleAnalyticsId: z.string().max(80).optional(),
+  legacyRedirectHost: z.string().max(200).optional(),
 })
 
 export async function adminSettingsRoutes(app: FastifyInstance) {
-  const guard = { preHandler: [authenticateAdmin] }
+  const guard = { preHandler: [withAdminRoles(['superadmin', 'admin'])] }
 
   app.get('/api/v1/admin/settings', guard, async () => {
     const settings = await getSiteSettings()
@@ -43,6 +51,7 @@ export async function adminSettingsRoutes(app: FastifyInstance) {
       data: {
         ...mapSiteSettings(settings),
         ...mapSiteProfile(settings),
+        integrations: mapSiteIntegrations(settings),
       },
     }
   })
@@ -63,6 +72,7 @@ export async function adminSettingsRoutes(app: FastifyInstance) {
       data: {
         ...mapSiteSettings(updated),
         ...mapSiteProfile(updated),
+        integrations: mapSiteIntegrations(updated),
       },
     }
   })

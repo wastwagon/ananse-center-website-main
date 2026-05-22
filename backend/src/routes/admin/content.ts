@@ -6,7 +6,7 @@ import {
   type ContentRegistryEntry,
   isContentKey,
 } from '../../cms/registry.js'
-import { authenticateAdmin } from '../../plugins/admin-auth.js'
+import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 import { prisma } from '../../lib/prisma.js'
 
 function registryFormat(entry: ContentRegistryEntry): 'plain' | 'markdown' {
@@ -51,7 +51,7 @@ function mapBlock(block: {
 }
 
 export async function adminContentRoutes(app: FastifyInstance) {
-  const guard = { preHandler: [authenticateAdmin] }
+  const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
 
   app.get('/api/v1/admin/content-blocks/registry', guard, async () => {
     return {

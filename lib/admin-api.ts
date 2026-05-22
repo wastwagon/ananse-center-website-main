@@ -169,12 +169,19 @@ export type ImpactStat = {
   label: string
 }
 
+export type SiteIntegrations = {
+  lmsPortalUrl: string
+  googleAnalyticsId: string
+  legacyRedirectHost: string
+}
+
 export type SiteSettings = {
   maintenanceMode: boolean
   maintenanceTitle: string
   maintenanceMessage: string
   siteStatus: 'live' | 'maintenance'
   updatedAt: string
+  integrations?: SiteIntegrations
   site: {
     name: string
     shortName: string
@@ -259,6 +266,38 @@ export type AdminSettingsPatch = {
   socialInstagram?: string
   socialYoutube?: string
   socialTwitter?: string
+  lmsPortalUrl?: string
+  googleAnalyticsId?: string
+  legacyRedirectHost?: string
+}
+
+export type EventRegistrationRow = {
+  id: string
+  eventSlug: string
+  name: string
+  email: string
+  phone: string | null
+  notes: string | null
+  createdAt: string
+}
+
+export type CommunitySubmissionRow = {
+  id: string
+  type: string
+  name: string
+  email: string
+  title: string
+  body: string
+  status: string
+  createdAt: string
+}
+
+export async function fetchAdminInboxRegistrations() {
+  return adminFetch<{ data: EventRegistrationRow[] }>('inbox/registrations')
+}
+
+export async function fetchAdminInboxCommunity() {
+  return adminFetch<{ data: CommunitySubmissionRow[] }>('inbox/community')
 }
 
 export async function updateAdminSettings(body: AdminSettingsPatch) {

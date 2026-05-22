@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify'
-import { authenticateAdmin } from '../../plugins/admin-auth.js'
+import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 import { prisma } from '../../lib/prisma.js'
 
 export async function adminNewsletterRoutes(app: FastifyInstance) {
-  const guard = { preHandler: [authenticateAdmin] }
+  const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
 
   app.get('/api/v1/admin/newsletter/subscribers', guard, async () => {
     const subscribers = await prisma.newsletterSubscriber.findMany({
