@@ -81,6 +81,46 @@ export default function AdminSystemPage() {
       {status ? (
         <>
           <div className="admin-card admin-card--spaced">
+            <h2 className="admin-card-title">Production checklist (API env)</h2>
+            <p className="admin-help">
+              Recommended Coolify settings for a live site. See <code>COOLIFY.md</code> and{' '}
+              <code>config/coolify-production.env.example</code>.
+            </p>
+            <ul className="admin-list">
+              <li>
+                HTTPS site URL:{' '}
+                {status.productionChecklist.httpsSiteUrl ? '✓' : '✗ set NEXT_PUBLIC_SITE_URL=https://…'}
+              </li>
+              <li>
+                Strong JWT secret:{' '}
+                {status.productionChecklist.jwtSecretStrong
+                  ? '✓'
+                  : '✗ ADMIN_JWT_SECRET 32+ chars'}
+              </li>
+              <li>
+                Skip seed on boot:{' '}
+                {status.productionChecklist.skipSeedAfterFirstDeploy
+                  ? '✓ SKIP_PRISMA_SEED=true'
+                  : '○ first deploy only — then set true'}
+              </li>
+              <li>
+                System UI locked:{' '}
+                {status.productionChecklist.systemOpsLocked
+                  ? '✓ ADMIN_ALLOW_SYSTEM_OPS not enabled'
+                  : '✗ enable only for emergencies'}
+              </li>
+              <li>
+                CORS configured:{' '}
+                {status.productionChecklist.corsConfigured ? '✓' : '✗ set CORS_ORIGIN'}
+              </li>
+              <li>
+                Trust proxy:{' '}
+                {status.productionChecklist.trustProxy ? '✓ TRUST_PROXY=true' : '○ optional behind Coolify'}
+              </li>
+            </ul>
+          </div>
+
+          <div className="admin-card admin-card--spaced">
             <h2 className="admin-card-title">Deployment automation</h2>
             <ul className="admin-list">
               <li>

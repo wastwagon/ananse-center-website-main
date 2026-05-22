@@ -1,59 +1,102 @@
 # Coolify deployment — environment variables
 
-Set these on the **same Coolify application** that uses `docker-compose.yml` at the repo root. Rebuild **web** after changing any `NEXT_PUBLIC_*` value (they are baked into the Next.js client bundle at build time).
+Self-hosted stack only (no WordPress or third-party CMS). Set variables on the Coolify application that uses `docker-compose.yml` at the repo root.
 
-## Required (production)
+**Rebuild `web` after any `NEXT_PUBLIC_*` change** (values are baked into the Next.js build).
 
-| Variable | Service | Purpose |
-|----------|---------|---------|
-| `POSTGRES_USER` | postgres | Database user |
-| `POSTGRES_PASSWORD` | postgres | Database password |
-| `POSTGRES_DB` | postgres | Database name |
-| `NEXT_PUBLIC_SITE_URL` | web + backend | Canonical public site URL (HTTPS, no trailing slash) |
-| `NEXT_PUBLIC_API_URL` | web | Browser-facing API base URL |
-| `API_INTERNAL_URL` | web | SSR/middleware → API (`http://backend:4000` in compose) |
-| `CORS_ORIGIN` | backend | Allowed origin(s), usually same as `NEXT_PUBLIC_SITE_URL` |
-| `PAYSTACK_SECRET_KEY` | backend | Paystack secret (live in production) |
-| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | web + backend | Paystack public key |
-| `ADMIN_EMAIL` | backend | First admin user (seed) |
-| `ADMIN_PASSWORD` | backend | First admin password (seed) |
-| `ADMIN_JWT_SECRET` | backend | JWT signing secret (32+ random chars) |
+Copy-paste production baseline: [`config/coolify-production.env.example`](config/coolify-production.env.example)
 
-## Recommended (roadmap / SEO / redirects)
+---
 
-| Variable | Service | Purpose |
-|----------|---------|---------|
-| `LEGACY_SITE_HOST` | web (+ backend optional) | Hostname that 301-redirects to `NEXT_PUBLIC_SITE_URL` |
-| `NEXT_PUBLIC_LEGACY_SITE_HOST` | web (build + runtime) | Same as above for client/middleware fallback |
-| `NEXT_PUBLIC_LMS_PORTAL_URL` | web + backend | External LMS link on program pages |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | web + backend | Google Analytics `G-…` ID |
-| `SKIP_PRISMA_SEED` | backend | `true` after first successful deploy (migrations still run) |
-| `ADMIN_ALLOW_SYSTEM_OPS` | backend | `false` in production (blocks migrate/seed from admin UI) |
+## Production — recommended settings
 
-## Optional
+| Variable | Recommended value | Why |
+|----------|-------------------|-----|
+| `NODE_ENV` | `production` | Set in compose for API + web |
+| `NEXT_PUBLIC_SITE_URL` | `https://www.anansecenter.org` | HTTPS, no trailing slash |
+| `NEXT_PUBLIC_API_URL` | Same as site URL* | Browser calls API (or separate API subdomain) |
+| `API_INTERNAL_URL` | `http://backend:4000` | Next.js → API inside Docker network |
+| `CORS_ORIGIN` | Exact site origin | Must match browser URL (scheme + host) |
+| `SKIP_PRISMA_SEED` | `true` | After first successful deploy |
+| `ADMIN_ALLOW_SYSTEM_OPS` | unset or `false` | Blocks migrate/seed from admin UI in prod |
+| `ADMIN_ROLE` | `superadmin` | First seeded admin |
+| `ADMIN_JWT_SECRET` | 48+ random chars | Never reuse dev secret |
+| `COOKIE_SECURE` | `true` | Secure admin cookies over HTTPS |
+| `TRUST_PROXY` | `true` | Correct client IP behind Coolify proxy |
+| `POSTGRES_PASSWORD` | Strong unique | Not `change_me` |
+| `PAYSTACK_*` | Live keys (`pk_live_` / `sk_live_`) | Test keys only on staging |
+
+\*If API is on a subdomain, set `NEXT_PUBLIC_API_URL=https://api.anansecenter.org` and add both origins to `CORS_ORIGIN` comma-separated.
+
+### Integrations (optional)
+
+| Variable | Purpose |
+|----------|---------|
+| `LEGACY_SITE_HOST` | Hostname only → 301 to `NEXT_PUBLIC_SITE_URL` |
+| `NEXT_PUBLIC_LEGACY_SITE_HOST` | Same, for build + middleware |
+| `NEXT_PUBLIC_LMS_PORTAL_URL` | Your LMS portal link |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | `G-…` analytics |
+| `CRM_WEBHOOK_URL` | Outbound webhook (donation, contact, newsletter) |
+
+### Rate limits (optional)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `FRONTEND_PORT` | `3035` | Host port mapped to web container |
-| `BACKEND_PORT` | `4035` | Host port mapped to API container |
-| `PAYSTACK_CURRENCY` | `GHS` | Donation currency |
-| `ADMIN_NAME` | Site Administrator | Seed admin display name |
-| `ADMIN_ROLE` | `admin` | Seed role: `superadmin`, `admin`, `editor`, `finance` |
-| `CRM_WEBHOOK_URL` | — | Optional Zapier/HubSpot webhook for donations, contact & newsletter |
-| `SKIP_PRISMA_SEED` | `false` | Skip background seed on API boot |
+| `RATE_LIMIT_MAX` | `60` | General API requests per minute per IP |
+| `RATE_LIMIT_AUTH_MAX` | `10` | Admin login attempts per minute |
+
+---
+
+## Development — recommended settings
+
+| Variable | Value |
+|----------|--------|
+| `SKIP_PRISMA_SEED` | `false` |
+| `ADMIN_ALLOW_SYSTEM_OPS` | `true` (optional, for admin System page) |
+| `COOKIE_SECURE` | unset (localhost HTTP) |
+| `TRUST_PROXY` | unset |
+| Paystack | `pk_test_` / `sk_test_` |
+
+---
+
+## Required variables (all environments)
+
+| Variable | Service |
+|----------|---------|
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | postgres |
+| `NEXT_PUBLIC_SITE_URL` | web + backend |
+| `NEXT_PUBLIC_API_URL` | web |
+| `API_INTERNAL_URL` | web |
+| `CORS_ORIGIN` | backend |
+| `PAYSTACK_SECRET_KEY`, `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | backend / web |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_JWT_SECRET` | backend (first boot) |
+
+---
 
 ## Deploy checklist
 
-1. Set all variables in Coolify → **Environment** (development and production stacks).
-2. **Redeploy** with rebuild so `web` picks up `NEXT_PUBLIC_*` build args.
-3. API entrypoint runs `prisma migrate deploy` automatically; on boot it also **syncs missing CMS keys** from the registry.
-4. First deploy: leave `SKIP_PRISMA_SEED=false` once, then set `SKIP_PRISMA_SEED=true`.
-5. Confirm health: `GET /api/v1/health` on the API URL.
-6. Smoke-test: legacy host 301, `/search`, event registration, admin **Settings → Integrations**, admin **Inbox**.
+1. Paste production env from `config/coolify-production.env.example` into Coolify.
+2. **Redeploy with rebuild** (both `web` and `backend`).
+3. First boot only: `SKIP_PRISMA_SEED=false` → deploy → verify admin login → set `SKIP_PRISMA_SEED=true` → redeploy.
+4. Admin → **Settings → Integrations** (LMS, GA, legacy host) or rely on env.
+5. Admin → **System** — confirm “Seed on deploy: No” and “System ops: disabled” in production.
+6. Smoke-test: `GET /api/v1/health`, legacy 301, donate flow, `/admin/login`.
 
-## Name alignment (common mistakes)
+---
 
-- Use `NEXT_PUBLIC_SITE_URL`, not `SITE_URL`.
-- Use `API_INTERNAL_URL=http://backend:4000` inside Docker, not the public API URL.
-- `LEGACY_SITE_HOST` is hostname only (no `https://`), e.g. `anansecenter.oceancyber.site`.
-- `CORS_ORIGIN` must match the browser origin exactly (scheme + host, no path).
+## Common mistakes
+
+- `SITE_URL` — use `NEXT_PUBLIC_SITE_URL`
+- `API_INTERNAL_URL` must be `http://backend:4000`, not the public URL
+- `LEGACY_SITE_HOST` — hostname only, no `https://`
+- `CORS_ORIGIN` — no path, exact origin
+- Forgetting to **rebuild web** after changing `NEXT_PUBLIC_*`
+
+---
+
+## Security (built into the stack)
+
+- Admin session: httpOnly cookie, `secure` when HTTPS / `COOKIE_SECURE=true`
+- API: security headers, rate limiting, role-based admin routes
+- Next.js: security headers via `next.config.mjs`
+- Production: disable `ADMIN_ALLOW_SYSTEM_OPS`; use entrypoint migrations only

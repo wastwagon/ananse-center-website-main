@@ -18,6 +18,7 @@ import { mediaRoutes } from './routes/media.js'
 import { ensureUploadDir, maxUploadBytes } from './lib/media-path.js'
 import { syncRegistryContent } from './lib/sync-content.js'
 import { syncIntegrationEnvDefaults } from './lib/sync-integrations.js'
+import { registerSecurityHeaders } from './lib/security-headers.js'
 
 const port = Number(process.env.BACKEND_PORT || 4000)
 const host = process.env.BACKEND_HOST || '0.0.0.0'
@@ -26,17 +27,25 @@ const corsOrigin = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((value) => value.trim())
   : true
 
+const trustProxy = process.env.TRUST_PROXY === 'true'
+
 const app = Fastify({
   logger: process.env.NODE_ENV !== 'test',
+  trustProxy,
 })
+
+await registerSecurityHeaders(app)
 
 await app.register(cors, {
   origin: corsOrigin,
   credentials: true,
 })
 
+const rateLimitMax = Number(process.env.RATE_LIMIT_MAX || 60)
+const rateLimitAuthMax = Number(process.env.RATE_LIMIT_AUTH_MAX || 10)
+
 await app.register(rateLimit, {
-  max: 60,
+  max: rateLimitMax,
   timeWindow: '1 minute',
 })
 

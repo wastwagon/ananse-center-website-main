@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { adminSessionCookieOptions } from '../../../../../lib/admin-cookie'
 import { ADMIN_COOKIE, getAdminApiUrl } from '../../../../../lib/admin-server'
 
 export async function POST(request: Request) {
@@ -35,13 +36,7 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.json({ user: payload.user })
-  response.cookies.set(ADMIN_COOKIE, payload.token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  })
+  response.cookies.set(ADMIN_COOKIE, payload.token, adminSessionCookieOptions(60 * 60 * 24 * 7))
 
   return response
 }

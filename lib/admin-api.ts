@@ -218,6 +218,14 @@ export type SystemStatus = {
   systemOpsAllowed: boolean
   autoMigrateOnDeploy: boolean
   autoSeedOnDeploy: boolean
+  productionChecklist: {
+    httpsSiteUrl: boolean
+    jwtSecretStrong: boolean
+    skipSeedAfterFirstDeploy: boolean
+    systemOpsLocked: boolean
+    corsConfigured: boolean
+    trustProxy: boolean
+  }
   confirmPhrases: { migrate: string; seed: string }
   counts: {
     events: number

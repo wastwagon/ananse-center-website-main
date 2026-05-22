@@ -27,12 +27,23 @@ export async function adminSystemRoutes(app: FastifyInstance) {
       getSiteSettings(),
     ])
 
+    const jwtSecret = process.env.ADMIN_JWT_SECRET?.trim() ?? ''
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? ''
+
     return {
       data: {
         environment: process.env.NODE_ENV || 'development',
         systemOpsAllowed: systemOpsAllowed(),
         autoMigrateOnDeploy: true,
         autoSeedOnDeploy: process.env.SKIP_PRISMA_SEED !== 'true',
+        productionChecklist: {
+          httpsSiteUrl: siteUrl.startsWith('https://'),
+          jwtSecretStrong: jwtSecret.length >= 32,
+          skipSeedAfterFirstDeploy: process.env.SKIP_PRISMA_SEED === 'true',
+          systemOpsLocked: !systemOpsAllowed(),
+          corsConfigured: Boolean(process.env.CORS_ORIGIN?.trim()),
+          trustProxy: process.env.TRUST_PROXY === 'true',
+        },
         confirmPhrases: systemConfirmHints,
         counts: {
           events,

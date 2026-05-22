@@ -11,7 +11,19 @@ const loginSchema = z.object({
 })
 
 export async function adminAuthRoutes(app: FastifyInstance) {
-  app.post('/api/v1/admin/auth/login', async (request, reply) => {
+  const authRateMax = Number(process.env.RATE_LIMIT_AUTH_MAX || 10)
+
+  app.post(
+    '/api/v1/admin/auth/login',
+    {
+      config: {
+        rateLimit: {
+          max: authRateMax,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    async (request, reply) => {
     try {
       const parsed = loginSchema.safeParse(request.body)
       if (!parsed.success) {
@@ -53,7 +65,8 @@ export async function adminAuthRoutes(app: FastifyInstance) {
       }
       return reply.status(500).send({ error: 'Unable to sign in right now. Try again shortly.' })
     }
-  })
+    },
+  )
 
   app.get(
     '/api/v1/admin/auth/me',
