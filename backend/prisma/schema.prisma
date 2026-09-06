@@ -21,6 +21,7 @@ model MediaAsset {
   updatedAt    DateTime  @updatedAt @map("updated_at")
   eventCovers  Event[]   @relation("EventCover")
   programCovers Program[] @relation("ProgramCover")
+  newsCovers   NewsPost[] @relation("NewsCover")
 
   @@index([mimeType, createdAt(sort: Desc)])
   @@map("media_assets")
@@ -49,24 +50,29 @@ model Program {
 }
 
 model Event {
-  id           String      @id @default(cuid())
-  title        String
-  slug         String      @unique
-  description  String      @db.Text
-  dateLabel    String      @map("date_label")
-  location     String
-  venue        String      @default("")
-  type         String
-  imageEmoji   String      @default("🎭") @map("image_emoji")
-  coverMediaId String?     @map("cover_media_id")
-  coverMedia   MediaAsset? @relation("EventCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
-  storyTitle   String?     @map("story_title")
-  storyBody    String?     @map("story_body") @db.Text
-  highlights   Json        @default("[]")
-  featured     Boolean     @default(false)
-  published    Boolean     @default(true)
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
+  id                 String      @id @default(cuid())
+  title              String
+  slug               String      @unique
+  description        String      @db.Text
+  dateLabel          String      @map("date_label")
+  startsAt           DateTime?   @map("starts_at")
+  endsAt             DateTime?   @map("ends_at")
+  timeLabel          String      @default("") @map("time_label")
+  capacity           Int?
+  registrationStatus String      @default("auto") @map("registration_status")
+  location           String
+  venue              String      @default("")
+  type               String
+  imageEmoji         String      @default("🎭") @map("image_emoji")
+  coverMediaId       String?     @map("cover_media_id")
+  coverMedia         MediaAsset? @relation("EventCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  storyTitle         String?     @map("story_title")
+  storyBody          String?     @map("story_body") @db.Text
+  highlights         Json        @default("[]")
+  featured           Boolean     @default(false)
+  published          Boolean     @default(true)
+  createdAt          DateTime    @default(now()) @map("created_at")
+  updatedAt          DateTime    @updatedAt @map("updated_at")
 
   @@map("events")
 }
@@ -191,19 +197,25 @@ model ArchiveRecord {
 }
 
 model NewsPost {
-  id        String   @id @default(cuid())
-  title     String
-  slug      String   @unique
-  excerpt   String   @db.Text
-  body      String   @default("") @db.Text
-  dateLabel String   @default("") @map("date_label")
-  linkHref  String   @default("") @map("link_href")
-  published Boolean  @default(true)
-  sortOrder Int      @default(0) @map("sort_order")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String      @id @default(cuid())
+  title        String
+  slug         String      @unique
+  excerpt      String      @db.Text
+  body         String      @default("") @db.Text
+  dateLabel    String      @default("") @map("date_label")
+  author       String      @default("") 
+  category     String      @default("News")
+  featured     Boolean     @default(false)
+  linkHref     String      @default("") @map("link_href")
+  coverMediaId String?     @map("cover_media_id")
+  coverMedia   MediaAsset? @relation("NewsCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  published    Boolean     @default(true)
+  sortOrder    Int         @default(0) @map("sort_order")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
   @@index([published, sortOrder])
+  @@index([featured, published])
   @@map("news_posts")
 }
 
@@ -223,4 +235,18 @@ model Donation {
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("donations")
+}
+
+/** First-party, self-hosted pageviews (no third-party analytics). */
+model AnalyticsPageView {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String   @default("")
+  sessionId String   @map("session_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([path, createdAt])
+  @@index([sessionId, createdAt])
+  @@map("analytics_page_views")
 }

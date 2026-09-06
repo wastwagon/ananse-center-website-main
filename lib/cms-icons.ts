@@ -5,6 +5,7 @@ import {
   BookOpen,
   Brush,
   Building2,
+  CalendarDays,
   Drama,
   Globe,
   Globe2,
@@ -12,6 +13,8 @@ import {
   HandHeart,
   Heart,
   History,
+  Home,
+  Mail,
   Music,
   Network,
   Package,
@@ -53,6 +56,9 @@ const CMS_ICONS: Record<string, LucideIcon> = {
   Package,
   HandHeart,
   Scroll,
+  Home,
+  CalendarDays,
+  Mail,
 }
 
 export function cmsIconForKey(iconKey: string): LucideIcon {

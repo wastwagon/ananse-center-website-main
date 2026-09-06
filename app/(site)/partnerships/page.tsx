@@ -1,15 +1,13 @@
 import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
-import { buildPageMetadata } from '../../../lib/page-meta'
-import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
+import CmsRichText from '../../../components/CmsRichText'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
+import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 
 type PartnershipTier = { title: string; description: string }
 
-export const metadata = buildPageMetadata({
-  title: 'Partnerships',
-  description:
-    'Corporate and institutional partnerships with The Ananse Center for Arts and Culture.',
-  path: '/partnerships',
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('partnerships')
+}
 
 export default async function PartnershipsPage() {
   const cms = await getCmsTexts([
@@ -30,13 +28,7 @@ export default async function PartnershipsPage() {
       primaryCta={{ label: 'Start a conversation', href: '/contact#form' }}
       secondaryCta={{ label: 'Support our work', href: '/support' }}
     >
-      <div className="content-prose-body">
-        {splitParagraphs(cms['partnerships.body']).map((p) => (
-          <p key={p.slice(0, 48)} className="page-body-text content-prose-p">
-            {p}
-          </p>
-        ))}
-      </div>
+      <CmsRichText body={cms['partnerships.body']} className="content-prose-body" />
       <div className="grid-cards grid-cards--stack-narrow">
         {tiers.map((tier) => (
           <article key={tier.title} className="premium-card">

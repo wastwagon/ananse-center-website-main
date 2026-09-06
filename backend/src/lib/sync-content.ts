@@ -1,7 +1,7 @@
 import { CONTENT_KEYS, CONTENT_REGISTRY, type ContentRegistryEntry } from '../cms/registry.js'
 import { prisma } from './prisma.js'
 
-function registryFormat(entry: ContentRegistryEntry): 'plain' | 'markdown' {
+function registryFormat(entry: ContentRegistryEntry): 'plain' | 'markdown' | 'html' {
   return entry.format ?? 'plain'
 }
 

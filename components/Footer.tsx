@@ -16,12 +16,19 @@ import { DEFAULT_IMPACT_STATS, type ImpactStat } from '../lib/site-impact'
 import type { PublicSiteProfile } from '../lib/site-profile'
 import LocaleSwitcher from './LocaleSwitcher'
 
+type FooterLink = { label: string; href: string }
+
 type FooterProps = {
   site?: PublicSiteProfile['site']
   contact?: PublicSiteProfile['contact']
   social?: PublicSiteProfile['social']
   impactStats?: ImpactStat[]
   footerMission?: string
+  footerPrimaryCta?: { label: string; href: string }
+  footerSecondaryCta?: { label: string; href: string }
+  logoSrc?: string
+  quickLinks?: FooterLink[]
+  programLinks?: FooterLink[]
 }
 
 function FacebookIcon() {
@@ -48,26 +55,31 @@ function YoutubeIcon() {
   )
 }
 
-const quickLinks = [
-  { key: 'nav.home', href: '/' },
-  { key: 'nav.about', href: '/about' },
-  { key: 'nav.repatriation', href: '/repatriation' },
-  { key: 'nav.programs', href: '/programs' },
-  { key: 'nav.admissions', href: '/admissions' },
-  { key: 'nav.events', href: '/events' },
-  { key: 'nav.community', href: '/community' },
-  { key: 'nav.partnerships', href: '/partnerships' },
-  { key: 'nav.donate', href: '/support' },
-  { key: 'nav.transparency', href: '/transparency' },
-  { key: 'nav.visit', href: '/visit' },
-  { key: 'nav.contact', href: '/contact#form' },
-] as const
+function TwitterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width={17} height={17} fill="currentColor" aria-hidden>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.74l7.717-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
+    </svg>
+  )
+}
 
-const programLinks = [
-  { name: 'Sankofa Mentorship', href: '/programs' },
-  { name: 'Arts & Crafts', href: '/programs' },
-  { name: 'Music & Rhythm', href: '/programs' },
-  { name: 'Storytelling', href: '/programs' },
+const DEFAULT_QUICK_LINKS: FooterLink[] = [
+  { label: 'About', href: '/about' },
+  { label: 'Programs', href: '/programs' },
+  { label: 'Events', href: '/events' },
+  { label: 'Videos', href: '/videos' },
+  { label: 'Support', href: '/support' },
+  { label: 'Contact', href: '/contact#form' },
+  { label: 'Trustees', href: '/trustees' },
+  { label: 'Transparency', href: '/transparency' },
+]
+
+const DEFAULT_PROGRAM_LINKS: FooterLink[] = [
+  { label: 'Browse All Programs', href: '/programs' },
+  { label: 'Traditional Arts & Crafts', href: '/programs' },
+  { label: 'Music & Rhythm', href: '/programs' },
+  { label: 'Storytelling', href: '/programs' },
+  { label: 'Cultural Leadership', href: '/programs' },
 ]
 
 export default async function Footer({
@@ -76,6 +88,11 @@ export default async function Footer({
   social = defaultSocial,
   impactStats = DEFAULT_IMPACT_STATS,
   footerMission = defaultSite.footerMission,
+  footerPrimaryCta = { label: 'Support Our Mission', href: '/support' },
+  footerSecondaryCta = { label: 'Get In Touch', href: '/contact#form' },
+  logoSrc = '/ananse-logo.png',
+  quickLinks = DEFAULT_QUICK_LINKS,
+  programLinks = DEFAULT_PROGRAM_LINKS,
 }: FooterProps) {
   const cookieStore = await cookies()
   const locale = parseLocale(cookieStore.get(LOCALE_COOKIE)?.value)
@@ -84,7 +101,10 @@ export default async function Footer({
     { label: 'Facebook', href: social.facebook, Icon: FacebookIcon },
     { label: 'Instagram', href: social.instagram, Icon: InstagramIcon },
     { label: 'YouTube', href: social.youtube, Icon: YoutubeIcon },
-  ] as const
+    ...(social.twitter
+      ? [{ label: 'X', href: social.twitter, Icon: TwitterIcon } as const]
+      : []),
+  ]
 
   return (
     <footer className="footer-root">
@@ -105,7 +125,7 @@ export default async function Footer({
           <div className="footer-brand-col">
             <div className="footer-brand">
               <Image
-                src="/ananse-logo.png"
+                src={logoSrc}
                 alt="The Ananse Center for Arts and Culture"
                 width={52}
                 height={52}
@@ -121,12 +141,18 @@ export default async function Footer({
             <p className="footer-desc">{footerMission}</p>
 
             <div className="footer-cta-group">
-              <Link href={localizedPath('/support', locale)} className="footer-cta footer-cta--primary">
+              <Link
+                href={localizedPath(footerPrimaryCta.href.split('#')[0], locale) + (footerPrimaryCta.href.includes('#') ? `#${footerPrimaryCta.href.split('#')[1]}` : '')}
+                className="footer-cta footer-cta--primary"
+              >
                 <Heart size={16} aria-hidden />
-                Support our mission
+                {footerPrimaryCta.label}
               </Link>
-              <Link href={`${localizedPath('/contact', locale)}#form`} className="footer-cta footer-cta--outline">
-                Get in touch
+              <Link
+                href={localizedPath(footerSecondaryCta.href.split('#')[0], locale) + (footerSecondaryCta.href.includes('#') ? `#${footerSecondaryCta.href.split('#')[1]}` : '')}
+                className="footer-cta footer-cta--outline"
+              >
+                {footerSecondaryCta.label}
                 <ArrowRight size={16} aria-hidden />
               </Link>
             </div>
@@ -152,14 +178,14 @@ export default async function Footer({
             <nav className="footer-links" aria-label="Quick links">
               {quickLinks.map((link) => {
                 const base = link.href.split('#')[0]
-                const hash = link.href.includes('#') ? '#form' : ''
+                const hash = link.href.includes('#') ? `#${link.href.split('#')[1]}` : ''
                 return (
                   <Link
-                    key={link.key}
+                    key={`${link.label}-${link.href}`}
                     href={localizedPath(base, locale) + hash}
                     className="footer-link"
                   >
-                    {t(link.key, locale)}
+                    {link.label}
                   </Link>
                 )
               })}
@@ -170,8 +196,12 @@ export default async function Footer({
             <p className="footer-col-heading">Programs</p>
             <nav className="footer-links" aria-label="Programs">
               {programLinks.map((link) => (
-                <Link key={link.name} href={localizedPath(link.href, locale)} className="footer-link">
-                  {link.name}
+                <Link
+                  key={`${link.label}-${link.href}`}
+                  href={localizedPath(link.href.split('#')[0], locale)}
+                  className="footer-link"
+                >
+                  {link.label}
                 </Link>
               ))}
             </nav>

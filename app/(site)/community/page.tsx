@@ -1,15 +1,13 @@
 import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import StorySubmissionForm from '../../../components/StorySubmissionForm'
-import { buildPageMetadata } from '../../../lib/page-meta'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
 import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 import { DEFAULT_SPOTLIGHTS, type CmsSpotlight } from '../../../lib/cms/static-pages'
 import { fetchPublishedSpotlights, type ApiSpotlight } from '../../../lib/api'
 
-export const metadata = buildPageMetadata({
-  title: 'Community Spotlight',
-  description: 'Partners and community organizations highlighted by The Ananse Center.',
-  path: '/community',
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('community')
+}
 
 function mergeSpotlights(cms: CmsSpotlight[], published: ApiSpotlight[]): CmsSpotlight[] {
   const fromDb = published.map((row) => ({

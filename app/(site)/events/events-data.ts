@@ -7,7 +7,7 @@ export const fallbackEvents: ApiEvent[] = [
     slug: 'ananse-storytelling-festival',
     description:
       'A celebration of African oral traditions featuring master storytellers, cultural performances, and community workshops.',
-    date: 'March 15-17, 2025',
+    date: 'August 15-17, 2026',
     location: 'Accra, Ghana',
     type: 'Festival',
     image: '🎭',
@@ -20,7 +20,7 @@ export const fallbackEvents: ApiEvent[] = [
     slug: 'kente-weaving-workshop-series',
     description:
       'Learn the ancient art of Kente weaving from master weavers in this hands-on workshop series.',
-    date: 'Every Saturday in April',
+    date: 'Every Saturday in September',
     location: 'Kumasi, Ghana',
     type: 'Workshop',
     image: '🧵',
@@ -33,7 +33,7 @@ export const fallbackEvents: ApiEvent[] = [
     slug: 'diaspora-reconnection-retreat',
     description:
       'A transformative retreat for members of the African diaspora seeking to reconnect with their heritage.',
-    date: 'May 10-12, 2025',
+    date: 'October 10-12, 2026',
     location: 'Cape Coast, Ghana',
     type: 'Retreat',
     image: '🌿',
@@ -46,7 +46,7 @@ export const fallbackEvents: ApiEvent[] = [
     slug: 'contemporary-african-art-exhibition',
     description:
       'Showcasing the work of emerging and established African artists exploring themes of identity and heritage.',
-    date: 'June 1-30, 2025',
+    date: 'November 1-30, 2026',
     location: 'Accra Arts Center',
     type: 'Exhibition',
     image: '🖼️',
@@ -59,7 +59,7 @@ export const fallbackEvents: ApiEvent[] = [
     slug: 'traditional-drumming-dance-festival',
     description:
       'Experience the power and beauty of traditional African drumming and dance in this vibrant festival.',
-    date: 'July 20-22, 2025',
+    date: 'December 5-7, 2026',
     location: 'Tamale, Ghana',
     type: 'Festival',
     image: '🥁',
@@ -72,7 +72,7 @@ export const fallbackEvents: ApiEvent[] = [
     slug: 'cultural-heritage-symposium',
     description:
       'Academic and community discussions on preserving and celebrating African cultural heritage.',
-    date: 'September 5-7, 2025',
+    date: 'February 20-22, 2027',
     location: 'University of Ghana',
     type: 'Symposium',
     image: '🎓',

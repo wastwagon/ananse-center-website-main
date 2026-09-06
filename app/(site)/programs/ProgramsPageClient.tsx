@@ -7,13 +7,15 @@ import LocalizedLink from '../../../components/LocalizedLink'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import type { CmsHeroCta, CmsHeroStat, CmsHeroTitle } from '../../../lib/cms/registry'
 import FeatureIcon from '../../../components/FeatureIcon'
-import { cardImageSizes, images, resolveProgramCoverImage } from '../../../lib/images'
+import { cardImageSizes, resolveCmsImage, resolveProgramCoverImage } from '../../../lib/images'
 import { programIconForKey } from '../../../lib/program-icons'
 import type { ApiProgram } from '../../../lib/api'
 export type ProgramBenefit = {
   title: string
   description: string
   iconKey: string
+  category?: string
+  imageUrl?: string
 }
 
 export type ProgramTestimonial = {
@@ -21,6 +23,7 @@ export type ProgramTestimonial = {
   role: string
   text: string
   initials: string
+  photoUrl?: string
 }
 
 type ProgramsPageClientProps = {
@@ -29,6 +32,8 @@ type ProgramsPageClientProps = {
   heroStats: CmsHeroStat[]
   heroPrimaryCta: CmsHeroCta
   heroSecondaryCta: CmsHeroCta
+  heroImageSrc: string
+  heroImageAlt: string
   catalogHeading: string
   catalogLead: string
   benefitsBadge: string
@@ -46,6 +51,7 @@ type ProgramsPageClientProps = {
   ctaHeading: string
   ctaBody: string
   programs: ApiProgram[]
+  sectionVisibility?: Record<string, boolean>
 }
 
 export default function ProgramsPageClient({
@@ -54,6 +60,8 @@ export default function ProgramsPageClient({
   heroStats,
   heroPrimaryCta,
   heroSecondaryCta,
+  heroImageSrc,
+  heroImageAlt,
   catalogHeading,
   catalogLead,
   benefitsBadge,
@@ -71,6 +79,7 @@ export default function ProgramsPageClient({
   ctaHeading,
   ctaBody,
   programs,
+  sectionVisibility = {},
 }: ProgramsPageClientProps) {
   const categories = useMemo(() => {
     const cats = [...new Set(programs.map((p) => p.category))].sort()
@@ -78,6 +87,7 @@ export default function ProgramsPageClient({
   }, [programs])
 
   const [activeTab, setActiveTab] = useState('All Programs')
+  const show = (key: string) => sectionVisibility[key] !== false
 
   const filteredPrograms =
     activeTab === 'All Programs' ? programs : programs.filter((p) => p.category === activeTab)
@@ -86,8 +96,8 @@ export default function ProgramsPageClient({
     <div className="programs-page">
       <HeroSplit
         compact
-        imageSrc={images.hero.programs}
-        imageAlt="Ananse Center programs"
+        imageSrc={heroImageSrc}
+        imageAlt={heroImageAlt}
         title={renderSplitHeroTitle(heroTitle)}
         description={heroLead}
         primaryCta={heroPrimaryCta}
@@ -95,9 +105,10 @@ export default function ProgramsPageClient({
         stats={heroStats}
       />
 
+      {show('catalog') ? (
       <section id="catalog" className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
-          <div className="page-section-center-header">
+          <div className="page-section-center-header" style={{ marginBottom: '3rem' }}>
             <h2 className="page-section-heading">{catalogHeading}</h2>
             <p className="page-body-text">{catalogLead}</p>
           </div>
@@ -173,7 +184,7 @@ export default function ProgramsPageClient({
                   ) : null}
                   <div className="program-card-actions">
                     <LocalizedLink href={`/programs/${program.slug}`} className="btn-outline-dark">
-                      View program
+                      {cardCtaSecondary || 'Learn More'}
                     </LocalizedLink>
                     <LocalizedLink href="/contact#form" className="btn-primary premium-card-cta">
                       {cardCtaPrimary}
@@ -185,7 +196,9 @@ export default function ProgramsPageClient({
           </div>
         </div>
       </section>
+      ) : null}
 
+      {show('benefits') ? (
       <section className="page-section section-reveal bg-slate-50 py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
@@ -200,7 +213,7 @@ export default function ProgramsPageClient({
               <article key={benefit.title} className="premium-card">
                 <div className="premium-card-image-wrapper premium-card-image-wrapper--short">
                   <Image
-                    src={`/images/image (${idx + 7}).jpeg`}
+                    src={resolveCmsImage(benefit.imageUrl, `/images/image (${idx + 7}).jpeg`)}
                     alt={benefit.title}
                     fill
                     className="object-cover"
@@ -211,7 +224,9 @@ export default function ProgramsPageClient({
                   <div className="premium-card-icon-box">
                     <BenefitIcon size={22} strokeWidth={1.75} />
                   </div>
-                  <span className="premium-card-featured-label">{benefitsCardLabel}</span>
+                  <span className="premium-card-featured-label">
+                    {benefit.category || benefitsCardLabel}
+                  </span>
                 </div>
                 <h3 className="premium-card-title">{benefit.title}</h3>
                 <p className="premium-card-description">{benefit.description}</p>
@@ -221,7 +236,9 @@ export default function ProgramsPageClient({
           </div>
         </div>
       </section>
+      ) : null}
 
+      {show('testimonials') ? (
       <section className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
@@ -234,7 +251,13 @@ export default function ProgramsPageClient({
                 <div className="testimonial-quote-mark">“</div>
                 <p className="testimonial-text">{t.text}</p>
                 <div className="testimonial-footer">
-                  <div className="testimonial-avatar">{t.initials}</div>
+                  {t.photoUrl ? (
+                    <div className="testimonial-avatar testimonial-avatar--photo" aria-hidden>
+                      <Image src={t.photoUrl} alt="" fill className="object-cover" sizes="48px" />
+                    </div>
+                  ) : (
+                    <div className="testimonial-avatar">{t.initials}</div>
+                  )}
                   <div>
                     <p className="testimonial-name">{t.name}</p>
                     <p className="testimonial-role-sm">{t.role}</p>
@@ -245,7 +268,9 @@ export default function ProgramsPageClient({
           </div>
         </div>
       </section>
+      ) : null}
 
+      {show('cta') ? (
       <section className="page-cta-section section-reveal">
         <div className="page-section-container page-cta-inner">
           <h2 className="page-cta-heading">{ctaHeading}</h2>
@@ -267,6 +292,7 @@ export default function ProgramsPageClient({
           </div>
         </div>
       </section>
+      ) : null}
     </div>
   )
 }

@@ -1,10 +1,20 @@
 import { ImageResponse } from 'next/og'
 import { site } from '../lib/site'
+import { getCmsText } from '../lib/cms/content'
+import { loadCmsIconBytes } from '../lib/cms/icon-bytes'
 
 export const size = { width: 32, height: 32 }
 export const contentType = 'image/png'
 
-export default function Icon() {
+export default async function Icon() {
+  const cmsPath = await getCmsText('site.favicon')
+  const cmsIcon = await loadCmsIconBytes(cmsPath)
+  if (cmsIcon) {
+    return new Response(cmsIcon.data, {
+      headers: { 'Content-Type': cmsIcon.contentType },
+    })
+  }
+
   return new ImageResponse(
     (
       <div

@@ -2,60 +2,43 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, Heart, Home, Mail, Sparkles } from 'lucide-react'
 import { useI18n } from './I18nProvider'
 import { localizedPath, stripLocalePrefix } from '../lib/locale-path'
+import { cmsIconForKey } from '../lib/cms-icons'
+import { DEFAULT_MOBILE_NAV, splitHref, type CmsMobileNavLink } from '../lib/cms/nav'
 
-const tabs = [
-  { key: 'nav.home', href: '/', icon: Home, match: (path: string) => path === '/' },
-  {
-    key: 'nav.programs',
-    href: '/programs',
-    icon: Sparkles,
-    match: (path: string) => path.startsWith('/programs'),
-  },
-  {
-    key: 'nav.events',
-    href: '/events',
-    icon: CalendarDays,
-    match: (path: string) => path.startsWith('/events'),
-  },
-  {
-    key: 'nav.donate',
-    href: '/support',
-    icon: Heart,
-    match: (path: string) => path.startsWith('/support'),
-  },
-  {
-    key: 'nav.contact',
-    href: '/contact',
-    icon: Mail,
-    match: (path: string) => path.startsWith('/contact'),
-  },
-] as const
+type MobileBottomNavProps = {
+  links?: CmsMobileNavLink[]
+}
 
-export default function MobileBottomNav() {
+function matchPath(linkPath: string, currentPath: string): boolean {
+  if (linkPath === '/') return currentPath === '/'
+  return currentPath.startsWith(linkPath)
+}
+
+export default function MobileBottomNav({ links = DEFAULT_MOBILE_NAV }: MobileBottomNavProps) {
   const pathname = usePathname()
   const logicalPath = stripLocalePrefix(pathname)
-  const { locale, translate } = useI18n()
+  const { locale } = useI18n()
 
   return (
     <nav className="mobile-bottom-nav" aria-label="Mobile primary navigation">
       <div className="mobile-bottom-nav-inner">
-        {tabs.map((tab) => {
-          const active = tab.match(logicalPath)
-          const Icon = tab.icon
+        {links.map((link) => {
+          const { path, hash } = splitHref(link.href)
+          const active = matchPath(path, logicalPath)
+          const Icon = cmsIconForKey(link.iconKey)
           return (
             <Link
-              key={tab.key}
-              href={localizedPath(tab.href, locale)}
+              key={`${link.label}-${link.href}`}
+              href={localizedPath(path, locale) + hash}
               className={`mobile-bottom-nav-item${active ? ' mobile-bottom-nav-item--active' : ''}`}
               aria-current={active ? 'page' : undefined}
             >
               <span className="mobile-bottom-nav-icon" aria-hidden>
                 <Icon size={22} strokeWidth={active ? 2.25 : 1.75} />
               </span>
-              <span className="mobile-bottom-nav-label">{translate(tab.key)}</span>
+              <span className="mobile-bottom-nav-label">{link.label}</span>
             </Link>
           )
         })}

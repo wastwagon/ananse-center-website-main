@@ -1,16 +1,14 @@
 import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
-import { buildPageMetadata } from '../../../lib/page-meta'
-import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
+import CmsRichText from '../../../components/CmsRichText'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
+import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 import { DEFAULT_ARCHIVE_ITEMS, type CmsArchiveItem } from '../../../lib/cms/static-pages'
 import ArchivesExplorer from '../../../components/ArchivesExplorer'
 import { fetchArchiveRecords, type ApiArchiveRecord } from '../../../lib/api'
 
-export const metadata = buildPageMetadata({
-  title: 'Digital Archives',
-  description:
-    'Digitized cultural heritage with community-centered metadata at The Ananse Center.',
-  path: '/archives',
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('archives')
+}
 
 export default async function ArchivesPage() {
   const cms = await getCmsTexts([
@@ -45,13 +43,7 @@ export default async function ArchivesPage() {
       primaryCta={{ label: 'Research inquiry', href: '/contact#form' }}
       secondaryCta={{ label: 'Explore programs', href: '/programs' }}
     >
-      <div className="content-prose-body">
-        {splitParagraphs(cms['archives.body']).map((p) => (
-          <p key={p.slice(0, 48)} className="page-body-text content-prose-p">
-            {p}
-          </p>
-        ))}
-      </div>
+      <CmsRichText body={cms['archives.body']} className="content-prose-body" />
       <ArchivesExplorer items={items} />
     </LocalizedCmsPageShell>
   )

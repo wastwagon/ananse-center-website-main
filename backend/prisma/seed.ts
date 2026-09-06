@@ -14,7 +14,12 @@ const events = [
     title: 'Ananse Storytelling Festival',
     description:
       'A celebration of African oral traditions featuring master storytellers, cultural performances, and community workshops.',
-    dateLabel: 'March 15-17, 2025',
+    dateLabel: 'August 15-17, 2026',
+    startsAt: new Date('2026-08-15T09:00:00.000Z'),
+    endsAt: new Date('2026-08-17T18:00:00.000Z'),
+    timeLabel: '9:00–18:00 daily',
+    capacity: 250,
+    registrationStatus: 'open',
     location: 'Accra, Ghana',
     type: 'Festival',
     imageEmoji: '🎭',
@@ -24,7 +29,7 @@ const events = [
     title: 'Kente Weaving Workshop Series',
     description:
       'Learn the ancient art of Kente weaving from master weavers in this hands-on workshop series.',
-    dateLabel: 'Every Saturday in April',
+    dateLabel: 'Every Saturday in September',
     location: 'Kumasi, Ghana',
     type: 'Workshop',
     imageEmoji: '🧵',
@@ -34,7 +39,7 @@ const events = [
     title: 'Diaspora Reconnection Retreat',
     description:
       'A transformative retreat for members of the African diaspora seeking to reconnect with their heritage.',
-    dateLabel: 'May 10-12, 2025',
+    dateLabel: 'October 10-12, 2026',
     location: 'Cape Coast, Ghana',
     type: 'Retreat',
     imageEmoji: '🌿',
@@ -44,7 +49,7 @@ const events = [
     title: 'Contemporary African Art Exhibition',
     description:
       'Showing the work of emerging and established African artists exploring themes of identity and heritage.',
-    dateLabel: 'June 1-30, 2025',
+    dateLabel: 'November 1-30, 2026',
     location: 'Accra Arts Center',
     type: 'Exhibition',
     imageEmoji: '🖼️',
@@ -54,7 +59,7 @@ const events = [
     title: 'Traditional Drumming & Dance Festival',
     description:
       'Experience the power and beauty of traditional African drumming and dance in this vibrant festival.',
-    dateLabel: 'July 20-22, 2025',
+    dateLabel: 'December 5-7, 2026',
     location: 'Tamale, Ghana',
     type: 'Festival',
     imageEmoji: '🥁',
@@ -64,7 +69,7 @@ const events = [
     title: 'Cultural Heritage Symposium',
     description:
       'Academic and community discussions on preserving and celebrating African cultural heritage.',
-    dateLabel: 'September 5-7, 2025',
+    dateLabel: 'February 20-22, 2027',
     location: 'University of Ghana',
     type: 'Symposium',
     imageEmoji: '🎓',
@@ -143,6 +148,11 @@ async function seedContentBlocks() {
       update: {
         label: entry.label,
         section: entry.section,
+        // Keep published site copy aligned with registry defaults during launch iteration.
+        // Set CMS_PRESERVE_BODIES=1 to skip overwriting custom CMS edits.
+        ...(process.env.CMS_PRESERVE_BODIES === '1'
+          ? {}
+          : { body: entry.defaultBody, format: entry.format ?? 'plain' }),
       },
     })
   }
@@ -251,30 +261,57 @@ async function seedArchives() {
 }
 
 async function seedNews() {
-  const count = await prisma.newsPost.count()
-  if (count > 0) {
-    console.log('News posts already present — skipping seed')
-    return
-  }
-
   let order = 0
+  let created = 0
   for (const item of DEFAULT_NEWS) {
     const slug = slugify(item.title)
     const linkHref = item.href?.trim() ?? ''
-    await prisma.newsPost.create({
-      data: {
-        title: item.title,
-        slug,
-        excerpt: item.excerpt,
-        body: item.excerpt,
-        dateLabel: item.date,
-        linkHref,
-        published: true,
-        sortOrder: order++,
-      },
-    })
+    const body = `<p>${item.excerpt}</p><p>Placeholder article body — replace with a full story in Admin → News (rich text). Add a cover image from Media when ready.</p>`
+    const existing = await prisma.newsPost.findUnique({ where: { slug } })
+    if (existing) {
+      // Refresh placeholder posts only; leave custom posts alone
+      if (existing.title.startsWith('Placeholder') || item.title.startsWith('Placeholder')) {
+        await prisma.newsPost.update({
+          where: { slug },
+          data: {
+            title: item.title,
+            excerpt: item.excerpt,
+            body,
+            dateLabel: item.date,
+            author: 'Ananse Center',
+            category: 'News',
+            featured: order === 0,
+            linkHref,
+            published: true,
+            sortOrder: order,
+          },
+        })
+      }
+    } else {
+      await prisma.newsPost.create({
+        data: {
+          title: item.title,
+          slug,
+          excerpt: item.excerpt,
+          body,
+          dateLabel: item.date,
+          author: 'Ananse Center',
+          category: 'News',
+          featured: order === 0,
+          linkHref,
+          published: true,
+          sortOrder: order,
+        },
+      })
+      created += 1
+    }
+    order += 1
   }
-  console.log(`Seeded ${DEFAULT_NEWS.length} news posts`)
+  console.log(
+    created > 0
+      ? `Seeded ${created} news posts (${DEFAULT_NEWS.length} placeholder templates)`
+      : `News posts ready (${DEFAULT_NEWS.length} placeholder templates checked)`,
+  )
 }
 
 async function main() {
@@ -283,7 +320,14 @@ async function main() {
   await seedPrograms()
   await seedEvents()
   await seedArchives()
-  await seedNews()
+  // Prefer full News/Blog articles with covers when seed assets are present.
+  try {
+    const mod = await import('./seed-news-content.ts')
+    await mod.seedNewsContent(prisma)
+  } catch (err) {
+    console.warn('Full news seed unavailable, falling back to placeholders:', err)
+    await seedNews()
+  }
   await seedAdmin()
 }
 

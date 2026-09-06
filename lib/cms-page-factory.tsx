@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import CmsPageShell from '../components/CmsPageShell'
+import CmsRichText from '../components/CmsRichText'
 import { buildPageMetadata } from './page-meta'
-import { getCmsTexts, parseCmsJson, splitParagraphs, type ContentKey } from './cms/content'
+import { getCmsTexts, parseCmsJson, type ContentKey } from './cms/content'
 import type { CmsLabeledValue } from './cms/registry'
 
 type SimplePageConfig = {
@@ -27,7 +28,6 @@ export function buildSimpleCmsPageMetadata(config: SimplePageConfig): Metadata {
 export async function renderSimpleCmsPage(config: SimplePageConfig) {
   const keys = [config.badgeKey, config.headingKey, config.leadKey, ...(config.bodyKey ? [config.bodyKey] : [])] as ContentKey[]
   const cms = await getCmsTexts(keys)
-  const paragraphs = config.bodyKey ? splitParagraphs(cms[config.bodyKey]) : []
 
   return (
     <CmsPageShell
@@ -37,13 +37,9 @@ export async function renderSimpleCmsPage(config: SimplePageConfig) {
       primaryCta={config.primaryCta}
       secondaryCta={config.secondaryCta}
     >
-      <div className="content-prose-body">
-        {paragraphs.map((p) => (
-          <p key={p.slice(0, 48)} className="page-body-text content-prose-p">
-            {p}
-          </p>
-        ))}
-      </div>
+      {config.bodyKey ? (
+        <CmsRichText body={cms[config.bodyKey]} className="content-prose-body" />
+      ) : null}
     </CmsPageShell>
   )
 }

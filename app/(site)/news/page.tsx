@@ -1,38 +1,62 @@
 import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
-import LocalizedLink from '../../../components/LocalizedLink'
-import { buildPageMetadata } from '../../../lib/page-meta'
-import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
+import { getCmsTexts, parseCmsJson, type CmsHeroCta } from '../../../lib/cms/content'
 import { DEFAULT_NEWS, type CmsNewsItem } from '../../../lib/cms/static-pages'
 import { fetchNewsPosts } from '../../../lib/api'
+import { resolveNewsCoverImage } from '../../../lib/images'
+import NewsListingClient from './NewsListingClient'
 
-export const metadata = buildPageMetadata({
-  title: 'News & Updates',
-  description: 'News, partnerships, and announcements from The Ananse Center.',
-  path: '/news',
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('news')
+}
 
 export default async function NewsPage() {
-  const cms = await getCmsTexts(['news.badge', 'news.heading', 'news.lead', 'news.items'] as const)
+  const cms = await getCmsTexts([
+    'news.badge',
+    'news.heading',
+    'news.lead',
+    'news.items',
+    'news.readMore',
+    'news.empty',
+    'news.cta.primary',
+    'news.cta.secondary',
+  ] as const)
   const dbPosts = await fetchNewsPosts()
   const cmsItems = parseCmsJson<CmsNewsItem[]>(cms['news.items'], DEFAULT_NEWS)
+  const primaryCta = parseCmsJson<CmsHeroCta>(cms['news.cta.primary'], {
+    label: 'Subscribe',
+    href: '/events#newsletter',
+  })
+  const secondaryCta = parseCmsJson<CmsHeroCta>(cms['news.cta.secondary'], {
+    label: 'Community spotlight',
+    href: '/community',
+  })
 
   const items =
     dbPosts.length > 0
-      ? dbPosts.map((post) => ({
+      ? dbPosts.map((post, index) => ({
           key: post.id,
           date: post.date,
           title: post.title,
           excerpt: post.excerpt,
+          author: post.author || '',
+          category: post.category || 'News',
+          featured: Boolean(post.featured),
           href: post.isExternal ? post.href : `/news/${post.slug}`,
           external: post.isExternal,
+          cover: resolveNewsCoverImage(post, index),
         }))
-      : cmsItems.map((item) => ({
+      : cmsItems.map((item, index) => ({
           key: item.title,
           date: item.date,
           title: item.title,
           excerpt: item.excerpt,
+          author: '',
+          category: 'News',
+          featured: index === 0,
           href: item.href ?? '',
           external: Boolean(item.href?.startsWith('http')),
+          cover: resolveNewsCoverImage({}, index),
         }))
 
   return (
@@ -41,35 +65,14 @@ export default async function NewsPage() {
       badge={cms['news.badge']}
       title={cms['news.heading']}
       lead={cms['news.lead']}
-      primaryCta={{ label: 'Subscribe', href: '/events#newsletter' }}
-      secondaryCta={{ label: 'Community spotlight', href: '/community' }}
+      primaryCta={primaryCta}
+      secondaryCta={secondaryCta}
     >
-      <ul className="content-highlight-list">
-        {items.map((item) => (
-          <li key={item.key} className="content-highlight-item">
-            <span className="content-highlight-mark" aria-hidden>
-              {item.date}
-            </span>
-            <div>
-              <h3 className="premium-card-title" style={{ marginBottom: '0.35rem' }}>
-                {item.title}
-              </h3>
-              <p className="page-body-text text-body-md">{item.excerpt}</p>
-              {item.href ? (
-                item.external ? (
-                  <a href={item.href} className="program-card-link" rel="noopener noreferrer">
-                    Read more →
-                  </a>
-                ) : (
-                  <LocalizedLink href={item.href} className="program-card-link">
-                    Read more →
-                  </LocalizedLink>
-                )
-              ) : null}
-            </div>
-          </li>
-        ))}
-      </ul>
+      <NewsListingClient
+        readMore={cms['news.readMore'] || 'Read more'}
+        empty={cms['news.empty']}
+        items={items}
+      />
     </LocalizedCmsPageShell>
   )
 }

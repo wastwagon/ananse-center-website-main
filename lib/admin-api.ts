@@ -29,6 +29,11 @@ export type AdminEvent = {
   slug: string
   description: string
   dateLabel: string
+  startsAt: string | null
+  endsAt: string | null
+  timeLabel: string
+  capacity: number | null
+  registrationStatus: 'auto' | 'open' | 'closed' | 'waitlist' | 'completed' | string
   location: string
   venue: string
   type: string
@@ -211,6 +216,22 @@ export type AdminDashboardData = {
   donations: { total: number; successful: number }
   inbox: { pendingStories: number; newRegistrations: number }
   newsletter: { subscribers: number }
+  news?: { published: number; placeholderTitles: number }
+  analytics?: { viewsToday: number }
+  launchReadiness?: {
+    ready: boolean
+    opsChecks?: Array<{
+      id: string
+      ok: boolean
+      required?: boolean
+      label: string
+      href?: string
+    }>
+    placeholderContentKeys: Array<{ key: string; label: string }>
+    placeholderNewsCount: number
+    maintenanceMode: boolean
+    donationsConfigured?: boolean
+  }
   site: SiteSettings
 }
 
@@ -248,7 +269,7 @@ export type ContentBlock = {
   label: string
   section: string
   body: string
-  format: 'plain' | 'markdown'
+  format: 'plain' | 'markdown' | 'html'
   published: boolean
   createdAt: string
   updatedAt: string
@@ -256,6 +277,25 @@ export type ContentBlock = {
 
 export async function fetchAdminDashboard() {
   return adminFetch<{ data: AdminDashboardData }>('dashboard')
+}
+
+export type AdminAnalyticsData = {
+  selfHosted: boolean
+  range: { today: string; days7: string; days30: string }
+  totals: {
+    viewsToday: number
+    views7d: number
+    views30d: number
+    uniquesToday: number
+    uniques7d: number
+  }
+  series14d: Array<{ date: string; views: number }>
+  topPages: Array<{ path: string; views: number }>
+  topReferrers: Array<{ referrer: string; views: number }>
+}
+
+export async function fetchAdminAnalytics() {
+  return adminFetch<{ data: AdminAnalyticsData }>('analytics')
 }
 
 export async function fetchAdminSettings() {
@@ -365,9 +405,14 @@ export type AdminNewsPost = {
   excerpt: string
   body: string
   dateLabel: string
+  author: string
+  category: string
+  featured: boolean
   linkHref: string
   published: boolean
   sortOrder: number
+  coverMediaId: string | null
+  coverImageUrl?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -536,7 +581,7 @@ export type ContentRegistryItem = {
   label: string
   section: string
   defaultBody: string
-  format?: 'plain' | 'markdown'
+  format?: 'plain' | 'markdown' | 'html'
   hint?: string
 }
 

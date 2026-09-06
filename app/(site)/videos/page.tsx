@@ -1,8 +1,7 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
 import PageCtaBand from '../../../components/PageCtaBand'
 import HeroSplit from '../../../components/HeroSplit'
-import { buildPageMetadata } from '../../../lib/page-meta'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import {
   DEFAULT_VIDEOS_HERO_CTA_PRIMARY,
@@ -17,18 +16,17 @@ import {
   type CmsHeroTitle,
   type CmsVideoItem,
 } from '../../../lib/cms/content'
-import { images } from '../../../lib/images'
+import { images, resolveCmsImage } from '../../../lib/images'
 
-export const metadata: Metadata = buildPageMetadata({
-  title: 'Videos',
-  description: 'Watch stories, performances, and program highlights from The Ananse Center for Arts and Culture.',
-  path: '/videos',
-  ogImage: images.hero.videos,
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('videos', { ogImage: images.hero.videos })
+}
 
 export default async function VideosPage() {
   const cms = await getCmsTexts([
     'videos.hero.lead',
+    'videos.hero.image',
+    'videos.hero.imageAlt',
     'videos.hero.title',
     'videos.hero.stats',
     'videos.hero.cta.primary',
@@ -36,6 +34,9 @@ export default async function VideosPage() {
     'videos.items',
     'videos.cta.heading',
     'videos.cta.body',
+    'videos.card.badge',
+    'videos.cta.primary',
+    'videos.cta.secondary',
   ] as const)
 
   const heroTitle = parseCmsJson<CmsHeroTitle>(cms['videos.hero.title'], DEFAULT_VIDEOS_HERO_TITLE)
@@ -43,13 +44,21 @@ export default async function VideosPage() {
   const heroPrimaryCta = parseCmsJson<CmsHeroCta>(cms['videos.hero.cta.primary'], DEFAULT_VIDEOS_HERO_CTA_PRIMARY)
   const heroSecondaryCta = parseCmsJson<CmsHeroCta>(cms['videos.hero.cta.secondary'], DEFAULT_VIDEOS_HERO_CTA_SECONDARY)
   const videos = parseCmsJson<CmsVideoItem[]>(cms['videos.items'], DEFAULT_VIDEOS_ITEMS)
+  const bottomCtaPrimary = parseCmsJson<CmsHeroCta>(cms['videos.cta.primary'], {
+    label: 'View Events',
+    href: '/events',
+  })
+  const bottomCtaSecondary = parseCmsJson<CmsHeroCta>(cms['videos.cta.secondary'], {
+    label: 'Get in Touch',
+    href: '/contact#form',
+  })
 
   return (
     <div className="videos-page">
       <HeroSplit
         compact
-        imageSrc={images.hero.videos}
-        imageAlt="Videos from The Ananse Center"
+        imageSrc={resolveCmsImage(cms['videos.hero.image'], images.hero.videos)}
+        imageAlt={cms['videos.hero.imageAlt']}
         title={renderSplitHeroTitle(heroTitle)}
         description={cms['videos.hero.lead']}
         primaryCta={heroPrimaryCta}
@@ -93,7 +102,7 @@ export default async function VideosPage() {
                       />
                     </div>
                     <div className="premium-card-header premium-card-header--compact">
-                      <span className="premium-card-featured-label">Video</span>
+                      <span className="premium-card-featured-label">{cms['videos.card.badge'] || 'Video'}</span>
                     </div>
                     <h3 className="premium-card-title group-hover:text-accent transition-colors">{video.title}</h3>
                   </article>
@@ -107,8 +116,8 @@ export default async function VideosPage() {
       <PageCtaBand
         heading={cms['videos.cta.heading']}
         body={cms['videos.cta.body']}
-        primary={{ label: 'View Events', href: '/events' }}
-        secondary={{ label: 'Get in Touch', href: '/contact#form', variant: 'outline-white' }}
+        primary={{ label: bottomCtaPrimary.label, href: bottomCtaPrimary.href }}
+        secondary={{ label: bottomCtaSecondary.label, href: bottomCtaSecondary.href, variant: 'outline-white' }}
       />
     </div>
   )

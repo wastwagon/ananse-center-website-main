@@ -6,6 +6,11 @@ export type ApiEvent = {
   slug: string
   description: string
   date: string
+  startsAt?: string | null
+  endsAt?: string | null
+  timeLabel?: string
+  capacity?: number | null
+  registrationStatus?: 'auto' | 'open' | 'closed' | 'waitlist' | 'completed' | string
   location: string
   type: string
   image: string
@@ -212,8 +217,12 @@ export type ApiNewsPost = {
   excerpt: string
   body: string
   date: string
+  author?: string
+  category?: string
+  featured?: boolean
   href: string
   isExternal: boolean
+  coverImageUrl?: string | null
 }
 
 export type SearchResults = {

@@ -4,11 +4,19 @@
  * Long-form copy only; contact/social live on SiteSettings (no duplicate blocks).
  */
 import { STATIC_PAGE_REGISTRY } from './static-pages'
+import { DEFAULT_MOBILE_NAV, DEFAULT_SHEET_NAV } from './nav'
+import {
+  DEFAULT_ABOUT_SECTIONS,
+  DEFAULT_EVENTS_SECTIONS,
+  DEFAULT_HOME_SECTIONS,
+  DEFAULT_PROGRAMS_SECTIONS,
+  DEFAULT_SUPPORT_SECTIONS,
+} from './sections'
 export type ContentRegistryEntry = {
   label: string
   section: string
   defaultBody: string
-  format?: 'plain' | 'markdown'
+  format?: 'plain' | 'markdown' | 'html'
   hint?: string
 }
 
@@ -16,12 +24,14 @@ export type CmsTestimonial = {
   tag: string
   quote: string
   name: string
+  photoUrl?: string
 }
 
 export type CmsPillar = {
   title: string
   description: string
   iconKey: string
+  imageUrl?: string
 }
 
 export type CmsSector = {
@@ -33,6 +43,7 @@ export type CmsPhilosophyCard = {
   title: string
   description: string
   iconKey: string
+  imageUrl?: string
 }
 
 export type CmsApproachStep = {
@@ -52,6 +63,7 @@ export type CmsDonationTier = {
   amount: string
   label: string
   iconKey: string
+  imageUrl?: string
 }
 
 export type CmsSupportWay = {
@@ -59,6 +71,8 @@ export type CmsSupportWay = {
   description: string
   iconKey: string
   linkText: string
+  imageUrl?: string
+  href?: string
 }
 
 export type CmsStoryHighlight = {
@@ -77,6 +91,7 @@ export type CmsEventTestimonial = {
   name: string
   role: string
   initials: string
+  photoUrl?: string
 }
 
 export type CmsVideoItem = {
@@ -116,10 +131,10 @@ const HOME_HERO_STATS_DEFAULT: CmsHeroStat[] = [
   { value: '6', label: 'Mission Pillars' },
 ]
 
-const HOME_HERO_CTA_PRIMARY_DEFAULT: CmsHeroCta = { label: 'Explore programs', href: '/programs' }
-const HOME_HERO_CTA_SECONDARY_DEFAULT: CmsHeroCta = { label: 'Support our mission', href: '/support' }
+const HOME_HERO_CTA_PRIMARY_DEFAULT: CmsHeroCta = { label: 'Explore Our Programs', href: '/programs' }
+const HOME_HERO_CTA_SECONDARY_DEFAULT: CmsHeroCta = { label: 'Donate Now', href: '/support#donate' }
 
-const ABOUT_HERO_TITLE_DEFAULT: CmsHeroTitle = { prefix: 'Our Story & ', accent: 'Mission' }
+const ABOUT_HERO_TITLE_DEFAULT: CmsHeroTitle = { prefix: 'About ', accent: 'Ananse Center' }
 const ABOUT_HERO_STATS_DEFAULT: CmsHeroStat[] = [
   { value: '2015', label: 'Year Founded' },
   { value: '500+', label: 'Alumni & Participants' },
@@ -144,7 +159,7 @@ const EVENTS_HERO_STATS_DEFAULT: CmsHeroStat[] = [
   { value: '45+', label: 'Gatherings' },
   { value: '1.2K+', label: 'Annual Guests' },
   { value: '15+', label: 'Communities' },
-  { value: '2025', label: 'Season' },
+  { value: '2026', label: 'Season' },
 ]
 const EVENTS_HERO_CTA_PRIMARY_DEFAULT: CmsHeroCta = { label: 'View Calendar', href: '/events#calendar' }
 const EVENTS_HERO_CTA_SECONDARY_DEFAULT: CmsHeroCta = { label: 'Volunteer', href: '/contact#form' }
@@ -420,10 +435,10 @@ const EVENTS_HIGHLIGHTS_METRICS_DEFAULT: CmsLabeledValue[] = [
 
 const EVENTS_HIGHLIGHTS_TESTIMONIAL_DEFAULT: CmsEventTestimonial = {
   quote:
-    'The Ananse festivals are a homecoming. Hearing the stories of my elders connected me to my roots in a way nothing else could.',
-  name: 'Sarah Johnson',
-  role: '2023 Participant',
-  initials: 'SJ',
+    'Placeholder quote — replace with an approved festival or workshop participant story (with permission).',
+  name: 'Placeholder participant',
+  role: 'Event participant',
+  initials: 'PP',
 }
 
 const VIDEOS_ITEMS_DEFAULT: CmsVideoItem[] = [
@@ -437,24 +452,174 @@ const VIDEOS_ITEMS_DEFAULT: CmsVideoItem[] = [
   { title: 'UNCOMFORTABLE GRACE', url: 'https://www.youtube.com/embed/-ZhF1JNx5oc' },
 ]
 
+const GLOBAL_BAND_CTA_DEFAULT: CmsHeroCta = { label: 'Subscribe', href: '/events#newsletter' }
+
+const VIDEOS_CTA_PRIMARY_DEFAULT: CmsHeroCta = { label: 'View Events', href: '/events' }
+const VIDEOS_CTA_SECONDARY_DEFAULT: CmsHeroCta = { label: 'Get in Touch', href: '/contact#form' }
+
+const EVENTS_CTA_PRIMARY_DEFAULT: CmsHeroCta = { label: 'Browse Programs', href: '/programs' }
+const EVENTS_CTA_SECONDARY_DEFAULT: CmsHeroCta = { label: 'Volunteer', href: '/contact#form' }
+
+/**
+ * SEO defaults, mirrored from lib/cms/seo.ts (title/description only).
+ * Kept local to avoid a circular import: seo.ts -> content.ts -> registry.ts.
+ */
+const SEO_PAGE_IDS = [
+  'home',
+  'about',
+  'programs',
+  'events',
+  'support',
+  'contact',
+  'videos',
+  'visit',
+  'repatriation',
+  'admissions',
+  'archives',
+  'community',
+  'news',
+  'partnerships',
+  'resources',
+  'transparency',
+  'trustees',
+  'privacy',
+  'terms',
+  'search',
+] as const
+
+const SEO_PAGE_TEXT_DEFAULTS: Record<(typeof SEO_PAGE_IDS)[number], { title: string; description: string }> = {
+  home: {
+    title: 'Home',
+    description:
+      'The Ananse Center for Arts and Culture — Sankofa programs, events, and Pan-African leadership development in Accra and across the diaspora.',
+  },
+  about: {
+    title: 'About',
+    description:
+      'Learn about The Ananse Center mission, vision, leadership, and Sankofa approach to cultural restoration.',
+  },
+  programs: {
+    title: 'Programs',
+    description: 'Explore Sankofa arts, culture, and leadership programs at The Ananse Center in Ghana.',
+  },
+  events: {
+    title: 'Events',
+    description: 'Festivals, workshops, and community gatherings at The Ananse Center for Arts and Culture.',
+  },
+  support: {
+    title: 'Support',
+    description:
+      'Donate and partner with The Ananse Center to sustain cultural arts education and community programs.',
+  },
+  contact: {
+    title: 'Contact',
+    description: 'Contact The Ananse Center for partnerships, visits, programs, and press inquiries.',
+  },
+  videos: {
+    title: 'Videos',
+    description: 'Stories, performances, and teachings from The Ananse Center community.',
+  },
+  visit: {
+    title: 'Visit',
+    description: 'Plan a visit to The Ananse Center campus in Akatakyiwa, Central Region, Ghana.',
+  },
+  repatriation: {
+    title: 'Repatriation',
+    description: 'Sankofa healing journeys and cultural repatriation programs at The Ananse Center.',
+  },
+  admissions: {
+    title: 'Admissions',
+    description: 'Admissions information for Ananse Center programs and learning pathways.',
+  },
+  archives: {
+    title: 'Archives',
+    description: 'Digitized cultural heritage with community-centered metadata at The Ananse Center.',
+  },
+  community: {
+    title: 'Community',
+    description: 'Community stories, spotlights, and submissions from The Ananse Center network.',
+  },
+  news: {
+    title: 'News',
+    description: 'News and updates from The Ananse Center for Arts and Culture.',
+  },
+  partnerships: {
+    title: 'Partnerships',
+    description: 'Partner with The Ananse Center to advance cultural education and leadership.',
+  },
+  resources: {
+    title: 'Resources',
+    description: 'Learning resources and materials from The Ananse Center.',
+  },
+  transparency: {
+    title: 'Transparency',
+    description: 'Financial transparency and stewardship reports from The Ananse Center.',
+  },
+  trustees: {
+    title: 'Trustees',
+    description: 'Meet the Board of Trustees of The Ananse Center for Arts and Culture.',
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    description: 'Privacy policy for The Ananse Center website and community programs.',
+  },
+  terms: {
+    title: 'Terms of Service',
+    description: 'Terms of service for The Ananse Center website.',
+  },
+  search: {
+    title: 'Search',
+    description: 'Search The Ananse Center website for programs, events, and resources.',
+  },
+}
+
+type SeoRegistryPageId = (typeof SEO_PAGE_IDS)[number]
+type SeoRegistryKey = `seo.${SeoRegistryPageId}.title` | `seo.${SeoRegistryPageId}.description` | `seo.${SeoRegistryPageId}.ogImage`
+
+function buildSeoRegistryKeys(): Record<SeoRegistryKey, ContentRegistryEntry> {
+  const out = {} as Record<SeoRegistryKey, ContentRegistryEntry>
+  for (const page of SEO_PAGE_IDS) {
+    const defaults = SEO_PAGE_TEXT_DEFAULTS[page]
+    out[`seo.${page}.title`] = {
+      label: `SEO — ${page} title`,
+      section: 'seo',
+      defaultBody: defaults.title,
+      hint: 'Browser tab and search title (site name is appended automatically).',
+    }
+    out[`seo.${page}.description`] = {
+      label: `SEO — ${page} description`,
+      section: 'seo',
+      defaultBody: defaults.description,
+      hint: 'Meta description for search and social previews.',
+    }
+    out[`seo.${page}.ogImage`] = {
+      label: `SEO — ${page} Open Graph image`,
+      section: 'seo',
+      defaultBody: '',
+      hint: 'Optional public path or Media Library URL. Leave blank to use the default OG image.',
+    }
+  }
+  return out
+}
+
 const HOME_TESTIMONIALS_DEFAULT: CmsTestimonial[] = [
   {
-    tag: 'Mentorship',
+    tag: 'Placeholder',
     quote:
-      "Through Sankofa, I found a connection to my heritage I did not know was missing — it is learning that lives in your bones.",
-    name: 'Program alumni',
+      'Placeholder quote — replace with an approved alumni or mentor story (with permission). Optional photoUrl supported.',
+    name: 'Placeholder alumni',
   },
   {
-    tag: 'Arts',
+    tag: 'Placeholder',
     quote:
-      'The arts programs gave me language to express identity. My work now carries the story of where I come from.',
-    name: 'Arts education participant',
+      'Placeholder quote — replace with an approved arts participant story. Keep names anonymous if preferred.',
+    name: 'Placeholder participant',
   },
   {
-    tag: 'Community',
+    tag: 'Placeholder',
     quote:
-      'This center became my second home — family, purpose, and a community that uplifts our shared heritage.',
-    name: 'Community volunteer',
+      'Placeholder quote — replace with an approved volunteer or community partner story.',
+    name: 'Placeholder volunteer',
   },
 ]
 
@@ -463,7 +628,24 @@ export const CONTENT_REGISTRY = {
     label: 'Home — hero lead',
     section: 'home',
     defaultBody:
-      'Preserving heritage, restoring identity, and developing the next generation of Pan-African leaders through Sankofa arts and culture programs in Ghana and across the diaspora.',
+      "Empowering African communities through Sankofa-inspired education, culture, leadership, and heritage preservation.",
+  },
+  'home.hero.trust': {
+    label: 'Home — hero trust line',
+    section: 'home',
+    defaultBody:
+      'Empowering communities through culture, education, and leadership across Ghana and the African diaspora.',
+  },
+  'home.hero.image': {
+    label: 'Home — hero background image path',
+    section: 'home',
+    hint: 'Public path like /images/image (20).jpeg or a Media Library URL like /api/media/file/.... Upload in Media, then paste the file URL here.',
+    defaultBody: '/images/image (20).jpeg',
+  },
+  'home.hero.imageAlt': {
+    label: 'Home — hero image alt text',
+    section: 'home',
+    defaultBody: 'Community gathering at The Ananse Center for Arts and Culture',
   },
   'home.hero.title': {
     label: 'Home — hero title (JSON)',
@@ -492,7 +674,8 @@ export const CONTENT_REGISTRY = {
   'home.story': {
     label: 'Home — our story (paragraphs)',
     section: 'home',
-    hint: 'Separate paragraphs with a blank line.',
+    format: 'html',
+    hint: 'Rich text supported. Separate paragraphs with Enter.',
     defaultBody:
       'In Akan tradition, Ananse the spider weaves webs that connect generations — stories that heal, teach, and unite.\n\nOur center is a gathering place where ancestral wisdom meets contemporary creativity: for students finding pathways to heritage, for the diaspora returning home, and for communities celebrating who we are.',
   },
@@ -575,7 +758,7 @@ export const CONTENT_REGISTRY = {
   'home.testimonials': {
     label: 'Home — testimonials (JSON)',
     section: 'home',
-    hint: 'JSON array: [{ "tag", "quote", "name" }]',
+    hint: 'JSON array: [{ "tag", "quote", "name", "photoUrl?" }]. photoUrl can be a Media Library path.',
     defaultBody: JSON.stringify(HOME_TESTIMONIALS_DEFAULT, null, 2),
   },
   'home.testimonials.badge': {
@@ -618,6 +801,7 @@ export const CONTENT_REGISTRY = {
   'home.cta.body': {
     label: 'Home — bottom CTA body',
     section: 'home',
+    format: 'html',
     defaultBody:
       'Whether you seek programs, partnership, or a way to give back — there is a place for you at our table.',
   },
@@ -655,7 +839,7 @@ export const CONTENT_REGISTRY = {
   'home.events.cardCta': {
     label: 'Home — event card link',
     section: 'home',
-    defaultBody: 'Event details',
+    defaultBody: 'Event Details',
   },
   'home.events.calendarLink': {
     label: 'Home — events calendar link',
@@ -675,20 +859,166 @@ export const CONTENT_REGISTRY = {
   'about.mission': {
     label: 'About — mission summary',
     section: 'about',
+    format: 'html',
     defaultBody:
       'We weave wisdom into solutions by connecting cultural knowledge with practical programs that empower youth and communities.',
   },
   'about.mission.continuation': {
     label: 'About — mission (continued)',
     section: 'about',
+    format: 'html',
     defaultBody:
-      "In a world where cultural erosion threatens the wisdom of our ancestors, we stand as guardians of tradition while embracing innovation. We believe that cultural knowledge is not static—it's a living, breathing force that must be nurtured, shared, and evolved.",
+      'We connect African cultural knowledge with practical programs that empower youth, strengthen communities, and preserve our shared heritage for future generations.',
   },
   'about.hero.lead': {
     label: 'About — hero description',
     section: 'about',
     defaultBody:
-      'Rooted in tradition and reaching toward the future — a beacon for cultural preservation, healing, and Pan-African leadership in Ghana.',
+      "Preserving Africa's Heritage. Inspiring Tomorrow's Leaders.",
+  },
+  'about.whoWeAre.badge': {
+    label: 'About — who we are badge',
+    section: 'about',
+    defaultBody: 'Our Identity',
+  },
+  'about.whoWeAre.heading': {
+    label: 'About — who we are heading',
+    section: 'about',
+    defaultBody: 'Who We Are',
+  },
+  'about.whoWeAre.body': {
+    label: 'About — who we are (paragraphs)',
+    section: 'about',
+    format: 'html',
+    hint: 'Rich text supported.',
+    defaultBody:
+      'Ananse Center is a Sankofa-inspired arts and culture organization rooted in Akatakyiwa, Central Region, Ghana — serving communities across Ghana and the African diaspora.\n\nNamed after Ananse, the wise spider of Akan storytelling, we weave ancestral knowledge into living programs for education, culture, leadership, and community development. We exist to restore identity, nurture the next generation of Pan-African leaders, and keep heritage active in contemporary life.',
+  },
+  'about.whoWeAre.focusHeading': {
+    label: 'About — focus areas heading',
+    section: 'about',
+    defaultBody: 'Our Focus Areas',
+  },
+  'about.whoWeAre.focusAreas': {
+    label: 'About — focus areas (JSON)',
+    section: 'about',
+    hint: 'JSON array of short focus area labels.',
+    defaultBody: JSON.stringify(
+      ['Education', 'Culture', 'Leadership', 'Community Development'],
+      null,
+      2,
+    ),
+  },
+  'about.whoWeAre.teamCta': {
+    label: 'About — meet the team link',
+    section: 'about',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Meet Our Trustees', href: '/trustees' }, null, 2),
+  },
+  'about.hero.image': {
+    label: 'About — hero background image path',
+    section: 'about',
+    hint: 'Public path or Media Library URL (/api/media/file/...).',
+    defaultBody: '/images/image (18).jpeg',
+  },
+  'about.hero.imageAlt': {
+    label: 'About — hero image alt text',
+    section: 'about',
+    defaultBody: 'Community and cultural life at The Ananse Center',
+  },
+  'about.timeline.badge': {
+    label: 'About — timeline badge',
+    section: 'about',
+    defaultBody: 'Our Journey',
+  },
+  'about.timeline.heading': {
+    label: 'About — timeline heading',
+    section: 'about',
+    defaultBody: 'Milestones Along the Way',
+  },
+  'about.timeline.lead': {
+    label: 'About — timeline intro',
+    section: 'about',
+    format: 'html',
+    defaultBody:
+      'Replace these placeholder milestones with your real founding story and achievements via the CMS.',
+  },
+  'about.timeline': {
+    label: 'About — timeline items (JSON)',
+    section: 'about',
+    hint: 'JSON array: [{ "year", "title", "description" }]',
+    defaultBody: JSON.stringify(
+      [
+        {
+          year: 'YYYY',
+          title: 'Placeholder milestone',
+          description: 'Replace with a real founding or early milestone.',
+        },
+        {
+          year: 'YYYY',
+          title: 'Placeholder milestone',
+          description: 'Replace with a program launch or community expansion milestone.',
+        },
+        {
+          year: 'YYYY',
+          title: 'Placeholder milestone',
+          description: 'Replace with a partnership, campus, or diaspora milestone.',
+        },
+        {
+          year: 'Today',
+          title: 'Placeholder — current chapter',
+          description: 'Replace with what the Center is focused on now.',
+        },
+      ],
+      null,
+      2,
+    ),
+  },
+  'about.team.badge': {
+    label: 'About — leadership badge',
+    section: 'about',
+    defaultBody: 'Leadership',
+  },
+  'about.team.heading': {
+    label: 'About — leadership heading',
+    section: 'about',
+    defaultBody: 'Meet Our Leadership',
+  },
+  'about.team.lead': {
+    label: 'About — leadership intro',
+    section: 'about',
+    format: 'html',
+    defaultBody:
+      'Placeholder profiles for handover — replace names, roles, and bios with real leadership details in the CMS. Full trustee list lives on the Trustees page.',
+  },
+  'about.team': {
+    label: 'About — leadership cards (JSON)',
+    section: 'about',
+    hint: 'JSON array: [{ "name", "role", "bio", "initials?", "photoUrl?" }]. photoUrl can be a Media Library path.',
+    defaultBody: JSON.stringify(
+      [
+        {
+          name: 'Founder / Executive Director',
+          role: 'Leadership',
+          bio: 'Replace with the founder or executive director name and a short biography.',
+          initials: 'ED',
+        },
+        {
+          name: 'Program Director',
+          role: 'Programs',
+          bio: 'Replace with the program lead who oversees workshops, cultural education, and community delivery.',
+          initials: 'PD',
+        },
+        {
+          name: 'Community Coordinator',
+          role: 'Community',
+          bio: 'Replace with the coordinator who connects local partners, volunteers, and diaspora guests.',
+          initials: 'CC',
+        },
+      ],
+      null,
+      2,
+    ),
   },
   'about.hero.title': {
     label: 'About — hero title (JSON)',
@@ -717,9 +1047,10 @@ export const CONTENT_REGISTRY = {
   'about.vision': {
     label: 'About — vision (paragraphs)',
     section: 'about',
-    hint: 'Separate paragraphs with a blank line.',
+    format: 'html',
+    hint: 'Rich text supported.',
     defaultBody:
-      'We envision a world where African cultural heritage is not just preserved but actively celebrated and integrated into contemporary life. Where every individual, regardless of where they live, can access the richness of African traditions and find their place within this vibrant tapestry.\n\nOur vision extends beyond cultural preservation to cultural innovation—where ancient wisdom informs modern creativity, and traditional practices inspire contemporary solutions to global challenges.',
+      'We envision a world where African cultural heritage is celebrated and woven into contemporary life — accessible to every person, wherever they live.\n\nA future where Africa\'s cultural wisdom shapes innovation, leadership, and sustainable development worldwide.',
   },
   'about.philosophy.badge': {
     label: 'About — philosophy section badge',
@@ -799,26 +1130,27 @@ export const CONTENT_REGISTRY = {
   'about.cta.heading': {
     label: 'About — bottom CTA heading',
     section: 'about',
-    defaultBody: 'Building a Legacy Together',
+    defaultBody: 'Join Our Mission',
   },
   'about.cta.body': {
     label: 'About — bottom CTA body',
     section: 'about',
+    format: 'html',
     hint: 'Separate paragraphs with a blank line if needed.',
     defaultBody:
-      "Our story is still being written, and it's a story that belongs to all of us. Every person who walks through our doors, every program we offer, every connection we make adds a new chapter to this ongoing narrative of cultural preservation and community empowerment.",
+      "Help us preserve Africa's heritage while empowering the next generation of leaders.",
   },
   'about.cta.primary': {
     label: 'About — bottom CTA primary (JSON)',
     section: 'about',
     hint: 'JSON: { "label", "href" }',
-    defaultBody: JSON.stringify({ label: 'Get Involved', href: '/contact#form' }, null, 2),
+    defaultBody: JSON.stringify({ label: 'Donate', href: '/support#donate' }, null, 2),
   },
   'about.cta.secondary': {
     label: 'About — bottom CTA secondary (JSON)',
     section: 'about',
     hint: 'JSON: { "label", "href" }',
-    defaultBody: JSON.stringify({ label: 'Support Our Work', href: '/support' }, null, 2),
+    defaultBody: JSON.stringify({ label: 'Explore Programs', href: '/programs' }, null, 2),
   },
   'programs.hero.lead': {
     label: 'Programs — hero description',
@@ -858,6 +1190,7 @@ export const CONTENT_REGISTRY = {
   'programs.catalog.lead': {
     label: 'Programs — catalog intro',
     section: 'programs',
+    format: 'html',
     defaultBody:
       'Explore our diverse range of programs designed for all ages and experience levels.',
   },
@@ -874,7 +1207,7 @@ export const CONTENT_REGISTRY = {
   'programs.benefits.cardLabel': {
     label: 'Programs — benefit card badge',
     section: 'programs',
-    defaultBody: 'Benefit',
+    defaultBody: 'Focus Area',
   },
   'programs.testimonials.badge': {
     label: 'Programs — testimonials section badge',
@@ -910,37 +1243,42 @@ export const CONTENT_REGISTRY = {
   'programs.benefits.lead': {
     label: 'Programs — benefits intro',
     section: 'programs',
+    format: 'html',
     defaultBody:
       'Our programs are designed to provide more than just skills—they offer transformation, connection, and personal growth.',
   },
   'programs.benefits': {
     label: 'Programs — benefit cards (JSON)',
     section: 'programs',
-    hint: 'JSON array: [{ "title", "description", "iconKey" }]. iconKey: Wrench, Globe, Users, Sprout, etc.',
+    hint: 'JSON array: [{ "title", "description", "iconKey", "category?", "imageUrl?" }]. iconKey: Wrench, Globe, Users, Sprout, etc. imageUrl can be a Media Library path.',
     defaultBody: JSON.stringify(
       [
         {
           title: 'Skill Development',
+          category: 'Education',
           description:
-            'Learn traditional and contemporary techniques from master practitioners with years of experience.',
+            'Learn practical cultural and creative skills from experienced practitioners through hands-on workshops, mentorship, and collaborative learning.',
           iconKey: 'Wrench',
         },
         {
           title: 'Cultural Connection',
+          category: 'Culture',
           description:
-            'Deepen your understanding and connection to African heritage through immersion and practice.',
+            'Deepen your connection to African heritage through storytelling, traditional arts, festivals, and immersive cultural practice.',
           iconKey: 'Globe',
         },
         {
           title: 'Community Building',
+          category: 'Community',
           description:
-            'Join a supportive network of learners, artists, and cultural enthusiasts from diverse backgrounds.',
+            'Join a supportive network of learners, artists, and volunteers working together to strengthen communities across Ghana and the diaspora.',
           iconKey: 'Users',
         },
         {
           title: 'Personal Growth',
+          category: 'Leadership',
           description:
-            'Discover new aspects of yourself through creative expression and ancestral wisdom.',
+            'Grow in confidence, purpose, and leadership through mentoring, creative expression, and ancestral wisdom applied to modern life.',
           iconKey: 'Sprout',
         },
       ],
@@ -951,26 +1289,26 @@ export const CONTENT_REGISTRY = {
   'programs.testimonials': {
     label: 'Programs — student testimonials (JSON)',
     section: 'programs',
-    hint: 'JSON array: [{ "name", "role", "text", "initials" }]',
+    hint: 'JSON array: [{ "name", "role", "text", "initials", "photoUrl?" }]. photoUrl can be a Media Library path.',
     defaultBody: JSON.stringify(
       [
         {
-          name: 'Ama Mensah',
-          role: 'Traditional Arts Student',
-          text: "Learning Adinkra symbols wasn't just about art—it was about understanding the wisdom of my ancestors. This program gave me a deeper connection to who I am.",
-          initials: 'AM',
+          name: 'Placeholder student',
+          role: 'Placeholder role',
+          text: 'Placeholder quote — replace with an approved student story (with permission). Optional photoUrl supported.',
+          initials: 'PS',
         },
         {
-          name: 'Kwame Johnson',
-          role: 'Music & Rhythm Student',
-          text: 'The drumming program changed my life. I found community, purpose, and a way to express emotions I did not know how to put into words.',
-          initials: 'KJ',
+          name: 'Placeholder student',
+          role: 'Placeholder role',
+          text: 'Placeholder quote — replace with an approved music or arts participant story.',
+          initials: 'PS',
         },
         {
-          name: 'Evelyn Davis',
-          role: 'Storytelling Participant',
-          text: 'As someone in the diaspora, this program helped me reconnect with my roots in the most beautiful way. I now carry these stories with pride.',
-          initials: 'ED',
+          name: 'Placeholder student',
+          role: 'Placeholder role',
+          text: 'Placeholder quote — replace with an approved diaspora or storytelling participant story.',
+          initials: 'PS',
         },
       ],
       null,
@@ -985,6 +1323,7 @@ export const CONTENT_REGISTRY = {
   'programs.cta.body': {
     label: 'Programs — bottom CTA body',
     section: 'programs',
+    format: 'html',
     defaultBody:
       "Whether you're looking to learn a new skill, connect with your heritage, or simply explore the richness of African culture, there's a program waiting for you.",
   },
@@ -1014,9 +1353,22 @@ export const CONTENT_REGISTRY = {
     section: 'events',
     defaultBody: 'Where',
   },
+  'events.detail.registerHeading': {
+    label: 'Events — detail register section heading',
+    section: 'events',
+    defaultBody: 'Register',
+  },
+  'events.detail.registerLead': {
+    label: 'Events — detail register section intro',
+    section: 'events',
+    format: 'html',
+    defaultBody:
+      'Reserve your place or register interest — our team will follow up by email.',
+  },
   'events.detail.reserveCta': {
     label: 'Events — detail reserve button (JSON)',
     section: 'events',
+    hint: 'JSON: { "label", "href" }',
     defaultBody: JSON.stringify({ label: 'Reserve Your Place', href: '/contact#form' }, null, 2),
   },
   'events.detail.questionsPrefix': {
@@ -1062,17 +1414,27 @@ export const CONTENT_REGISTRY = {
   'events.featured.badge': {
     label: 'Events — featured section badge',
     section: 'events',
-    defaultBody: 'Upcoming Soon',
+    defaultBody: 'Upcoming Events',
   },
   'events.featured.heading': {
     label: 'Events — featured section heading',
     section: 'events',
-    defaultBody: 'Featured Highlights',
+    defaultBody: "What's Happening Next",
   },
   'events.catalog.heading': {
     label: 'Events — catalog section heading',
     section: 'events',
-    defaultBody: 'All Gatherings',
+    defaultBody: 'All Events',
+  },
+  'events.past.heading': {
+    label: 'Events — past events heading',
+    section: 'events',
+    defaultBody: 'Past Events',
+  },
+  'events.card.register': {
+    label: 'Events — card register CTA',
+    section: 'events',
+    defaultBody: 'Register Now',
   },
   'events.filter.categories': {
     label: 'Events — filter tabs (JSON)',
@@ -1093,6 +1455,7 @@ export const CONTENT_REGISTRY = {
   'events.highlights.lead': {
     label: 'Events — highlights section intro',
     section: 'events',
+    format: 'html',
     defaultBody:
       'Our events are more than just gatherings—they are catalysts for change and connection.',
   },
@@ -1116,6 +1479,7 @@ export const CONTENT_REGISTRY = {
   'events.newsletter.lead': {
     label: 'Events — newsletter intro',
     section: 'events',
+    format: 'html',
     defaultBody:
       "Don't miss out on our upcoming festivals, workshops, and community gatherings.",
   },
@@ -1127,6 +1491,7 @@ export const CONTENT_REGISTRY = {
   'events.cta.body': {
     label: 'Events — bottom CTA body',
     section: 'events',
+    format: 'html',
     defaultBody:
       "Whether you're attending your first event or becoming a regular participant, there's a seat for you in our growing circle.",
   },
@@ -1190,7 +1555,7 @@ export const CONTENT_REGISTRY = {
   'support.other.ways': {
     label: 'Support — other ways to help (JSON)',
     section: 'support',
-    hint: 'JSON array: [{ "title", "description", "iconKey", "linkText" }]',
+    hint: 'JSON array: [{ "title", "description", "iconKey", "linkText", "imageUrl?", "href?" }]',
     defaultBody: JSON.stringify(SUPPORT_OTHER_WAYS_DEFAULT, null, 2),
   },
   'support.beyond.lead': {
@@ -1207,8 +1572,21 @@ export const CONTENT_REGISTRY = {
   'support.cta.body': {
     label: 'Support — bottom CTA body',
     section: 'support',
+    format: 'html',
     defaultBody:
       "Your support doesn't just fund programs—it preserves cultural heritage and creates a future where African culture continues to thrive and inspire.",
+  },
+  'support.cta.primary': {
+    label: 'Support — bottom CTA primary (JSON)',
+    section: 'support',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Donate Now', href: '/support#donate' }, null, 2),
+  },
+  'support.cta.secondary': {
+    label: 'Support — bottom CTA secondary (JSON)',
+    section: 'support',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Partner With Us', href: '/contact#form' }, null, 2),
   },
   'support.transparency.heading': {
     label: 'Support — transparency card heading',
@@ -1218,6 +1596,7 @@ export const CONTENT_REGISTRY = {
   'support.transparency.body': {
     label: 'Support — transparency card intro',
     section: 'support',
+    format: 'html',
     defaultBody:
       'We are committed to being open and accountable about how your donations are used to fuel our cultural programs.',
   },
@@ -1257,12 +1636,14 @@ export const CONTENT_REGISTRY = {
   'support.donate.lead.ready': {
     label: 'Support — donate intro (Paystack enabled)',
     section: 'support',
+    format: 'html',
     defaultBody:
       'Give securely with Paystack — card, mobile money, and bank transfer where available.',
   },
   'support.donate.lead.offline': {
     label: 'Support — donate intro (Paystack not configured)',
     section: 'support',
+    format: 'html',
     defaultBody:
       'Add your Paystack keys to enable secure online giving. You can still reach us to donate offline.',
   },
@@ -1347,12 +1728,14 @@ export const CONTENT_REGISTRY = {
   'contact.visit.blurb': {
     label: 'Contact — planning a visit',
     section: 'contact',
+    format: 'html',
     defaultBody:
       'We welcome visitors to our center! For guided tours or partnership meetings, please schedule an appointment via the form or email.',
   },
   'contact.cta.body': {
     label: 'Contact — social CTA body',
     section: 'contact',
+    format: 'html',
     defaultBody:
       'Follow us on social media to stay updated on our programs, events, and community stories from across the continent.',
   },
@@ -1392,6 +1775,11 @@ export const CONTENT_REGISTRY = {
     hint: 'JSON array: [{ "title", "url" }]. url should be a YouTube embed URL.',
     defaultBody: JSON.stringify(VIDEOS_ITEMS_DEFAULT, null, 2),
   },
+  'videos.card.badge': {
+    label: 'Videos — card badge label',
+    section: 'videos',
+    defaultBody: 'Video',
+  },
   'videos.cta.heading': {
     label: 'Videos — bottom CTA heading',
     section: 'videos',
@@ -1400,6 +1788,7 @@ export const CONTENT_REGISTRY = {
   'videos.cta.body': {
     label: 'Videos — bottom CTA body',
     section: 'videos',
+    format: 'html',
     defaultBody:
       'Join our community and stay updated with our latest events, videos, and stories.',
   },
@@ -1416,12 +1805,14 @@ export const CONTENT_REGISTRY = {
   'privacy.lead': {
     label: 'Privacy — intro paragraph',
     section: 'legal',
+    format: 'html',
     defaultBody:
       'The Ananse Center for Arts and Culture respects your privacy. This page will be updated with our full policy before public launch. For questions, contact us directly.',
   },
   'privacy.body': {
     label: 'Privacy — body paragraph',
     section: 'legal',
+    format: 'html',
     defaultBody:
       'We collect information you submit through contact forms and newsletter sign-ups solely to respond to inquiries and share program updates. We do not sell personal data.',
   },
@@ -1433,12 +1824,14 @@ export const CONTENT_REGISTRY = {
   'terms.lead': {
     label: 'Terms — intro paragraph',
     section: 'legal',
+    format: 'html',
     defaultBody:
       'By using this website you agree to these terms. Full legal text will be published before launch. Program participation is subject to separate registration agreements.',
   },
   'terms.body': {
     label: 'Terms — body paragraph',
     section: 'legal',
+    format: 'html',
     defaultBody:
       'Content on this site is for informational purposes. Images and stories represent our mission; specific dates and offerings may change.',
   },
@@ -1453,6 +1846,297 @@ export const CONTENT_REGISTRY = {
     defaultBody:
       'Preserving cultural memory and restoring identity through arts education, community programs, and Pan-African leadership development in Ghana and across the diaspora.',
   },
+  'site.footer.cta.primary': {
+    label: 'Site — footer primary CTA (JSON)',
+    section: 'site',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Support Our Mission', href: '/support' }, null, 2),
+  },
+  'site.footer.cta.secondary': {
+    label: 'Site — footer secondary CTA (JSON)',
+    section: 'site',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Get In Touch', href: '/contact#form' }, null, 2),
+  },
+  'site.logo': {
+    label: 'Site — logo image path',
+    section: 'site',
+    hint: 'Public path or Media Library URL. Used in navbar and footer.',
+    defaultBody: '/ananse-logo.png',
+  },
+  'site.nav.primary': {
+    label: 'Site — primary navigation (JSON)',
+    section: 'site',
+    hint: 'JSON array: [{ "label", "href" }]',
+    defaultBody: JSON.stringify(
+      [
+        { label: 'Home', href: '/' },
+        { label: 'About', href: '/about' },
+        { label: 'Programs', href: '/programs' },
+        { label: 'Events', href: '/events' },
+        { label: 'Videos', href: '/videos' },
+        { label: 'Donate', href: '/support' },
+        { label: 'Contact', href: '/contact#form' },
+      ],
+      null,
+      2,
+    ),
+  },
+  'site.footer.quickLinks': {
+    label: 'Site — footer quick links (JSON)',
+    section: 'site',
+    hint: 'JSON array: [{ "label", "href" }]',
+    defaultBody: JSON.stringify(
+      [
+        { label: 'About', href: '/about' },
+        { label: 'Programs', href: '/programs' },
+        { label: 'Events', href: '/events' },
+        { label: 'Videos', href: '/videos' },
+        { label: 'Support', href: '/support' },
+        { label: 'Contact', href: '/contact#form' },
+        { label: 'Trustees', href: '/trustees' },
+        { label: 'Transparency', href: '/transparency' },
+      ],
+      null,
+      2,
+    ),
+  },
+  'site.footer.programLinks': {
+    label: 'Site — footer program links (JSON)',
+    section: 'site',
+    hint: 'JSON array: [{ "label", "href" }]',
+    defaultBody: JSON.stringify(
+      [
+        { label: 'Browse All Programs', href: '/programs' },
+        { label: 'Traditional Arts & Crafts', href: '/programs' },
+        { label: 'Music & Rhythm', href: '/programs' },
+        { label: 'Storytelling', href: '/programs' },
+        { label: 'Cultural Leadership', href: '/programs' },
+      ],
+      null,
+      2,
+    ),
+  },
+  'support.hero.image': {
+    label: 'Support — hero background image path',
+    section: 'support',
+    hint: 'Public path or Media Library URL.',
+    defaultBody: '/images/image (12).jpeg',
+  },
+  'support.hero.imageAlt': {
+    label: 'Support — hero image alt text',
+    section: 'support',
+    defaultBody: 'Supporting Ananse Center programs and community work',
+  },
+  'contact.hero.image': {
+    label: 'Contact — hero background image path',
+    section: 'contact',
+    hint: 'Public path or Media Library URL.',
+    defaultBody: '/images/image (1).jpeg',
+  },
+  'contact.hero.imageAlt': {
+    label: 'Contact — hero image alt text',
+    section: 'contact',
+    defaultBody: 'Visit and connect with The Ananse Center',
+  },
+  'videos.hero.image': {
+    label: 'Videos — hero background image path',
+    section: 'videos',
+    hint: 'Public path or Media Library URL.',
+    defaultBody: '/images/image (15).jpeg',
+  },
+  'videos.hero.imageAlt': {
+    label: 'Videos — hero image alt text',
+    section: 'videos',
+    defaultBody: 'Stories and talks from The Ananse Center',
+  },
+  'about.story.image': {
+    label: 'About — Who We Are side image path',
+    section: 'about',
+    hint: 'Public path or Media Library URL.',
+    defaultBody: '/images/image (14).jpeg',
+  },
+  'trustees.cta.primary': {
+    label: 'Trustees — primary CTA (JSON)',
+    section: 'trustees',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Financial Transparency', href: '/transparency' }, null, 2),
+  },
+  'trustees.cta.secondary': {
+    label: 'Trustees — secondary CTA (JSON)',
+    section: 'trustees',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Support Our Mission', href: '/support' }, null, 2),
+  },
+  'programs.hero.image': {
+    label: 'Programs — hero background image path',
+    section: 'programs',
+    hint: 'Public path or Media Library URL.',
+    defaultBody: '/images/image (8).jpeg',
+  },
+  'programs.hero.imageAlt': {
+    label: 'Programs — hero image alt text',
+    section: 'programs',
+    defaultBody: 'Ananse Center programs in action',
+  },
+  'events.hero.image': {
+    label: 'Events — hero background image path',
+    section: 'events',
+    hint: 'Public path or Media Library URL.',
+    defaultBody: '/images/image (10).jpeg',
+  },
+  'events.hero.imageAlt': {
+    label: 'Events — hero image alt text',
+    section: 'events',
+    defaultBody: 'Cultural festivals and gatherings at Ananse Center',
+  },
+  'site.favicon': {
+    label: 'Site — favicon image path',
+    section: 'site',
+    hint: 'Optional public path or Media Library URL (square image). Leave blank to use the generated fallback.',
+    defaultBody: '',
+  },
+  'site.appleIcon': {
+    label: 'Site — Apple touch icon image path',
+    section: 'site',
+    hint: 'Optional public path or Media Library URL (square image, ideally 180×180). Leave blank to use the generated fallback.',
+    defaultBody: '',
+  },
+  'site.nav.mobile': {
+    label: 'Site — mobile bottom nav (JSON)',
+    section: 'site',
+    hint: 'JSON array: [{ "label", "href", "iconKey" }]. iconKey is a Lucide icon name (Home, Sparkles, CalendarDays, Heart, Mail, ...).',
+    defaultBody: JSON.stringify(DEFAULT_MOBILE_NAV, null, 2),
+  },
+  'site.nav.sheet': {
+    label: 'Site — mobile menu sheet links (JSON)',
+    section: 'site',
+    hint: 'JSON array: [{ "label", "href" }]. Shown in the full mobile navigation sheet.',
+    defaultBody: JSON.stringify(DEFAULT_SHEET_NAV, null, 2),
+  },
+  'site.globalBand.eyebrow': {
+    label: 'Site — global audience band eyebrow',
+    section: 'site',
+    defaultBody: 'Worldwide community',
+  },
+  'site.globalBand.heading': {
+    label: 'Site — global audience band heading',
+    section: 'site',
+    defaultBody: 'Wherever you are, there is a place for you here',
+  },
+  'site.globalBand.body': {
+    label: 'Site — global audience band body',
+    section: 'site',
+    defaultBody:
+      'From Ghana to the diaspora, join our global community of learners, artists, and supporters.',
+  },
+  'site.globalBand.cta': {
+    label: 'Site — global audience band CTA (JSON)',
+    section: 'site',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify(GLOBAL_BAND_CTA_DEFAULT, null, 2),
+  },
+  'videos.cta.primary': {
+    label: 'Videos — bottom CTA primary (JSON)',
+    section: 'videos',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify(VIDEOS_CTA_PRIMARY_DEFAULT, null, 2),
+  },
+  'videos.cta.secondary': {
+    label: 'Videos — bottom CTA secondary (JSON)',
+    section: 'videos',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify(VIDEOS_CTA_SECONDARY_DEFAULT, null, 2),
+  },
+  'events.cta.primary': {
+    label: 'Events — bottom CTA primary (JSON)',
+    section: 'events',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify(EVENTS_CTA_PRIMARY_DEFAULT, null, 2),
+  },
+  'events.cta.secondary': {
+    label: 'Events — bottom CTA secondary (JSON)',
+    section: 'events',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify(EVENTS_CTA_SECONDARY_DEFAULT, null, 2),
+  },
+  'events.newsletter.subscribeLabel': {
+    label: 'Events — newsletter subscribe button label',
+    section: 'events',
+    defaultBody: 'Subscribe',
+  },
+  'events.newsletter.placeholder': {
+    label: 'Events — newsletter email placeholder',
+    section: 'events',
+    defaultBody: 'Enter your email',
+  },
+  'events.status.openLabel': {
+    label: 'Events — registration status: open',
+    section: 'events',
+    defaultBody: 'Registration Open',
+  },
+  'events.status.completedLabel': {
+    label: 'Events — registration status: completed',
+    section: 'events',
+    defaultBody: 'Completed',
+  },
+  'events.status.closedLabel': {
+    label: 'Events — registration status: closed',
+    section: 'events',
+    defaultBody: 'Registration Closed',
+  },
+  'events.status.waitlistLabel': {
+    label: 'Events — registration status: waitlist',
+    section: 'events',
+    defaultBody: 'Waitlist',
+  },
+  'home.sections.visible': {
+    label: 'Home — section visibility (JSON)',
+    section: 'home',
+    hint: 'JSON object of section-key → true/false. Missing keys default to visible.',
+    defaultBody: JSON.stringify(DEFAULT_HOME_SECTIONS, null, 2),
+  },
+  'about.sections.visible': {
+    label: 'About — section visibility (JSON)',
+    section: 'about',
+    hint: 'JSON object of section-key → true/false. Missing keys default to visible.',
+    defaultBody: JSON.stringify(DEFAULT_ABOUT_SECTIONS, null, 2),
+  },
+  'programs.sections.visible': {
+    label: 'Programs — section visibility (JSON)',
+    section: 'programs',
+    hint: 'JSON object of section-key → true/false. Missing keys default to visible.',
+    defaultBody: JSON.stringify(DEFAULT_PROGRAMS_SECTIONS, null, 2),
+  },
+  'events.sections.visible': {
+    label: 'Events — section visibility (JSON)',
+    section: 'events',
+    hint: 'JSON object of section-key → true/false. Missing keys default to visible.',
+    defaultBody: JSON.stringify(DEFAULT_EVENTS_SECTIONS, null, 2),
+  },
+  'support.sections.visible': {
+    label: 'Support — section visibility (JSON)',
+    section: 'support',
+    hint: 'JSON object of section-key → true/false. Missing keys default to visible.',
+    defaultBody: JSON.stringify(DEFAULT_SUPPORT_SECTIONS, null, 2),
+  },
+  'support.transparency.image': {
+    label: 'Support — transparency card image path',
+    section: 'support',
+    hint: 'Public path or Media Library URL.',
+    defaultBody: '/images/image (12).jpeg',
+  },
+  'legal.cta.contact': {
+    label: 'Legal pages — contact CTA label',
+    section: 'legal',
+    defaultBody: 'Contact Us',
+  },
+  'legal.cta.home': {
+    label: 'Legal pages — back home CTA label',
+    section: 'legal',
+    defaultBody: 'Back Home',
+  },
+  ...buildSeoRegistryKeys(),
   ...STATIC_PAGE_REGISTRY,
 } as const satisfies Record<string, ContentRegistryEntry>
 

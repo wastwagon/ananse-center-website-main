@@ -1,16 +1,15 @@
 import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
-import { buildPageMetadata } from '../../../lib/page-meta'
-import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
+import CmsRichText from '../../../components/CmsRichText'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
+import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 import { DEFAULT_FACULTY, type CmsFaculty } from '../../../lib/cms/static-pages'
 import type { CmsLabeledValue } from '../../../lib/cms/registry'
 import LocalizedLink from '../../../components/LocalizedLink'
 import LmsPortalBanner from '../../../components/LmsPortalBanner'
 
-export const metadata = buildPageMetadata({
-  title: 'Admissions & Fees',
-  description: 'Apply to Sankofa programs at The Ananse Center — schedules, fees, and faculty.',
-  path: '/admissions',
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('admissions')
+}
 
 export default async function AdmissionsPage() {
   const cms = await getCmsTexts([
@@ -34,13 +33,7 @@ export default async function AdmissionsPage() {
         primaryCta={{ label: 'Apply now', href: '/contact#form' }}
         secondaryCta={{ label: 'Browse programs', href: '/programs' }}
       >
-        <div className="content-prose-body">
-          {splitParagraphs(cms['admissions.body']).map((p) => (
-            <p key={p.slice(0, 48)} className="page-body-text content-prose-p">
-              {p}
-            </p>
-          ))}
-        </div>
+        <CmsRichText body={cms['admissions.body']} className="content-prose-body" />
         <h2 className="content-block-title content-block-title--plain">Fees (indicative)</h2>
         <div className="flex-column flex-column--snug">
           {fees.map((row) => (

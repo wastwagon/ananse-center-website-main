@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { Calendar, MapPin } from 'lucide-react'
 import JsonLd from '../../../../components/JsonLd'
+import CmsRichText from '../../../../components/CmsRichText'
 import { fetchEventBySlug } from '../../../../lib/api'
 import { formatEventDateDisplay } from '../../../../lib/format'
 import { resolveEventCoverImage } from '../../../../lib/images'
@@ -14,7 +15,6 @@ import {
   DEFAULT_EVENTS_DETAIL_HIGHLIGHTS_FALLBACK,
   getCmsTexts,
   parseCmsJson,
-  splitParagraphs,
   type CmsHeroCta,
 } from '../../../../lib/cms/content'
 
@@ -51,6 +51,8 @@ export default async function EventDetailPage({
       'events.detail.highlightsFallback',
       'events.detail.whenLabel',
       'events.detail.whereLabel',
+      'events.detail.registerHeading',
+      'events.detail.registerLead',
       'events.detail.reserveCta',
       'events.detail.questionsPrefix',
       'events.detail.contactLinkText',
@@ -62,9 +64,7 @@ export default async function EventDetailPage({
   }
 
   const storyTitle = event.storyTitle?.trim() || cms['events.detail.storyTitleDefault']
-  const storyParagraphs = event.storyBody?.trim()
-    ? splitParagraphs(event.storyBody)
-    : splitParagraphs(event.description)
+  const storyBody = event.storyBody?.trim() || event.description
   const highlightsFallback = parseCmsJson<string[]>(
     cms['events.detail.highlightsFallback'],
     DEFAULT_EVENTS_DETAIL_HIGHLIGHTS_FALLBACK,
@@ -113,10 +113,12 @@ export default async function EventDetailPage({
               <span className="event-detail-meta-item">
                 <Calendar size={16} className="text-accent" aria-hidden />
                 {displayDate}
+                {event.timeLabel ? ` · ${event.timeLabel}` : ''}
               </span>
               <span className="event-detail-meta-item">
                 <MapPin size={16} className="text-accent" aria-hidden />
                 {event.location}
+                {event.capacity ? ` · ${event.capacity} seats` : ''}
               </span>
             </div>
           </div>
@@ -127,13 +129,7 @@ export default async function EventDetailPage({
         <div className="page-section-container content-prose">
           <div className="content-block">
             <h2 className="content-block-title">{storyTitle}</h2>
-            <div className="content-prose-body">
-              {storyParagraphs.map((paragraph) => (
-                <p key={paragraph.slice(0, 48)} className="page-body-text content-prose-p">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            <CmsRichText body={storyBody} className="content-prose-body" />
           </div>
 
           <div className="detail-info-grid">
@@ -164,11 +160,14 @@ export default async function EventDetailPage({
             </ul>
           </div>
 
-          <div className="content-block">
-            <h2 className="content-block-title content-block-title--plain">Register</h2>
-            <p className="page-body-text text-body-md mb-section">
-              Reserve your place or register interest — our team will follow up by email.
-            </p>
+          <div id="register" className="content-block">
+            <h2 className="content-block-title content-block-title--plain">
+              {cms['events.detail.registerHeading']}
+            </h2>
+            <CmsRichText
+              body={cms['events.detail.registerLead']}
+              className="page-body-text text-body-md mb-section"
+            />
             <EventRegistrationForm eventSlug={slug} eventTitle={event.title} />
           </div>
 

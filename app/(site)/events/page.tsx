@@ -27,11 +27,14 @@ import {
 } from '../../../lib/cms/registry'
 import EventTypeIcon from '../../../components/EventTypeIcon'
 import { Calendar, MapPin } from 'lucide-react'
-import { cardImageSizes, images, resolveEventCoverImage } from '../../../lib/images'
-import { formatEventDateDisplay } from '../../../lib/format'
+import { cardImageSizes, images, resolveCmsImage, resolveEventCoverImage } from '../../../lib/images'
+import { formatEventDateDisplay, resolveEventRegistrationStatus } from '../../../lib/format'
+import { DEFAULT_EVENTS_SECTIONS, isSectionVisible, parseSectionVisibility } from '../../../lib/cms/sections'
 
 const EVENTS_CMS_KEYS = [
   'events.hero.lead',
+  'events.hero.image',
+  'events.hero.imageAlt',
   'events.hero.title',
   'events.hero.stats',
   'events.hero.cta.primary',
@@ -39,6 +42,8 @@ const EVENTS_CMS_KEYS = [
   'events.featured.badge',
   'events.featured.heading',
   'events.catalog.heading',
+  'events.past.heading',
+  'events.card.register',
   'events.filter.categories',
   'events.highlights.badge',
   'events.highlights.heading',
@@ -47,15 +52,46 @@ const EVENTS_CMS_KEYS = [
   'events.highlights.testimonial',
   'events.newsletter.heading',
   'events.newsletter.lead',
+  'events.newsletter.subscribeLabel',
+  'events.newsletter.placeholder',
+  'events.status.openLabel',
+  'events.status.completedLabel',
+  'events.status.closedLabel',
+  'events.status.waitlistLabel',
   'events.cta.heading',
   'events.cta.body',
+  'events.cta.primary',
+  'events.cta.secondary',
+  'events.sections.visible',
   'home.events.cardCta',
 ] as const
 
+type TimingFilter = 'Upcoming' | 'Past' | 'All'
 
-/* ════════════════════════════════════════════
-   PAGE
-════════════════════════════════════════════ */
+function EventActions({
+  event,
+  detailsLabel,
+  registerLabel,
+  upcoming,
+}: {
+  event: ApiEvent
+  detailsLabel: string
+  registerLabel: string
+  upcoming: boolean
+}) {
+  return (
+    <div className="event-card-actions">
+      <LocalizedLink href={`/events/${event.slug}`} className="btn-outline-dark">
+        {detailsLabel}
+      </LocalizedLink>
+      {upcoming ? (
+        <LocalizedLink href={`/events/${event.slug}#register`} className="btn-primary">
+          {registerLabel}
+        </LocalizedLink>
+      ) : null}
+    </div>
+  )
+}
 
 export default function EventsPage() {
   const cms = useCmsTexts(EVENTS_CMS_KEYS)
@@ -92,10 +128,48 @@ export default function EventsPage() {
     [cms['events.highlights.testimonial']],
   )
   const [activeTab, setActiveTab] = useState('All Events')
+  const [timingFilter, setTimingFilter] = useState<TimingFilter>('Upcoming')
   const [events, setEvents] = useState<ApiEvent[]>(fallbackEvents)
   const [newsletterEmail, setNewsletterEmail] = useState('')
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [newsletterMessage, setNewsletterMessage] = useState('')
+
+  const detailsLabel = cms['home.events.cardCta'] ?? 'Event Details'
+  const registerLabel = cms['events.card.register'] || 'Register Now'
+  const bottomCtaPrimary = useMemo(
+    () => parseCmsJson<CmsHeroCta>(cms['events.cta.primary'], DEFAULT_PROGRAMS_HERO_CTA_PRIMARY),
+    [cms['events.cta.primary']],
+  )
+  const bottomCtaSecondary = useMemo(
+    () => parseCmsJson<CmsHeroCta>(cms['events.cta.secondary'], { label: 'Volunteer', href: '/contact#form' }),
+    [cms['events.cta.secondary']],
+  )
+  const statusLabels: Record<'open' | 'closed' | 'waitlist' | 'completed', string> = {
+    open: cms['events.status.openLabel'] || 'Registration Open',
+    closed: cms['events.status.closedLabel'] || 'Registration Closed',
+    waitlist: cms['events.status.waitlistLabel'] || 'Waitlist',
+    completed: cms['events.status.completedLabel'] || 'Completed',
+  }
+
+  const sectionVisibility = useMemo(
+    () => parseSectionVisibility(cms['events.sections.visible'], DEFAULT_EVENTS_SECTIONS),
+    [cms['events.sections.visible']],
+  )
+  const showSection = (key: string) => isSectionVisible(sectionVisibility, key)
+
+  const getEventStatus = (event: ApiEvent): 'open' | 'closed' | 'waitlist' | 'completed' => {
+    const status = resolveEventRegistrationStatus({
+      registrationStatus: event.registrationStatus,
+      dateLabel: event.date,
+      startsAt: event.startsAt,
+      endsAt: event.endsAt,
+    })
+    return status === 'auto' ? 'open' : status
+  }
+  const isEventOpen = (event: ApiEvent) => {
+    const status = getEventStatus(event)
+    return status === 'open' || status === 'waitlist'
+  }
 
   useEffect(() => {
     if (categories.length > 0 && !categories.includes(activeTab)) {
@@ -119,9 +193,20 @@ export default function EventsPage() {
     }
   }, [])
 
-  const filteredEvents = activeTab === "All Events"
-    ? events
-    : events.filter(e => e.type === activeTab)
+  const upcomingFeatured = useMemo(
+    () => events.filter((event) => event.featured && isEventOpen(event)),
+    [events],
+  )
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const matchesType = activeTab === 'All Events' || event.type === activeTab
+      if (!matchesType) return false
+      if (timingFilter === 'All') return true
+      const upcoming = isEventOpen(event)
+      return timingFilter === 'Upcoming' ? upcoming : !upcoming
+    })
+  }, [events, activeTab, timingFilter])
 
   async function handleNewsletterSubmit() {
     if (!newsletterEmail.trim()) return
@@ -142,8 +227,8 @@ export default function EventsPage() {
     <div className="events-page">
       <HeroSplit
         compact
-        imageSrc={images.hero.events}
-        imageAlt="Cultural festivals at Ananse Center"
+        imageSrc={resolveCmsImage(cms['events.hero.image'], images.hero.events)}
+        imageAlt={cms['events.hero.imageAlt'] || 'Cultural festivals at Ananse Center'}
         title={renderSplitHeroTitle(heroTitle)}
         description={cms['events.hero.lead']}
         primaryCta={heroPrimaryCta}
@@ -151,7 +236,7 @@ export default function EventsPage() {
         stats={heroStats}
       />
 
-      {/* ─── Featured Section ─── */}
+      {showSection('featured') ? (
       <section id="calendar" className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
@@ -160,61 +245,90 @@ export default function EventsPage() {
           </div>
 
           <div className="grid-cards grid-cards--stack-narrow">
-            {events.filter(e => e.featured).map((event) => (
-              <article
-                key={event.id}
-                className="program-card program-card--featured"
-                aria-label={event.title}
-              >
-                <div className="card-image-wrapper">
-                  <Image
-                    src={resolveEventCoverImage(event)}
-                    alt={event.title}
-                    fill
-                    className="object-cover"
-                    sizes={cardImageSizes}
-                  />
-                </div>
-
-                <div className="program-card-header-row">
-                  <EventTypeIcon type={event.type} />
-                  <span className="program-card-featured-label">Featured</span>
-                </div>
-
-                <h3 className="program-card-title-lg">{event.title}</h3>
-
-                <div className="event-card-meta">
-                  <div className="text-[12px] font-semibold text-[#1A1A1A] flex items-center gap-1.5">
-                    <Calendar size={14} className="text-accent shrink-0" aria-hidden />
-                    {formatEventDateDisplay(event.date)}
-                  </div>
-                  <div className="text-[12px] text-[#475569] flex items-center gap-1.5">
-                    <MapPin size={14} className="shrink-0" aria-hidden />
-                    {event.location}
-                  </div>
-                </div>
-
-                {/* ── Description grows to fill remaining space ── */}
-                <p className="program-card-description">{event.description}</p>
-
-                {/* ── CTA pinned to bottom ── */}
-                <LocalizedLink
-                  href={`/events/${event.slug}`}
-                  className="btn-primary program-card-cta-bottom"
+            {(upcomingFeatured.length > 0 ? upcomingFeatured : events.filter((e) => e.featured)).map((event) => {
+              const open = isEventOpen(event)
+              const status = getEventStatus(event)
+              return (
+                <article
+                  key={event.id}
+                  className="program-card program-card--featured"
+                  aria-label={event.title}
                 >
-                  {cms['home.events.cardCta'] ?? 'Event details'}
-                </LocalizedLink>
-              </article>
-            ))}
+                  <div className="card-image-wrapper">
+                    <Image
+                      src={resolveEventCoverImage(event)}
+                      alt={event.title}
+                      fill
+                      className="object-cover"
+                      sizes={cardImageSizes}
+                    />
+                  </div>
+
+                  <div className="program-card-header-row">
+                    <EventTypeIcon type={event.type} />
+                    <span className={`event-status-badge ${status === 'open' || status === 'waitlist' ? 'event-status-badge--open' : 'event-status-badge--past'}`}>
+                      {statusLabels[status]}
+                    </span>
+                  </div>
+
+                  <h3 className="program-card-title-lg">{event.title}</h3>
+
+                  <div className="event-card-meta">
+                    <div className="text-[12px] font-semibold text-[#1A1A1A] flex items-center gap-1.5">
+                      <Calendar size={14} className="text-accent shrink-0" aria-hidden />
+                      {formatEventDateDisplay(event.date)}
+                      {event.timeLabel ? ` · ${event.timeLabel}` : ''}
+                    </div>
+                    <div className="text-[12px] text-[#475569] flex items-center gap-1.5">
+                      <MapPin size={14} className="shrink-0" aria-hidden />
+                      {event.location}
+                      {event.capacity ? ` · ${event.capacity} seats` : ''}
+                    </div>
+                  </div>
+
+                  <p className="program-card-description">{event.description}</p>
+
+                  <EventActions
+                    event={event}
+                    detailsLabel={detailsLabel}
+                    registerLabel={registerLabel}
+                    upcoming={open}
+                  />
+                </article>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* ─── Full Catalog ─── */}
+      ) : null}
+
+      {showSection('calendar') ? (
       <section className="page-section section-reveal bg-slate-50 py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
-            <h2 className="page-section-heading">{cms['events.catalog.heading']}</h2>
+            <h2 className="page-section-heading">
+              {timingFilter === 'Past'
+                ? cms['events.past.heading'] || 'Past Events'
+                : cms['events.catalog.heading']}
+            </h2>
+          </div>
+
+          <div className="filter-scroll" style={{ marginBottom: '1rem' }}>
+            <div className="segmented-control" role="tablist" aria-label="Event timing filter">
+              {(['Upcoming', 'Past', 'All'] as const).map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  role="tab"
+                  aria-selected={timingFilter === filter}
+                  onClick={() => setTimingFilter(filter)}
+                  className={`filter-btn ${timingFilter === filter ? 'filter-btn-active' : ''}`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="filter-scroll">
@@ -222,6 +336,7 @@ export default function EventsPage() {
               {categories.map((cat) => (
                 <button
                   key={cat}
+                  type="button"
                   role="tab"
                   aria-selected={activeTab === cat}
                   onClick={() => setActiveTab(cat)}
@@ -234,42 +349,59 @@ export default function EventsPage() {
           </div>
 
           <div className="grid-cards grid-cards--stack-narrow">
-            {filteredEvents.map((event) => (
-              <article key={event.id} className="insight-card" aria-label={event.title}>
-                <div className="insight-card-bar" />
-                <div className="insight-card-body">
+            {filteredEvents.length === 0 ? (
+              <p className="page-body-text" style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
+                No events match this filter yet. Check back soon or subscribe below.
+              </p>
+            ) : (
+              filteredEvents.map((event) => {
+                const open = isEventOpen(event)
+                const status = getEventStatus(event)
+                return (
+                  <article key={event.id} className="insight-card" aria-label={event.title}>
+                    <div className="insight-card-bar" />
+                    <div className="insight-card-body">
+                      <div className="insight-card-header-row">
+                        <span className="insight-card-tag">{event.type}</span>
+                        <span className={`event-status-badge ${status === 'open' || status === 'waitlist' ? 'event-status-badge--open' : 'event-status-badge--past'}`}>
+                          {statusLabels[status]}
+                        </span>
+                      </div>
 
-                  {/* ── Type tag + icon ── */}
-                  <div className="insight-card-header-row">
-                    <span className="insight-card-tag">{event.type}</span>
-                    <EventTypeIcon type={event.type} className="program-card-icon" />
-                  </div>
+                      <h3 className="insight-card-title">{event.title}</h3>
 
-                  <h3 className="insight-card-title">{event.title}</h3>
+                      <p className="insight-card-date">
+                        {formatEventDateDisplay(event.date)}
+                        {event.timeLabel ? ` · ${event.timeLabel}` : ''}
+                      </p>
 
-                  <p className="insight-card-date">{formatEventDateDisplay(event.date)}</p>
+                      <p className="insight-card-description">{event.description}</p>
 
-                  {/* ── Description grows ── */}
-                  <p className="insight-card-description">{event.description}</p>
-
-                  {/* ── Footer always at bottom ── */}
-                  <div className="insight-card-footer">
-                    <div className="text-sm text-gray-500 flex items-center gap-1.5">
-                      <MapPin size={14} className="shrink-0" aria-hidden />
-                      {event.location}
+                      <div className="insight-card-footer" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.75rem' }}>
+                        <div className="text-sm text-gray-500 flex items-center gap-1.5">
+                          <MapPin size={14} className="shrink-0" aria-hidden />
+                          {event.location}
+                          {event.capacity ? ` · ${event.capacity} seats` : ''}
+                        </div>
+                        <EventActions
+                          event={event}
+                          detailsLabel={detailsLabel}
+                          registerLabel={registerLabel}
+                          upcoming={open}
+                        />
+                      </div>
                     </div>
-                    <LocalizedLink href={`/events/${event.slug}`} className="program-card-link">
-                      {cms['home.events.cardCta'] ?? 'Event details'} →
-                    </LocalizedLink>
-                  </div>
-                </div>
-              </article>
-            ))}
+                  </article>
+                )
+              })
+            )}
           </div>
         </div>
       </section>
 
-      {/* ─── Impact & Stories ─── */}
+      ) : null}
+
+      {showSection('highlights') ? (
       <section className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
           <div className="two-col-section">
@@ -307,7 +439,9 @@ export default function EventsPage() {
         </div>
       </section>
 
-      {/* ─── Newsletter ─── */}
+      ) : null}
+
+      {showSection('newsletter') ? (
       <section id="newsletter" className="page-section bg-slate-50 section-reveal">
         <div className="page-section-container">
           <div className="page-section-center-header">
@@ -322,7 +456,7 @@ export default function EventsPage() {
               inputMode="email"
               autoComplete="email"
               className="form-input newsletter-form-input"
-              placeholder="Enter your email"
+              placeholder={cms['events.newsletter.placeholder'] || 'Enter your email'}
               value={newsletterEmail}
               onChange={(e) => setNewsletterEmail(e.target.value)}
             />
@@ -332,7 +466,7 @@ export default function EventsPage() {
               onClick={handleNewsletterSubmit}
               disabled={newsletterStatus === 'loading'}
             >
-              {newsletterStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
+              {newsletterStatus === 'loading' ? 'Subscribing...' : cms['events.newsletter.subscribeLabel'] || 'Subscribe'}
             </button>
           </div>
           {newsletterMessage ? (
@@ -343,19 +477,23 @@ export default function EventsPage() {
         </div>
       </section>
 
+      ) : null}
+
+      {showSection('cta') ? (
       <PageCtaBand
         heading={cms['events.cta.heading']}
         body={cms['events.cta.body']}
         primary={{
-          label: DEFAULT_PROGRAMS_HERO_CTA_PRIMARY.label,
-          href: '/programs',
+          label: bottomCtaPrimary.label,
+          href: bottomCtaPrimary.href,
         }}
         secondary={{
-          label: heroSecondaryCta.label,
-          href: heroSecondaryCta.href,
+          label: bottomCtaSecondary.label,
+          href: bottomCtaSecondary.href,
           variant: 'outline-white',
         }}
       />
+      ) : null}
     </div>
   )
 }

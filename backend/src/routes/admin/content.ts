@@ -9,7 +9,7 @@ import {
 import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 import { prisma } from '../../lib/prisma.js'
 
-function registryFormat(entry: ContentRegistryEntry): 'plain' | 'markdown' {
+function registryFormat(entry: ContentRegistryEntry): 'plain' | 'markdown' | 'html' {
   return entry.format ?? 'plain'
 }
 
@@ -18,7 +18,7 @@ const blockSchema = z.object({
   label: z.string().min(2).max(160),
   section: z.string().min(2).max(80).optional(),
   body: z.string().min(1),
-  format: z.enum(['plain', 'markdown']).optional(),
+  format: z.enum(['plain', 'markdown', 'html']).optional(),
   published: z.boolean().optional(),
 })
 

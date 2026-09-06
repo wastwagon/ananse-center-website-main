@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
+import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
 import {
   type AdminEvent,
   createAdminEvent,
@@ -11,10 +12,30 @@ import {
   updateAdminEvent,
 } from '../../../lib/admin-api'
 
+function toDatetimeLocal(value: string | null | undefined): string {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+function fromDatetimeLocal(value: string): string | null {
+  if (!value.trim()) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toISOString()
+}
+
 const emptyForm = {
   title: '',
   description: '',
   dateLabel: '',
+  startsAtLocal: '',
+  endsAtLocal: '',
+  timeLabel: '',
+  capacity: '',
+  registrationStatus: 'auto',
   location: '',
   venue: '',
   type: 'Festival',
@@ -63,6 +84,11 @@ export default function AdminEventsPage() {
       title: event.title,
       description: event.description,
       dateLabel: event.dateLabel,
+      startsAtLocal: toDatetimeLocal(event.startsAt),
+      endsAtLocal: toDatetimeLocal(event.endsAt),
+      timeLabel: event.timeLabel ?? '',
+      capacity: event.capacity != null ? String(event.capacity) : '',
+      registrationStatus: event.registrationStatus || 'auto',
       location: event.location,
       venue: event.venue ?? '',
       type: event.type,
@@ -81,10 +107,16 @@ export default function AdminEventsPage() {
     setSaving(true)
     setError(null)
     try {
+      const capacityValue = form.capacity.trim() ? Number(form.capacity) : null
       const payload = {
         title: form.title,
         description: form.description,
         dateLabel: form.dateLabel,
+        startsAt: fromDatetimeLocal(form.startsAtLocal),
+        endsAt: fromDatetimeLocal(form.endsAtLocal),
+        timeLabel: form.timeLabel,
+        capacity: Number.isFinite(capacityValue as number) ? capacityValue : null,
+        registrationStatus: form.registrationStatus,
         location: form.location,
         venue: form.venue,
         type: form.type,
@@ -152,7 +184,7 @@ export default function AdminEventsPage() {
               />
             </div>
             <div className="admin-field">
-              <label htmlFor="description">Description</label>
+              <label htmlFor="description">Short description</label>
               <textarea
                 id="description"
                 required
@@ -161,13 +193,67 @@ export default function AdminEventsPage() {
               />
             </div>
             <div className="admin-field">
-              <label htmlFor="dateLabel">Date label</label>
+              <label htmlFor="dateLabel">Date label (display)</label>
               <input
                 id="dateLabel"
                 required
                 value={form.dateLabel}
                 onChange={(e) => setForm({ ...form, dateLabel: e.target.value })}
+                placeholder="August 15-17, 2026"
               />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="startsAt">Starts at</label>
+              <input
+                id="startsAt"
+                type="datetime-local"
+                value={form.startsAtLocal}
+                onChange={(e) => setForm({ ...form, startsAtLocal: e.target.value })}
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="endsAt">Ends at</label>
+              <input
+                id="endsAt"
+                type="datetime-local"
+                value={form.endsAtLocal}
+                onChange={(e) => setForm({ ...form, endsAtLocal: e.target.value })}
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="timeLabel">Time label (optional)</label>
+              <input
+                id="timeLabel"
+                value={form.timeLabel}
+                onChange={(e) => setForm({ ...form, timeLabel: e.target.value })}
+                placeholder="9:00–17:00 daily"
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="capacity">Capacity (optional)</label>
+              <input
+                id="capacity"
+                type="number"
+                min={1}
+                value={form.capacity}
+                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                placeholder="e.g. 120"
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="registrationStatus">Registration status</label>
+              <select
+                id="registrationStatus"
+                className="admin-input"
+                value={form.registrationStatus}
+                onChange={(e) => setForm({ ...form, registrationStatus: e.target.value })}
+              >
+                <option value="auto">Auto (from dates)</option>
+                <option value="open">Open</option>
+                <option value="closed">Closed</option>
+                <option value="waitlist">Waitlist</option>
+                <option value="completed">Completed</option>
+              </select>
             </div>
             <div className="admin-field">
               <label htmlFor="location">Location</label>
@@ -217,13 +303,10 @@ export default function AdminEventsPage() {
               />
             </div>
             <div className="admin-field">
-              <label htmlFor="storyBody">Story body</label>
-              <textarea
-                id="storyBody"
-                rows={6}
+              <label>Story body</label>
+              <CmsRichTextEditor
                 value={form.storyBody}
-                onChange={(e) => setForm({ ...form, storyBody: e.target.value })}
-                placeholder="Long-form copy for the detail page. Separate paragraphs with a blank line."
+                onChange={(storyBody) => setForm({ ...form, storyBody })}
               />
             </div>
             <div className="admin-field">
@@ -276,6 +359,7 @@ export default function AdminEventsPage() {
               <tr>
                 <th>Title</th>
                 <th>Date</th>
+                <th>Registration</th>
                 <th>Status</th>
                 <th />
               </tr>
@@ -287,7 +371,13 @@ export default function AdminEventsPage() {
                     {event.imageEmoji} {event.title}
                     <div style={{ color: '#64748b', fontSize: '0.75rem' }}>/{event.slug}</div>
                   </td>
-                  <td>{event.dateLabel}</td>
+                  <td>
+                    {event.dateLabel}
+                    {event.timeLabel ? (
+                      <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{event.timeLabel}</div>
+                    ) : null}
+                  </td>
+                  <td>{event.registrationStatus || 'auto'}</td>
                   <td>
                     <span
                       className={`admin-badge ${

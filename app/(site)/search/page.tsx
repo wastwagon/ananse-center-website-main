@@ -1,12 +1,10 @@
 import ContentPageHero from '../../../components/ContentPageHero'
 import SiteSearch from '../../../components/SiteSearch'
-import { buildPageMetadata } from '../../../lib/page-meta'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
 
-export const metadata = buildPageMetadata({
-  title: 'Search',
-  description: 'Search programs, events, and resources at The Ananse Center.',
-  path: '/search',
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('search')
+}
 
 export default function SearchPage() {
   return (

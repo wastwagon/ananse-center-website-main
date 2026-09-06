@@ -1,19 +1,12 @@
-import { buildSimpleCmsPageMetadata, loadLabeledRows } from '../../../lib/cms-page-factory'
+import { loadLabeledRows } from '../../../lib/cms-page-factory'
 import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
+import CmsRichText from '../../../components/CmsRichText'
 import { getCmsTexts } from '../../../lib/cms/content'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
 
-export const metadata = buildSimpleCmsPageMetadata({
-  path: '/visit',
-  metaTitle: 'Visit',
-  metaDescription:
-    'Plan your visit to The Ananse Center in Akatakyiwa, Central Region, Ghana — near diaspora heritage sites.',
-  badgeKey: 'visit.badge',
-  headingKey: 'visit.heading',
-  leadKey: 'visit.lead',
-  bodyKey: 'visit.body',
-  primaryCta: { label: 'Contact us', href: '/contact#form' },
-  secondaryCta: { label: 'View events', href: '/events' },
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('visit')
+}
 
 export default async function VisitPage() {
   const cms = await getCmsTexts(['visit.badge', 'visit.heading', 'visit.lead', 'visit.body', 'visit.directions'] as const)
@@ -31,13 +24,7 @@ export default async function VisitPage() {
       primaryCta={{ label: 'Schedule a visit', href: '/contact#form' }}
       secondaryCta={{ label: 'Repatriation resources', href: '/repatriation' }}
     >
-      <div className="content-prose-body">
-        {cms['visit.body'].split('\n\n').map((p) => (
-          <p key={p.slice(0, 40)} className="page-body-text content-prose-p">
-            {p}
-          </p>
-        ))}
-      </div>
+      <CmsRichText body={cms['visit.body']} className="content-prose-body" />
       <div className="detail-info-grid">
         {directions.map((row) => (
           <div key={row.label} className="detail-info-card">

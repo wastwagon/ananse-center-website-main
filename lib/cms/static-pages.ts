@@ -1,6 +1,6 @@
 import type { ContentRegistryEntry } from './registry'
 
-export type CmsTrustee = { name: string; role: string; bio: string }
+export type CmsTrustee = { name: string; role: string; bio: string; initials?: string; photoUrl?: string }
 export type CmsFinancialReport = { year: string; title: string; url: string }
 export type CmsSpotlight = { name: string; org: string; description: string }
 export type CmsCsoEntry = { name: string; focus: string; region: string; website?: string }
@@ -17,19 +17,22 @@ export type CmsJourneyStory = { name: string; origin: string; quote: string; med
 
 export const DEFAULT_TRUSTEES: CmsTrustee[] = [
   {
-    name: 'Dr. Ama Osei',
+    name: 'Placeholder — Board Chair',
     role: 'Board Chair',
-    bio: 'Educator and cultural historian guiding governance and restorative arts strategy.',
+    bio: 'Placeholder bio — replace with the real Board Chair name, role, and short biography. Optional photoUrl via Media.',
+    initials: 'BC',
   },
   {
-    name: 'Kwesi Mensah',
+    name: 'Placeholder — Treasurer',
     role: 'Treasurer',
-    bio: 'Finance professional ensuring transparent stewardship of donor resources.',
+    bio: 'Placeholder bio — replace with the real Treasurer who oversees financial stewardship.',
+    initials: 'TR',
   },
   {
-    name: 'Evelyn Boateng',
+    name: 'Placeholder — Trustee',
     role: 'Trustee',
-    bio: 'Diaspora liaison connecting global partners with programs in the Central Region.',
+    bio: 'Placeholder bio — replace with a real trustee or diaspora liaison profile.',
+    initials: 'TR',
   },
 ]
 
@@ -97,16 +100,22 @@ export const DEFAULT_FACULTY: CmsFaculty[] = [
 
 export const DEFAULT_NEWS: CmsNewsItem[] = [
   {
-    title: 'Sankofa Journey gathering opens registration',
-    date: '2025-03-01',
-    excerpt: 'Diaspora participants are invited to apply for the spring restorative arts intensive.',
-    href: '/events',
+    title: 'Placeholder — welcome post',
+    date: 'August 2026',
+    excerpt:
+      'Placeholder news item — replace or delete in Admin → News. Write real announcements with rich text and optional cover photos.',
   },
   {
-    title: 'Community spotlight: Kente Collective partnership',
-    date: '2025-02-12',
-    excerpt: 'New collaboration expands youth artisan training in Akatakyiwa.',
-    href: '/community',
+    title: 'Placeholder — program update',
+    date: 'August 2026',
+    excerpt:
+      'Placeholder news item — share a real program, partnership, or community update when ready.',
+  },
+  {
+    title: 'Placeholder — event announcement',
+    date: 'August 2026',
+    excerpt:
+      'Placeholder news item — announce an upcoming festival or workshop, then link from Events if needed.',
   },
 ]
 
@@ -199,12 +208,14 @@ export const STATIC_PAGE_REGISTRY = {
   'visit.lead': {
     label: 'Visit — intro',
     section: 'visit',
+    format: 'html',
     defaultBody:
       'The Ananse Center is rooted in Akatakyiwa, Central Region—near heritage sites of the diaspora journey, including colonial slaving forts and the River of the Last Bath.',
   },
   'visit.body': {
     label: 'Visit — body',
     section: 'visit',
+    format: 'html',
     defaultBody:
       'We welcome students, diaspora travelers, researchers, and partners by appointment. Plan adequate time for travel from Accra and respect local customs at sacred sites.\n\nDirections and group visit scheduling are coordinated through our contact team.',
   },
@@ -231,12 +242,14 @@ export const STATIC_PAGE_REGISTRY = {
   'repatriation.lead': {
     label: 'Repatriation — intro',
     section: 'repatriation',
+    format: 'html',
     defaultBody:
       'We support descendants of the enslaved and Africans colonized in West Africa to heal intergenerational trauma and learn, in community, how to be cousins again.',
   },
   'repatriation.body': {
     label: 'Repatriation — body',
     section: 'repatriation',
+    format: 'html',
     defaultBody:
       'Programs combine restorative arts, guided reflection near heritage sites, and long-term relationship-building—not tourism alone. Each journey is paced with pastoral care and cultural protocol.',
   },
@@ -255,6 +268,7 @@ export const STATIC_PAGE_REGISTRY = {
   'trustees.lead': {
     label: 'Trustees — intro',
     section: 'trustees',
+    format: 'html',
     defaultBody:
       'Our Trustee Circle provides oversight, accountability, and strategic guidance for programs, partnerships, and financial stewardship.',
   },
@@ -272,12 +286,14 @@ export const STATIC_PAGE_REGISTRY = {
   'transparency.lead': {
     label: 'Transparency — intro',
     section: 'transparency',
+    format: 'html',
     defaultBody:
       'We publish how resources are allocated and welcome questions from donors and partners. Request full reports anytime.',
   },
   'transparency.body': {
     label: 'Transparency — body',
     section: 'transparency',
+    format: 'html',
     defaultBody:
       'Program delivery, community outreach, operations, and reserves are reviewed annually by leadership and the Trustee Circle.',
   },
@@ -295,12 +311,14 @@ export const STATIC_PAGE_REGISTRY = {
   'admissions.lead': {
     label: 'Admissions — intro',
     section: 'admissions',
+    format: 'html',
     defaultBody:
       'Apply to Sankofa arts and leadership programs. Fees vary by program length; scholarships may be available for Ghana-based youth.',
   },
   'admissions.body': {
     label: 'Admissions — body',
     section: 'admissions',
+    format: 'html',
     defaultBody:
       'Submit the inquiry form with your program of interest. Our team will share schedules, fees in GHS, and LMS access after enrollment.',
   },
@@ -331,6 +349,7 @@ export const STATIC_PAGE_REGISTRY = {
   'community.lead': {
     label: 'Community — intro',
     section: 'community',
+    format: 'html',
     defaultBody:
       'We highlight partners, artisans, and nonprofits strengthening culture and entrepreneurship across the Central Region.',
   },
@@ -348,6 +367,7 @@ export const STATIC_PAGE_REGISTRY = {
   'resources.lead': {
     label: 'CSO directory — intro',
     section: 'resources',
+    format: 'html',
     defaultBody:
       'A growing reference of civil society and development partners in Ghana’s Central Region—for researchers, funders, and collaborators.',
   },
@@ -365,12 +385,14 @@ export const STATIC_PAGE_REGISTRY = {
   'archives.lead': {
     label: 'Archives — intro',
     section: 'archives',
+    format: 'html',
     defaultBody:
       'We digitize stories, artifacts, and educational materials with metadata that honors originating cultures and community stewards.',
   },
   'archives.body': {
     label: 'Archives — body',
     section: 'archives',
+    format: 'html',
     defaultBody:
       'Metadata records include cultural attribution, rights notes, and locale—alongside institutional cataloguing for global interoperability.',
   },
@@ -384,11 +406,40 @@ export const STATIC_PAGE_REGISTRY = {
   'news.lead': {
     label: 'News — intro',
     section: 'news',
+    format: 'html',
     defaultBody: 'Announcements, partnerships, and community news from the Center.',
   },
-  'news.items': {
-    label: 'News — items (JSON)',
+  'news.readMore': {
+    label: 'News — read more link label',
     section: 'news',
+    defaultBody: 'Read more',
+  },
+  'news.backLink': {
+    label: 'News — detail back link label',
+    section: 'news',
+    defaultBody: '← News & updates',
+  },
+  'news.empty': {
+    label: 'News — empty state message',
+    section: 'news',
+    defaultBody: 'No posts published yet. Check back soon.',
+  },
+  'news.cta.primary': {
+    label: 'News — primary CTA (JSON)',
+    section: 'news',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Subscribe', href: '/events#newsletter' }, null, 2),
+  },
+  'news.cta.secondary': {
+    label: 'News — secondary CTA (JSON)',
+    section: 'news',
+    hint: 'JSON: { "label", "href" }',
+    defaultBody: JSON.stringify({ label: 'Community spotlight', href: '/community' }, null, 2),
+  },
+  'news.items': {
+    label: 'News — fallback items (JSON)',
+    section: 'news',
+    hint: 'Only used if no posts exist in Admin → News. Prefer managing posts under /admin/news.',
     defaultBody: JSON.stringify(DEFAULT_NEWS, null, 2),
   },
   'programs.lms.label': {
@@ -414,12 +465,14 @@ export const STATIC_PAGE_REGISTRY = {
   'partnerships.lead': {
     label: 'Partnerships — intro',
     section: 'partnerships',
+    format: 'html',
     defaultBody:
       'We co-design programs with schools, NGOs, and corporate partners who share our commitment to restorative arts and youth leadership in Ghana and the diaspora.',
   },
   'partnerships.body': {
     label: 'Partnerships — body',
     section: 'partnerships',
+    format: 'html',
     defaultBody:
       'Partnerships may include program sponsorship, in-kind resources, artist residencies, and diaspora engagement campaigns. All collaborations are guided by community ownership and transparent stewardship.',
   },

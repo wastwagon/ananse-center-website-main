@@ -1,9 +1,9 @@
-import type { Metadata } from 'next'
 import Image from 'next/image'
 import LocalizedLink from '../../../components/LocalizedLink'
 import PageCtaBand from '../../../components/PageCtaBand'
 import HeroSplit from '../../../components/HeroSplit'
-import { buildPageMetadata } from '../../../lib/page-meta'
+import CmsRichText from '../../../components/CmsRichText'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
 import { cmsIconForKey } from '../../../lib/cms-icons'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import {
@@ -16,7 +16,6 @@ import {
   DEFAULT_ABOUT_PHILOSOPHY,
   getCmsTexts,
   parseCmsJson,
-  splitParagraphs,
   type CmsApproachStep,
   type CmsHeroCta,
   type CmsHeroStat,
@@ -24,28 +23,51 @@ import {
   type CmsLabeledValue,
   type CmsPhilosophyCard,
 } from '../../../lib/cms/content'
-import { cardImageSizes, images } from '../../../lib/images'
+import { cardImageSizes, images, resolveCmsImage } from '../../../lib/images'
+import { DEFAULT_ABOUT_SECTIONS, isSectionVisible, parseSectionVisibility } from '../../../lib/cms/sections'
 
-export const metadata: Metadata = buildPageMetadata({
-  title: 'About',
-  description:
-    'Our mission, Sankofa philosophy, and approach to Pan-African arts education and leadership development in Ghana.',
-  path: '/about',
-  ogImage: images.hero.about,
-})
+type AboutTimelineItem = { year: string; title: string; description: string }
+type AboutTeamMember = {
+  name: string
+  role: string
+  bio: string
+  initials?: string
+  photoUrl?: string
+}
+
+export async function generateMetadata() {
+  return buildCmsMetadata('about', { ogImage: images.hero.about })
+}
 
 export default async function AboutPage() {
   const cms = await getCmsTexts([
     'about.hero.lead',
+    'about.hero.image',
+    'about.hero.imageAlt',
     'about.hero.title',
     'about.hero.stats',
     'about.hero.cta.primary',
     'about.hero.cta.secondary',
+    'about.whoWeAre.badge',
+    'about.whoWeAre.heading',
+    'about.whoWeAre.body',
+    'about.whoWeAre.focusHeading',
+    'about.whoWeAre.focusAreas',
+    'about.whoWeAre.teamCta',
+    'about.story.image',
     'about.mission.heading',
     'about.vision.heading',
     'about.mission',
     'about.mission.continuation',
     'about.vision',
+    'about.timeline.badge',
+    'about.timeline.heading',
+    'about.timeline.lead',
+    'about.timeline',
+    'about.team.badge',
+    'about.team.heading',
+    'about.team.lead',
+    'about.team',
     'about.philosophy.badge',
     'about.philosophy.heading',
     'about.philosophy.cardLabel',
@@ -64,6 +86,7 @@ export default async function AboutPage() {
     'about.cta.body',
     'about.cta.primary',
     'about.cta.secondary',
+    'about.sections.visible',
   ] as const)
 
   const heroTitle = parseCmsJson<CmsHeroTitle>(cms['about.hero.title'], DEFAULT_ABOUT_HERO_TITLE)
@@ -72,13 +95,20 @@ export default async function AboutPage() {
   const heroSecondaryCta = parseCmsJson<CmsHeroCta>(cms['about.hero.cta.secondary'], DEFAULT_ABOUT_HERO_CTA_SECONDARY)
   const aboutCtaPrimary = parseCmsJson<CmsHeroCta>(
     cms['about.cta.primary'],
-    { label: 'Get Involved', href: '/contact#form' },
+    { label: 'Donate', href: '/support#donate' },
   )
   const aboutCtaSecondary = parseCmsJson<CmsHeroCta>(
     cms['about.cta.secondary'],
-    { label: 'Support Our Work', href: '/support' },
+    { label: 'Explore Programs', href: '/programs' },
   )
-  const visionParagraphs = splitParagraphs(cms['about.vision'])
+  const teamCta = parseCmsJson<CmsHeroCta>(
+    cms['about.whoWeAre.teamCta'],
+    { label: 'Meet Our Trustees', href: '/trustees' },
+  )
+  const focusAreas = parseCmsJson<string[]>(
+    cms['about.whoWeAre.focusAreas'],
+    ['Education', 'Culture', 'Leadership', 'Community Development'],
+  )
   const philosophies = parseCmsJson<CmsPhilosophyCard[]>(
     cms['about.philosophy'],
     DEFAULT_ABOUT_PHILOSOPHY,
@@ -88,13 +118,17 @@ export default async function AboutPage() {
     cms['about.impact.metrics'],
     DEFAULT_ABOUT_IMPACT_METRICS,
   )
+  const timeline = parseCmsJson<AboutTimelineItem[]>(cms['about.timeline'], [])
+  const team = parseCmsJson<AboutTeamMember[]>(cms['about.team'], [])
+  const sectionVisibility = parseSectionVisibility(cms['about.sections.visible'], DEFAULT_ABOUT_SECTIONS)
+  const showSection = (key: string) => isSectionVisible(sectionVisibility, key)
 
   return (
     <div className="about-page">
       <HeroSplit
         compact
-        imageSrc={images.hero.about}
-        imageAlt="Our story at The Ananse Center"
+        imageSrc={resolveCmsImage(cms['about.hero.image'], images.hero.about)}
+        imageAlt={cms['about.hero.imageAlt']}
         title={renderSplitHeroTitle(heroTitle)}
         description={cms['about.hero.lead']}
         primaryCta={heroPrimaryCta}
@@ -102,137 +136,244 @@ export default async function AboutPage() {
         stats={heroStats}
       />
 
-      <section className="page-section section-reveal bg-white">
-        <div className="page-section-container">
-          <div className="two-col-section gap-xl">
-            <div>
-              <h2 className="page-section-heading">{cms['about.mission.heading']}</h2>
-              <div className="page-body-stack">
-                <p className="page-body-text text-body-lg">
-                  {cms['about.mission']}
+      {showSection('whoWeAre') ? (
+        <section className="page-section section-reveal bg-slate-50">
+          <div className="page-section-container">
+            <div className="two-col-section gap-xl">
+              <div>
+                <span className="section-badge">{cms['about.whoWeAre.badge']}</span>
+                <h2 className="page-section-heading">{cms['about.whoWeAre.heading']}</h2>
+                <CmsRichText body={cms['about.whoWeAre.body']} className="cms-richtext cms-richtext--lg" />
+                <p className="page-body-text" style={{ marginTop: '1.5rem', fontWeight: 600 }}>
+                  {cms['about.whoWeAre.focusHeading']}
                 </p>
-                <p className="page-body-text text-body-lg">
-                  {cms['about.mission.continuation']}
-                </p>
+                <ul className="about-focus-list">
+                  {focusAreas.map((area) => (
+                    <li key={area}>{area}</li>
+                  ))}
+                </ul>
+                <LocalizedLink href={teamCta.href} className="btn-primary" style={{ marginTop: '1.75rem' }}>
+                  {teamCta.label}
+                </LocalizedLink>
               </div>
-            </div>
 
-            <div>
-              <h2 className="page-section-heading">{cms['about.vision.heading']}</h2>
-              <div className="page-body-stack">
-                {visionParagraphs.map((paragraph) => (
-                  <p key={paragraph.slice(0, 40)} className="page-body-text text-body-lg">
-                    {paragraph}
-                  </p>
-                ))}
+              <div className="premium-card-image-wrapper" style={{ height: 'min(420px, 70vw)', marginBottom: 0 }}>
+                <Image
+                  src={resolveCmsImage(cms['about.story.image'], images.story)}
+                  alt="Ananse Center community gathering"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 899px) 100vw, 45vw"
+                />
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
-      <section className="page-section section-reveal bg-slate-50">
-        <div className="page-section-container">
-          <div className="page-section-center-header">
-            <span className="section-badge">{cms['about.philosophy.badge']}</span>
-            <h2 className="page-section-heading">{cms['about.philosophy.heading']}</h2>
-            <p className="page-body-text">{cms['about.philosophy.lead']}</p>
+      {showSection('missionVision') ? (
+        <section className="page-section section-reveal bg-white">
+          <div className="page-section-container">
+            <div className="two-col-section gap-xl">
+              <div>
+                <h2 className="page-section-heading">{cms['about.mission.heading']}</h2>
+                <CmsRichText body={cms['about.mission']} className="cms-richtext cms-richtext--lg" />
+                <div style={{ marginTop: '1rem' }}>
+                  <CmsRichText
+                    body={cms['about.mission.continuation']}
+                    className="cms-richtext cms-richtext--lg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h2 className="page-section-heading">{cms['about.vision.heading']}</h2>
+                <CmsRichText body={cms['about.vision']} className="cms-richtext cms-richtext--lg" />
+              </div>
+            </div>
           </div>
+        </section>
+      ) : null}
 
-          <div className="grid-cards">
-            {philosophies.map((item, idx) => {
-              const Icon = cmsIconForKey(item.iconKey)
-              return (
-                <article key={item.title} className="premium-card">
-                  <div className="premium-card-image-wrapper premium-card-image-wrapper--short">
-                    <Image
-                      src={`/images/image (${idx + 7}).jpeg`}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                      sizes={cardImageSizes}
-                    />
+      {showSection('timeline') && timeline.length > 0 ? (
+        <section className="page-section section-reveal bg-slate-50">
+          <div className="page-section-container">
+            <div className="page-section-center-header">
+              <span className="section-badge">{cms['about.timeline.badge']}</span>
+              <h2 className="page-section-heading">{cms['about.timeline.heading']}</h2>
+              <p className="page-body-text">{cms['about.timeline.lead']}</p>
+            </div>
+            <ol className="about-timeline">
+              {timeline.map((item) => (
+                <li key={`${item.year}-${item.title}`} className="about-timeline-item">
+                  <span className="about-timeline-year">{item.year}</span>
+                  <div>
+                    <h3 className="about-timeline-title">{item.title}</h3>
+                    <p className="page-body-text text-body-md">{item.description}</p>
                   </div>
-                  <div className="premium-card-header">
-                    <div className="premium-card-icon-box">
-                      <Icon size={22} strokeWidth={1.75} />
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      ) : null}
+
+      {showSection('team') && team.length > 0 ? (
+        <section className="page-section section-reveal bg-white">
+          <div className="page-section-container">
+            <div className="page-section-center-header">
+              <span className="section-badge">{cms['about.team.badge']}</span>
+              <h2 className="page-section-heading">{cms['about.team.heading']}</h2>
+              <p className="page-body-text">{cms['about.team.lead']}</p>
+            </div>
+            <div className="grid-cards">
+              {team.map((member) => (
+                <article key={member.name} className="premium-card">
+                  {member.photoUrl ? (
+                    <div
+                      className="premium-card-image-wrapper premium-card-image-wrapper--short"
+                      style={{ borderRadius: '50%', width: 88, height: 88, marginBottom: '1rem' }}
+                    >
+                      <Image
+                        src={member.photoUrl}
+                        alt={member.name}
+                        fill
+                        className="object-cover"
+                        sizes="88px"
+                      />
                     </div>
-                    <span className="premium-card-featured-label">{cms['about.philosophy.cardLabel']}</span>
+                  ) : (
+                    <div className="testimonial-avatar" style={{ width: 48, height: 48, fontSize: 14 }}>
+                      {member.initials || member.name.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <h3 className="premium-card-title">{member.name}</h3>
+                  <span className="premium-card-featured-label">{member.role}</span>
+                  <p className="premium-card-description">{member.bio}</p>
+                </article>
+              ))}
+            </div>
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+              <LocalizedLink href={teamCta.href} className="btn-outline-dark">
+                {teamCta.label}
+              </LocalizedLink>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {showSection('philosophy') ? (
+        <section className="page-section section-reveal bg-slate-50">
+          <div className="page-section-container">
+            <div className="page-section-center-header">
+              <span className="section-badge">{cms['about.philosophy.badge']}</span>
+              <h2 className="page-section-heading">{cms['about.philosophy.heading']}</h2>
+              <p className="page-body-text">{cms['about.philosophy.lead']}</p>
+            </div>
+
+            <div className="grid-cards">
+              {philosophies.map((item, idx) => {
+                const Icon = cmsIconForKey(item.iconKey)
+                return (
+                  <article key={item.title} className="premium-card">
+                    <div className="premium-card-image-wrapper premium-card-image-wrapper--short">
+                      <Image
+                        src={resolveCmsImage(item.imageUrl, `/images/image (${idx + 7}).jpeg`)}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                        sizes={cardImageSizes}
+                      />
+                    </div>
+                    <div className="premium-card-header">
+                      <div className="premium-card-icon-box">
+                        <Icon size={22} strokeWidth={1.75} />
+                      </div>
+                      <span className="premium-card-featured-label">{cms['about.philosophy.cardLabel']}</span>
+                    </div>
+                    <h3 className="premium-card-title">{item.title}</h3>
+                    <p className="premium-card-description">{item.description}</p>
+                    <LocalizedLink href="/programs" className="btn-primary premium-card-cta">
+                      {cms['about.philosophy.cardCta']}
+                    </LocalizedLink>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {showSection('approach') || showSection('impact') ? (
+        <section className="page-section section-reveal bg-white">
+          <div className="page-section-container">
+            <div className="two-col-section">
+              {showSection('approach') ? (
+                <div className="max-w-md">
+                  <span className="section-badge">{cms['about.approach.badge']}</span>
+                  <h2 className="page-section-heading">{cms['about.approach.heading']}</h2>
+                  <p className="page-body-text mb-section">
+                    {cms['about.approach.lead']}
+                  </p>
+
+                  <div className="flex-column gap-medium">
+                    {approaches.map((step) => (
+                      <div key={step.title} className="approach-step">
+                        <div
+                          className="approach-step-num"
+                          style={{ backgroundColor: step.backgroundColor, color: step.textColor }}
+                        >
+                          {step.num}
+                        </div>
+                        <div>
+                          <h4 className="approach-step-title">{step.title}</h4>
+                          <p className="page-body-text text-body-md">{step.description}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <h3 className="premium-card-title">{item.title}</h3>
-                  <p className="premium-card-description">{item.description}</p>
-                  <LocalizedLink href="/programs" className="btn-primary premium-card-cta">
-                    {cms['about.philosophy.cardCta']}
+                </div>
+              ) : null}
+
+              {showSection('impact') ? (
+                <article className="premium-card">
+                  <div className="premium-card-header">
+                    <span className="premium-card-featured-label">{cms['about.impact.cardBadge']}</span>
+                  </div>
+
+                  <h3 className="premium-card-title premium-card-title--lg">
+                    {cms['about.impact.cardHeading']}
+                  </h3>
+
+                  <div className="flex-column flex-column--snug" style={{ marginTop: '1rem' }}>
+                    {impactMetrics.map((row) => (
+                      <div key={row.label} className="impact-metric-row">
+                        <span className="text-body-md">{row.label}</span>
+                        <span className="text-body-lg" style={{ fontWeight: 700 }}>
+                          {row.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <LocalizedLink href="/support" className="btn-primary premium-card-cta card-cta-spaced">
+                    {cms['about.impact.cardCta']}
                   </LocalizedLink>
                 </article>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="page-section section-reveal bg-white">
-        <div className="page-section-container">
-          <div className="two-col-section">
-            <div className="max-w-md">
-              <span className="section-badge">{cms['about.approach.badge']}</span>
-              <h2 className="page-section-heading">{cms['about.approach.heading']}</h2>
-              <p className="page-body-text mb-section">
-                {cms['about.approach.lead']}
-              </p>
-
-              <div className="flex-column gap-medium">
-                {approaches.map((step) => (
-                  <div key={step.title} className="approach-step">
-                    <div
-                      className="approach-step-num"
-                      style={{ backgroundColor: step.backgroundColor, color: step.textColor }}
-                    >
-                      {step.num}
-                    </div>
-                    <div>
-                      <h4 className="approach-step-title">{step.title}</h4>
-                      <p className="page-body-text text-body-md">{step.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ) : null}
             </div>
-
-            <article className="premium-card">
-              <div className="premium-card-header">
-                <span className="premium-card-featured-label">{cms['about.impact.cardBadge']}</span>
-              </div>
-
-              <h3 className="premium-card-title premium-card-title--lg">
-                {cms['about.impact.cardHeading']}
-              </h3>
-
-              <div className="flex-column flex-column--snug" style={{ marginTop: '1rem' }}>
-                {impactMetrics.map((row) => (
-                  <div key={row.label} className="impact-metric-row">
-                    <span className="text-body-md">{row.label}</span>
-                    <span className="text-body-lg" style={{ fontWeight: 700 }}>
-                      {row.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <LocalizedLink href="/support" className="btn-primary premium-card-cta card-cta-spaced">
-                {cms['about.impact.cardCta']}
-              </LocalizedLink>
-            </article>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
-      <PageCtaBand
-        heading={cms['about.cta.heading']}
-        body={cms['about.cta.body']}
-        primary={{ label: aboutCtaPrimary.label, href: aboutCtaPrimary.href }}
-        secondary={{ label: aboutCtaSecondary.label, href: aboutCtaSecondary.href, variant: 'outline-white' }}
-      />
+      {showSection('cta') ? (
+        <PageCtaBand
+          heading={cms['about.cta.heading']}
+          body={cms['about.cta.body']}
+          primary={{ label: aboutCtaPrimary.label, href: aboutCtaPrimary.href }}
+          secondary={{ label: aboutCtaSecondary.label, href: aboutCtaSecondary.href, variant: 'outline-white' }}
+        />
+      ) : null}
     </div>
   )
 }

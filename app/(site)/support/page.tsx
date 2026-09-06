@@ -1,9 +1,8 @@
-import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import Image from 'next/image'
 import LocalizedLink from '../../../components/LocalizedLink'
 import PageCtaBand from '../../../components/PageCtaBand'
-import { buildPageMetadata } from '../../../lib/page-meta'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
 import HeroSplit from '../../../components/HeroSplit'
 import { cmsIconForKey } from '../../../lib/cms-icons'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
@@ -30,18 +29,22 @@ import {
 import FeatureIcon from '../../../components/FeatureIcon'
 import DonateSection from '../../../components/DonateSection'
 import DonationStatusBanner from '../../../components/DonationStatusBanner'
-import { cardImageSizes, images } from '../../../lib/images'
+import { cardImageSizes, images, resolveCmsImage } from '../../../lib/images'
+import {
+  DEFAULT_SUPPORT_SECTIONS,
+  isSectionVisible,
+  parseSectionVisibility,
+} from '../../../lib/cms/sections'
 
-export const metadata: Metadata = buildPageMetadata({
-  title: 'Support',
-  description: 'Donate to The Ananse Center and help fund arts, education, and community programs in Ghana and beyond.',
-  path: '/support',
-  ogImage: images.hero.support,
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('support', { ogImage: images.hero.support })
+}
 
 export default async function SupportPage() {
   const cms = await getCmsTexts([
     'support.hero.lead',
+    'support.hero.image',
+    'support.hero.imageAlt',
     'support.hero.title',
     'support.hero.stats',
     'support.hero.cta.primary',
@@ -66,6 +69,10 @@ export default async function SupportPage() {
     'support.donate.presets',
     'support.cta.heading',
     'support.cta.body',
+    'support.cta.primary',
+    'support.cta.secondary',
+    'support.transparency.image',
+    'support.sections.visible',
   ] as const)
 
   const heroTitle = parseCmsJson<CmsHeroTitle>(cms['support.hero.title'], DEFAULT_SUPPORT_HERO_TITLE)
@@ -92,13 +99,26 @@ export default async function SupportPage() {
     cms['support.donate.presets'],
     DEFAULT_SUPPORT_DONATE_PRESETS,
   )
+  const bottomPrimary = parseCmsJson<CmsHeroCta>(cms['support.cta.primary'], {
+    label: 'Donate Now',
+    href: '/support#donate',
+  })
+  const bottomSecondary = parseCmsJson<CmsHeroCta>(cms['support.cta.secondary'], {
+    label: 'Partner With Us',
+    href: '/contact#form',
+  })
+  const sectionVisibility = parseSectionVisibility(
+    cms['support.sections.visible'],
+    DEFAULT_SUPPORT_SECTIONS,
+  )
+  const show = (key: string) => isSectionVisible(sectionVisibility, key)
 
   return (
     <div className="support-page">
       <HeroSplit
         compact
-        imageSrc={images.hero.support}
-        imageAlt="Support The Ananse Center"
+        imageSrc={resolveCmsImage(cms['support.hero.image'], images.hero.support)}
+        imageAlt={cms['support.hero.imageAlt']}
         title={renderSplitHeroTitle(heroTitle)}
         description={cms['support.hero.lead']}
         primaryCta={heroPrimaryCta}
@@ -106,6 +126,7 @@ export default async function SupportPage() {
         stats={heroStats}
       />
 
+      {show('donation') ? (
       <section className="page-section section-reveal bg-white">
         <div className="page-section-container">
           <div className="page-section-center-header">
@@ -122,7 +143,13 @@ export default async function SupportPage() {
                   key={stat.amount}
                   className="feature-card text-center flex flex-col items-center justify-center gap-3"
                 >
-                  <FeatureIcon icon={Icon} size={22} />
+                  {stat.imageUrl ? (
+                    <div className="support-tier-image" aria-hidden>
+                      <Image src={stat.imageUrl} alt="" fill className="object-cover" sizes="64px" />
+                    </div>
+                  ) : (
+                    <FeatureIcon icon={Icon} size={22} />
+                  )}
                   <div className="support-stat-amount">{stat.amount}</div>
                   <p className="page-body-text text-body-md">
                     {stat.label}
@@ -133,17 +160,21 @@ export default async function SupportPage() {
           </div>
         </div>
       </section>
+      ) : null}
 
       <Suspense fallback={null}>
         <DonationStatusBanner />
       </Suspense>
+      {show('donate') ? (
       <DonateSection
         heading={cms['support.donate.heading']}
         leadReady={cms['support.donate.lead.ready']}
         leadOffline={cms['support.donate.lead.offline']}
         presets={donatePresets}
       />
+      ) : null}
 
+      {show('otherWays') ? (
       <section className="page-section section-reveal bg-white">
         <div className="page-section-container">
           <div className="page-section-center-header">
@@ -158,7 +189,7 @@ export default async function SupportPage() {
                 <div key={way.title} className="insight-card p-0">
                   <div className="premium-card-image-wrapper premium-card-image-wrapper--card-top">
                     <Image
-                      src={`/images/image (${idx + 12}).jpeg`}
+                      src={resolveCmsImage(way.imageUrl, `/images/image (${idx + 12}).jpeg`)}
                       alt={way.title}
                       fill
                       className="object-cover"
@@ -172,7 +203,7 @@ export default async function SupportPage() {
                     <p className="page-body-text text-body-sm" style={{ marginBottom: '1.5rem', flex: 1 }}>
                       {way.description}
                     </p>
-                    <LocalizedLink href="/contact#form" className="program-card-link">
+                    <LocalizedLink href={way.href || '/contact#form'} className="program-card-link">
                       {way.linkText} →
                     </LocalizedLink>
                   </div>
@@ -182,13 +213,21 @@ export default async function SupportPage() {
           </div>
         </div>
       </section>
+      ) : null}
 
+      {show('transparency') || show('standards') ? (
       <section className="page-section section-reveal bg-slate-50">
         <div className="page-section-container">
           <div className="two-col-section">
+            {show('transparency') ? (
             <div className="insight-card p-0">
               <div className="premium-card-image-wrapper premium-card-image-wrapper--insight-top">
-                <Image src="/images/image (15).jpeg" alt="Transparency" fill className="object-cover" />
+                <Image
+                  src={resolveCmsImage(cms['support.transparency.image'], images.hero.support)}
+                  alt="Transparency"
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div className="insight-card-bar" />
               <div className="insight-card-body p-20">
@@ -210,7 +249,9 @@ export default async function SupportPage() {
                 </div>
               </div>
             </div>
+            ) : <div />}
 
+            {show('standards') ? (
             <div className="flex flex-col justify-center">
               <span className="section-badge">{cms['support.standards.badge']}</span>
               <h2 className="page-section-heading">{cms['support.standards.heading']}</h2>
@@ -226,16 +267,20 @@ export default async function SupportPage() {
                 ))}
               </ul>
             </div>
+            ) : null}
           </div>
         </div>
       </section>
+      ) : null}
 
+      {show('cta') ? (
       <PageCtaBand
         heading={cms['support.cta.heading']}
         body={cms['support.cta.body']}
-        primary={{ label: heroPrimaryCta.label, href: heroPrimaryCta.href }}
-        secondary={{ label: heroSecondaryCta.label, href: heroSecondaryCta.href, variant: 'outline-white' }}
+        primary={{ label: bottomPrimary.label, href: bottomPrimary.href }}
+        secondary={{ label: bottomSecondary.label, href: bottomSecondary.href, variant: 'outline-white' }}
       />
+      ) : null}
     </div>
   )
 }

@@ -8,60 +8,33 @@ import LocalizedLink from './LocalizedLink'
 import MobileMenuSheet, { type MobileMenuLink } from './MobileMenuSheet'
 import { useI18n } from './I18nProvider'
 import { localizedPath, stripLocalePrefix } from '../lib/locale-path'
+import {
+  DEFAULT_PRIMARY_NAV,
+  DEFAULT_SHEET_NAV,
+  splitHref,
+  type CmsNavLink,
+} from '../lib/cms/nav'
 
-const navLinks = [
-  { key: 'nav.home', href: '/' },
-  { key: 'nav.about', href: '/about' },
-  { key: 'nav.programs', href: '/programs' },
-  { key: 'nav.events', href: '/events' },
-  { key: 'nav.videos', href: '/videos' },
-  { key: 'nav.donate', href: '/support' },
-  { key: 'nav.contact', href: '/contact#form' },
-] as const
-
-const mobileSheetLinks = [
-  { key: 'nav.about', href: '/about' },
-  { key: 'nav.repatriation', href: '/repatriation' },
-  { key: 'nav.visit', href: '/visit' },
-  { key: 'nav.admissions', href: '/admissions' },
-  { key: 'nav.community', href: '/community' },
-  { key: 'nav.partnerships', href: '/partnerships' },
-  { key: 'nav.news', href: '/news' },
-  { key: 'nav.resources', href: '/resources' },
-  { key: 'nav.archives', href: '/archives' },
-  { key: 'nav.trustees', href: '/trustees' },
-  { key: 'nav.transparency', href: '/transparency' },
-  { key: 'nav.videos', href: '/videos' },
-  { key: 'nav.search', href: '/search' },
-  { key: 'nav.contact', href: '/contact#form' },
-  { key: 'nav.privacy', href: '/privacy' },
-  { key: 'nav.terms', href: '/terms' },
-] as const
-
-const compactTitles: Record<string, string> = {
-  '/about': 'About',
-  '/programs': 'Programs',
-  '/events': 'Events',
-  '/videos': 'Videos',
-  '/support': 'Support',
-  '/contact': 'Contact',
-  '/privacy': 'Privacy',
-  '/terms': 'Terms',
-  '/visit': 'Visit',
-  '/repatriation': 'Heal',
-  '/admissions': 'Admissions',
-  '/search': 'Search',
-}
-
-function compactTitleForPath(pathname: string): string | null {
+function compactTitleForPath(pathname: string, allLinks: CmsNavLink[]): string | null {
   const logical = stripLocalePrefix(pathname)
   if (logical === '/') return null
-  if (compactTitles[logical]) return compactTitles[logical]
+  const match = allLinks.find((link) => splitHref(link.href).path === logical)
+  if (match) return match.shortLabel || match.label
   if (logical.startsWith('/events/')) return 'Event'
   return null
 }
 
-export default function Navbar() {
+type NavbarProps = {
+  logoSrc?: string
+  primaryLinks?: CmsNavLink[]
+  sheetLinks?: CmsNavLink[]
+}
+
+export default function Navbar({
+  logoSrc = '/ananse-logo.png',
+  primaryLinks = DEFAULT_PRIMARY_NAV,
+  sheetLinks: sheetLinksCms = DEFAULT_SHEET_NAV,
+}: NavbarProps) {
   const pathname = usePathname()
   const logicalPath = stripLocalePrefix(pathname)
   const { locale, translate } = useI18n()
@@ -71,14 +44,23 @@ export default function Navbar() {
 
   const sheetLinks: readonly MobileMenuLink[] = useMemo(
     () =>
-      mobileSheetLinks.map((link) => ({
-        name: translate(link.key),
-        href: localizedPath(link.href.split('#')[0], locale) + (link.href.includes('#') ? '#form' : ''),
-      })),
-    [locale, translate],
+      sheetLinksCms.map((link) => {
+        const { path, hash } = splitHref(link.href)
+        return {
+          name: link.label,
+          href: localizedPath(path, locale) + hash,
+        }
+      }),
+    [locale, sheetLinksCms],
   )
 
-  const compactTitle = useMemo(() => compactTitleForPath(pathname), [pathname])
+  const allNavLinks = useMemo(() => [...primaryLinks, ...sheetLinksCms], [primaryLinks, sheetLinksCms])
+  const compactTitle = useMemo(() => compactTitleForPath(pathname, allNavLinks), [pathname, allNavLinks])
+  const donateLink = primaryLinks.find(
+    (link) => /donate|support/i.test(link.label) || link.href.startsWith('/support'),
+  )
+  const donateHref = donateLink?.href || '/support'
+  const donateLabel = donateLink?.label || translate('nav.donate')
 
   useEffect(() => {
     const handle = () => setIsScrolled(window.scrollY > 12)
@@ -94,7 +76,7 @@ export default function Navbar() {
     >
       <div className="navbar-container">
         <Link href={localizedPath('/', locale)} className="navbar-logo tap-target">
-          <img src="/ananse-logo.png" alt="Ananse Center Logo" className="navbar-logo-img" />
+          <img src={logoSrc} alt="Ananse Center Logo" className="navbar-logo-img" />
         </Link>
 
         {compactTitle && isScrolled ? (
@@ -104,20 +86,19 @@ export default function Navbar() {
         ) : null}
 
         <div className="nav-desktop">
-          {navLinks.map((link) => {
-            const base = link.href.split('#')[0]
-            const hash = link.href.includes('#') ? '#form' : ''
+          {primaryLinks.map((link) => {
+            const { path, hash } = splitHref(link.href)
             const active =
-              logicalPath === base ||
-              (link.href === '/contact#form' && logicalPath.startsWith('/contact'))
+              logicalPath === path ||
+              (path === '/contact' && logicalPath.startsWith('/contact'))
             return (
               <Link
-                key={link.key}
-                href={localizedPath(base, locale) + hash}
+                key={`${link.label}-${link.href}`}
+                href={localizedPath(path, locale) + hash}
                 className={`navbar-link${active ? ' navbar-link-active' : ''}`}
                 aria-current={active ? 'page' : undefined}
               >
-                {translate(link.key)}
+                {link.label}
               </Link>
             )
           })}
@@ -129,8 +110,11 @@ export default function Navbar() {
           >
             <Search size={18} strokeWidth={2} aria-hidden />
           </LocalizedLink>
-          <Link href={localizedPath('/support', locale)} className="btn-primary navbar-cta">
-            {translate('nav.donate')}
+          <Link
+            href={localizedPath(splitHref(donateHref).path, locale) + splitHref(donateHref).hash}
+            className="btn-primary navbar-cta"
+          >
+            {donateLabel}
           </Link>
         </div>
 
@@ -150,7 +134,7 @@ export default function Navbar() {
         onClose={closeMenu}
         links={sheetLinks}
         title={translate('nav.more')}
-        donateLabel={translate('nav.donateNow')}
+        donateLabel={donateLabel}
       />
     </nav>
   )

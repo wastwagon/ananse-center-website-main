@@ -8,7 +8,6 @@ import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import type { CmsHeroCta, CmsHeroStat, CmsHeroTitle } from '../../../lib/cms/registry'
 import FeatureIcon from '../../../components/FeatureIcon'
 import { submitContactMessage } from '../../../lib/api'
-import { images } from '../../../lib/images'
 import type { PublicSiteProfile } from '../../../lib/site-profile'
 import type { LucideIcon } from 'lucide-react'
 
@@ -18,6 +17,8 @@ type ContactPageClientProps = {
   heroStats: CmsHeroStat[]
   heroPrimaryCta: CmsHeroCta
   heroSecondaryCta: CmsHeroCta
+  heroImageSrc: string
+  heroImageAlt: string
   formHeading: string
   formSubjects: string[]
   mapHeading: string
@@ -37,6 +38,8 @@ export default function ContactPageClient({
   heroStats,
   heroPrimaryCta,
   heroSecondaryCta,
+  heroImageSrc,
+  heroImageAlt,
   formHeading,
   formSubjects,
   mapHeading,
@@ -89,8 +92,8 @@ export default function ContactPageClient({
     <div className="contact-page">
       <HeroSplit
         compact
-        imageSrc={images.hero.contact}
-        imageAlt="Connect with The Ananse Center"
+        imageSrc={heroImageSrc}
+        imageAlt={heroImageAlt}
         title={renderSplitHeroTitle(heroTitle)}
         description={heroLead}
         primaryCta={heroPrimaryCta}

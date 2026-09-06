@@ -3,6 +3,13 @@
 /** Next/Image sizes for responsive card grids (2 col mobile → 4 col desktop). */
 export const cardImageSizes = '(max-width: 639px) 50vw, (max-width: 899px) 50vw, 25vw'
 
+/** Resolve a CMS image path (public file or /api/media/...) with a safe fallback. */
+export function resolveCmsImage(path: string | undefined | null, fallback: string): string {
+  const trimmed = path?.trim()
+  if (!trimmed) return fallback
+  return trimmed
+}
+
 export const images = {
   hero: {
     home: '/images/image (20).jpeg',
@@ -63,6 +70,17 @@ export function resolveProgramCoverImage(
   program: { sortOrder: number; coverImageUrl?: string | null },
 ): string {
   return program.coverImageUrl || programImageForOrder(program.sortOrder)
+}
+
+export function resolveNewsCoverImage(
+  post: { coverImageUrl?: string | null; slug?: string },
+  fallbackIndex = 0,
+): string {
+  if (post.coverImageUrl) return post.coverImageUrl
+  const catalog = images.programCatalog.length
+    ? images.programCatalog
+    : [images.hero.home]
+  return catalog[fallbackIndex % catalog.length]
 }
 
 export function eventImageForSlug(slug: string): string {

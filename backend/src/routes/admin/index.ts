@@ -15,10 +15,12 @@ import { adminArchiveRoutes } from './archives.js'
 import { adminExportRoutes } from './export.js'
 import { adminUserRoutes } from './users.js'
 import { adminNewsRoutes } from './news.js'
+import { adminAnalyticsRoutes } from './analytics.js'
 
 export async function adminRoutes(app: FastifyInstance) {
   await app.register(adminAuthRoutes)
   await app.register(adminDashboardRoutes)
+  await app.register(adminAnalyticsRoutes)
   await app.register(adminSettingsRoutes)
   await app.register(adminSystemRoutes)
   await app.register(adminContentRoutes)

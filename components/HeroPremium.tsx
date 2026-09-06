@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import LocalizedLink from './LocalizedLink'
+import AnimatedHeroStats from './AnimatedHeroStats'
 import { site } from '../lib/site'
 import { images } from '../lib/images'
 import { renderHomeHeroTitle } from '../lib/cms/hero'
@@ -14,24 +15,36 @@ type HeroPremiumProps = {
   stats: readonly CmsHeroStat[]
   primaryCta: CmsHeroCta
   secondaryCta: CmsHeroCta
+  trustLine?: string
+  imageSrc?: string
+  imageAlt?: string
 }
 
-export default function HeroPremium({ lead, title, stats, primaryCta, secondaryCta }: HeroPremiumProps) {
+export default function HeroPremium({
+  lead,
+  title,
+  stats,
+  primaryCta,
+  secondaryCta,
+  trustLine,
+  imageSrc = images.hero.home,
+  imageAlt = 'Community gathering at The Ananse Center for Arts and Culture',
+}: HeroPremiumProps) {
   return (
     <section className="hero-premium" aria-labelledby="hero-heading">
-      <div className="hero-premium-media" aria-hidden>
+      <div className="hero-premium-media">
         <Image
-          src={images.hero.home}
-          alt="Community gathering at The Ananse Center for Arts and Culture"
+          src={imageSrc}
+          alt={imageAlt}
           fill
           priority
           quality={92}
           className="hero-premium-photo"
           sizes="100vw"
         />
-        <div className="hero-premium-shade" />
-        <div className="hero-premium-glow" />
-        <div className="hero-premium-grain" />
+        <div className="hero-premium-shade" aria-hidden="true" />
+        <div className="hero-premium-glow" aria-hidden="true" />
+        <div className="hero-premium-grain" aria-hidden="true" />
       </div>
 
       <div className="hero-premium-inner">
@@ -56,16 +69,11 @@ export default function HeroPremium({ lead, title, stats, primaryCta, secondaryC
               {secondaryCta.label}
             </LocalizedLink>
           </div>
+
+          {trustLine ? <p className="hero-premium-trust">{trustLine}</p> : null}
         </div>
 
-        <div className="hero-premium-stats" role="list">
-          {stats.map((stat) => (
-            <div key={stat.label} className="hero-premium-stat" role="listitem">
-              <span className="hero-premium-stat-value">{stat.value}</span>
-              <span className="hero-premium-stat-label">{stat.label}</span>
-            </div>
-          ))}
-        </div>
+        <AnimatedHeroStats stats={stats} />
       </div>
 
       <a href="#our-story" className="hero-premium-scroll">

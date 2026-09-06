@@ -1,6 +1,7 @@
 import ContentPageHero from './ContentPageHero'
+import CmsRichText from './CmsRichText'
 import LocalizedLink from './LocalizedLink'
-import { splitParagraphs } from '../lib/cms/content'
+import { getCmsTexts } from '../lib/cms/content'
 import { localizedUiText, t } from '../lib/i18n'
 import { getServerLocale } from '../lib/locale-server'
 
@@ -24,11 +25,13 @@ export default async function PolicyPageLayout({
   bodyKey,
 }: PolicyPageLayoutProps) {
   const locale = await getServerLocale()
+  const cms = await getCmsTexts(['legal.cta.contact', 'legal.cta.home'] as const)
   const displayBadge = localizedUiText('legal.badge', badge, locale)
   const displayHeading = localizedUiText(headingKey, heading, locale)
   const displayLead = localizedUiText(leadKey, lead, locale)
   const displayBody = localizedUiText(bodyKey, body, locale)
-  const paragraphs = splitParagraphs(displayBody)
+  const contactLabel = locale === 'en' ? cms['legal.cta.contact'] : t('policy.contact', locale)
+  const homeLabel = locale === 'en' ? cms['legal.cta.home'] : t('policy.home', locale)
 
   return (
     <article className="content-page content-page--legal">
@@ -36,20 +39,14 @@ export default async function PolicyPageLayout({
 
       <section className="page-section page-section--muted section-reveal">
         <div className="page-section-container content-prose">
-          <div className="content-prose-body">
-            {paragraphs.map((paragraph) => (
-              <p key={paragraph.slice(0, 48)} className="page-body-text content-prose-p">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          <CmsRichText body={displayBody} className="content-prose-body" />
 
           <div className="content-actions">
             <LocalizedLink href="/contact#form" className="btn-primary">
-              {t('policy.contact', locale)}
+              {contactLabel}
             </LocalizedLink>
             <LocalizedLink href="/" className="btn-outline">
-              {t('policy.home', locale)}
+              {homeLabel}
             </LocalizedLink>
           </div>
         </div>

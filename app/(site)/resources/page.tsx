@@ -1,14 +1,11 @@
 import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
-import { buildPageMetadata } from '../../../lib/page-meta'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
 import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 import { DEFAULT_CSO_DIRECTORY, type CmsCsoEntry } from '../../../lib/cms/static-pages'
 
-export const metadata = buildPageMetadata({
-  title: 'CSO & Partner Directory',
-  description:
-    'Civil society and development partners in Ghana’s Central Region — a regional resource hub.',
-  path: '/resources',
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('resources')
+}
 
 export default async function ResourcesPage() {
   const cms = await getCmsTexts([

@@ -5,10 +5,17 @@ import { slugify } from '../../lib/slug.js'
 import { parseHighlights } from '../../lib/event-map.js'
 import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 
+const registrationStatusSchema = z.enum(['auto', 'open', 'closed', 'waitlist', 'completed'])
+
 const eventBodySchema = z.object({
   title: z.string().min(2).max(200),
   description: z.string().min(10),
   dateLabel: z.string().min(2).max(120),
+  startsAt: z.union([z.string().min(1), z.null()]).optional(),
+  endsAt: z.union([z.string().min(1), z.null()]).optional(),
+  timeLabel: z.string().max(120).optional(),
+  capacity: z.number().int().positive().optional().nullable(),
+  registrationStatus: registrationStatusSchema.optional(),
   location: z.string().min(2).max(200),
   venue: z.string().max(200).optional(),
   type: z.string().min(2).max(80),
@@ -22,12 +29,24 @@ const eventBodySchema = z.object({
   coverMediaId: z.string().cuid().optional().nullable(),
 })
 
+function parseOptionalDate(value: string | null | undefined): Date | null | undefined {
+  if (value === undefined) return undefined
+  if (value === null || value === '') return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
 function mapEvent(event: {
   id: string
   title: string
   slug: string
   description: string
   dateLabel: string
+  startsAt: Date | null
+  endsAt: Date | null
+  timeLabel: string
+  capacity: number | null
+  registrationStatus: string
   location: string
   venue: string
   type: string
@@ -47,6 +66,11 @@ function mapEvent(event: {
     slug: event.slug,
     description: event.description,
     dateLabel: event.dateLabel,
+    startsAt: event.startsAt?.toISOString() ?? null,
+    endsAt: event.endsAt?.toISOString() ?? null,
+    timeLabel: event.timeLabel,
+    capacity: event.capacity,
+    registrationStatus: event.registrationStatus,
     location: event.location,
     venue: event.venue,
     type: event.type,
@@ -97,6 +121,11 @@ export async function adminEventRoutes(app: FastifyInstance) {
         slug,
         description: data.description,
         dateLabel: data.dateLabel,
+        startsAt: parseOptionalDate(data.startsAt) ?? null,
+        endsAt: parseOptionalDate(data.endsAt) ?? null,
+        timeLabel: data.timeLabel ?? '',
+        capacity: data.capacity ?? null,
+        registrationStatus: data.registrationStatus ?? 'auto',
         location: data.location,
         venue: data.venue ?? '',
         type: data.type,
@@ -137,6 +166,13 @@ export async function adminEventRoutes(app: FastifyInstance) {
         ...(slug !== undefined ? { slug } : {}),
         ...(data.description !== undefined ? { description: data.description } : {}),
         ...(data.dateLabel !== undefined ? { dateLabel: data.dateLabel } : {}),
+        ...(data.startsAt !== undefined ? { startsAt: parseOptionalDate(data.startsAt) ?? null } : {}),
+        ...(data.endsAt !== undefined ? { endsAt: parseOptionalDate(data.endsAt) ?? null } : {}),
+        ...(data.timeLabel !== undefined ? { timeLabel: data.timeLabel } : {}),
+        ...(data.capacity !== undefined ? { capacity: data.capacity } : {}),
+        ...(data.registrationStatus !== undefined
+          ? { registrationStatus: data.registrationStatus }
+          : {}),
         ...(data.location !== undefined ? { location: data.location } : {}),
         ...(data.venue !== undefined ? { venue: data.venue } : {}),
         ...(data.type !== undefined ? { type: data.type } : {}),

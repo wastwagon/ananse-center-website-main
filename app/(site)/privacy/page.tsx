@@ -1,13 +1,10 @@
 import PolicyPageLayout from '../../../components/PolicyPageLayout'
-import { buildPageMetadata } from '../../../lib/page-meta'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
 import { getCmsTexts } from '../../../lib/cms/content'
 
-export const metadata = buildPageMetadata({
-  title: 'Privacy Policy',
-  description:
-    'How The Ananse Center collects, uses, and protects your personal information.',
-  path: '/privacy',
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('privacy')
+}
 
 export default async function PrivacyPage() {
   const cms = await getCmsTexts([

@@ -14,6 +14,7 @@ import { registrationRoutes } from './routes/registrations.js'
 import { communityRoutes } from './routes/community.js'
 import { archiveRoutes } from './routes/archives.js'
 import { newsRoutes } from './routes/news.js'
+import { analyticsRoutes } from './routes/analytics.js'
 import { adminRoutes } from './routes/admin/index.js'
 import { mediaRoutes } from './routes/media.js'
 import { ensureUploadDir, maxUploadBytes } from './lib/media-path.js'
@@ -74,6 +75,7 @@ await app.register(registrationRoutes)
 await app.register(communityRoutes)
 await app.register(archiveRoutes)
 await app.register(newsRoutes)
+await app.register(analyticsRoutes)
 await app.register(adminRoutes)
 
 try {

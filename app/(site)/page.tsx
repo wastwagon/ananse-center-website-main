@@ -1,17 +1,18 @@
-import type { Metadata } from 'next'
 import Image from 'next/image'
 import LocalizedLink from '../../components/LocalizedLink'
 import HeroPremium from '../../components/HeroPremium'
-import { buildPageMetadata } from '../../lib/page-meta'
+import CmsRichText from '../../components/CmsRichText'
+import { buildCmsMetadata } from '../../lib/cms/seo'
 import { formatEventDateDisplay } from '../../lib/format'
 import GlobalAudienceBand from '../../components/GlobalAudienceBand'
 import StudyHealGiveBand from '../../components/StudyHealGiveBand'
 import FeatureIcon from '../../components/FeatureIcon'
 import EventTypeIcon from '../../components/EventTypeIcon'
 import { cmsIconForKey } from '../../lib/cms-icons'
-import { cardImageSizes, images } from '../../lib/images'
+import { cardImageSizes, images, resolveCmsImage } from '../../lib/images'
 import { getFeaturedEventsForHome } from '../../lib/featured-events'
 import { getSankofaProgramsForHome } from '../../lib/sankofa-programs'
+import { DEFAULT_HOME_SECTIONS, isSectionVisible, parseSectionVisibility } from '../../lib/cms/sections'
 import {
   DEFAULT_HOME_PILLARS,
   DEFAULT_HOME_SECTORS,
@@ -24,7 +25,6 @@ import {
   DEFAULT_HOME_TESTIMONIALS,
   getCmsTexts,
   parseCmsJson,
-  splitParagraphs,
   type CmsHeroCta,
   type CmsHeroStat,
   type CmsHomeHeroTitle,
@@ -34,18 +34,17 @@ import {
   type CmsTestimonial,
 } from '../../lib/cms/content'
 
-export const metadata: Metadata = buildPageMetadata({
-  title: 'Home',
-  description:
-    'The Ananse Center for Arts and Culture — Sankofa programs, events, and Pan-African leadership development in Accra and across the diaspora.',
-  path: '/',
-  ogImage: images.hero.home,
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('home', { ogImage: images.hero.home })
+}
 
 export default async function Home() {
   const [cms, featuredEvents, sankofaPrograms] = await Promise.all([
     getCmsTexts([
       'home.hero.lead',
+      'home.hero.trust',
+      'home.hero.image',
+      'home.hero.imageAlt',
       'home.hero.title',
       'home.hero.stats',
       'home.hero.cta.primary',
@@ -82,6 +81,7 @@ export default async function Home() {
       'home.programs.cardCta',
       'home.events.cardCta',
       'home.events.calendarLink',
+      'home.sections.visible',
     ] as const),
     getFeaturedEventsForHome(),
     getSankofaProgramsForHome(),
@@ -94,7 +94,6 @@ export default async function Home() {
     DEFAULT_HOME_HERO_CTA_SECONDARY,
   )
   const homeCtaButtons = parseCmsJson<CmsHeroCta[]>(cms['home.cta.buttons'], DEFAULT_HOME_CTA_BUTTONS)
-  const storyParagraphs = splitParagraphs(cms['home.story'])
   const storyHighlights = parseCmsJson<CmsStoryHighlight[]>(
     cms['home.story.highlights'],
     DEFAULT_HOME_STORY_HIGHLIGHTS,
@@ -105,72 +104,118 @@ export default async function Home() {
     cms['home.testimonials'],
     DEFAULT_HOME_TESTIMONIALS,
   )
+  const sectionVisibility = parseSectionVisibility(cms['home.sections.visible'], DEFAULT_HOME_SECTIONS)
+  const showSection = (key: string) => isSectionVisible(sectionVisibility, key)
 
   return (
     <div>
       <HeroPremium
         lead={cms['home.hero.lead']}
+        trustLine={cms['home.hero.trust']}
+        imageSrc={resolveCmsImage(cms['home.hero.image'], images.hero.home)}
+        imageAlt={cms['home.hero.imageAlt']}
         title={homeHeroTitle}
         stats={homeHeroStats}
         primaryCta={homeHeroPrimaryCta}
         secondaryCta={homeHeroSecondaryCta}
       />
 
-      <GlobalAudienceBand />
+      {showSection('globalBand') ? <GlobalAudienceBand /> : null}
 
-      <StudyHealGiveBand />
+      {showSection('journey') ? <StudyHealGiveBand /> : null}
 
-      <section id="our-story" className="page-section bg-white section-reveal">
-        <div className="page-section-container">
-          <div className="two-col-section">
-            <div>
-              <span className="section-badge">{cms['home.story.badge']}</span>
-              <h2 className="page-section-heading">{cms['home.story.heading']}</h2>
-              <div className="page-body-stack">
-                {storyParagraphs.map((paragraph) => (
-                  <p key={paragraph.slice(0, 40)} className="page-body-text">
-                    {paragraph}
-                  </p>
-                ))}
+      {showSection('story') ? (
+        <section id="our-story" className="page-section bg-white section-reveal">
+          <div className="page-section-container">
+            <div className="two-col-section">
+              <div>
+                <span className="section-badge">{cms['home.story.badge']}</span>
+                <h2 className="page-section-heading">{cms['home.story.heading']}</h2>
+                <CmsRichText body={cms['home.story']} className="cms-richtext" />
+                <LocalizedLink href="/about" className="btn-primary page-inline-cta">
+                  {cms['home.story.cta']}
+                </LocalizedLink>
               </div>
-              <LocalizedLink href="/about" className="btn-primary page-inline-cta">
-                {cms['home.story.cta']}
+              <div className="about-visual-card">
+                <div className="about-visual-grid">
+                  {storyHighlights.map((item) => {
+                    const Icon = cmsIconForKey(item.iconKey)
+                    return (
+                      <div key={item.label} className="about-mini-card">
+                        <FeatureIcon icon={Icon} variant="gold" />
+                        <p className="about-mini-label">{item.label}</p>
+                        <p className="about-mini-sub">{item.sub}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {showSection('pillars') ? (
+        <section className="page-section page-section--muted section-reveal">
+          <div className="page-section-container">
+            <div className="page-section-center-header">
+              <span className="section-badge">{cms['home.pillars.badge']}</span>
+              <h2 className="page-section-heading">{cms['home.pillars.heading']}</h2>
+              <p className="page-body-text">{cms['home.pillars.lead']}</p>
+            </div>
+            <div className="grid-cards">
+              {pillars.map((goal, idx) => {
+                const Icon = cmsIconForKey(goal.iconKey)
+                return (
+                  <article key={goal.title} className="premium-card">
+                    <div className="premium-card-image-wrapper">
+                      <Image
+                        src={resolveCmsImage(goal.imageUrl, images.goals[idx % images.goals.length])}
+                        alt={`${goal.title} — Ananse Center program pillar`}
+                        fill
+                        loading="lazy"
+                        className="object-cover"
+                        sizes={cardImageSizes}
+                      />
+                    </div>
+                    <div className="premium-card-header">
+                      <div className="premium-card-icon-box">
+                        <Icon size={22} strokeWidth={1.75} />
+                      </div>
+                    </div>
+                    <h3 className="premium-card-title">{goal.title}</h3>
+                    <p className="premium-card-description">{goal.description}</p>
+                    <LocalizedLink href="/about" className="btn-secondary premium-card-cta">
+                      {cms['home.pillars.cardCta']}
+                    </LocalizedLink>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {showSection('programs') ? (
+        <section className="page-section bg-white section-reveal">
+          <div className="page-section-container">
+            <div className="section-header-split">
+              <div>
+                <span className="section-badge">{cms['home.programs.badge']}</span>
+                <h2 className="page-section-heading">{cms['home.programs.heading']}</h2>
+                <p className="page-body-text">{cms['home.programs.lead']}</p>
+              </div>
+              <LocalizedLink href="/programs" className="btn-outline page-section-cta-link">
+                {cms['home.programs.link']}
               </LocalizedLink>
             </div>
-            <div className="about-visual-card">
-              <div className="about-visual-grid">
-                {storyHighlights.map((item) => {
-                  const Icon = cmsIconForKey(item.iconKey)
-                  return (
-                    <div key={item.label} className="about-mini-card">
-                      <FeatureIcon icon={Icon} variant="gold" />
-                      <p className="about-mini-label">{item.label}</p>
-                      <p className="about-mini-sub">{item.sub}</p>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="page-section page-section--muted section-reveal">
-        <div className="page-section-container">
-          <div className="page-section-center-header">
-            <span className="section-badge">{cms['home.pillars.badge']}</span>
-            <h2 className="page-section-heading">{cms['home.pillars.heading']}</h2>
-            <p className="page-body-text">{cms['home.pillars.lead']}</p>
-          </div>
-          <div className="grid-cards">
-            {pillars.map((goal, idx) => {
-              const Icon = cmsIconForKey(goal.iconKey)
-              return (
-                <article key={goal.title} className="premium-card">
+            <div className="grid-cards">
+              {sankofaPrograms.map((prog, idx) => (
+                <article key={prog.title} className="premium-card">
                   <div className="premium-card-image-wrapper">
                     <Image
-                      src={images.goals[idx % images.goals.length]}
-                      alt={`${goal.title} — Ananse Center program pillar`}
+                      src={images.programs[idx % images.programs.length]}
+                      alt={`${prog.title} — Sankofa program at Ananse Center`}
                       fill
                       loading="lazy"
                       className="object-cover"
@@ -179,170 +224,149 @@ export default async function Home() {
                   </div>
                   <div className="premium-card-header">
                     <div className="premium-card-icon-box">
-                      <Icon size={22} strokeWidth={1.75} />
+                      <prog.icon size={22} strokeWidth={1.75} />
                     </div>
+                    <span className="premium-card-featured-label">{cms['home.programs.cardLabel']}</span>
                   </div>
-                  <h3 className="premium-card-title">{goal.title}</h3>
-                  <p className="premium-card-description">{goal.description}</p>
-                  <LocalizedLink href="/about" className="btn-secondary premium-card-cta">
-                    {cms['home.pillars.cardCta']}
+                  <h3 className="premium-card-title">{prog.title}</h3>
+                  <p className="premium-card-description">{prog.description}</p>
+                  <LocalizedLink href={prog.href} className="btn-primary premium-card-cta">
+                    {cms['home.programs.cardCta']}
                   </LocalizedLink>
                 </article>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="page-section bg-white section-reveal">
-        <div className="page-section-container">
-          <div className="section-header-split">
-            <div>
-              <span className="section-badge">{cms['home.programs.badge']}</span>
-              <h2 className="page-section-heading">{cms['home.programs.heading']}</h2>
-              <p className="page-body-text">{cms['home.programs.lead']}</p>
+              ))}
             </div>
-            <LocalizedLink href="/programs" className="btn-outline page-section-cta-link">
-              {cms['home.programs.link']}
-            </LocalizedLink>
           </div>
-          <div className="grid-cards">
-            {sankofaPrograms.map((prog, idx) => (
-              <article key={prog.title} className="premium-card">
-                <div className="premium-card-image-wrapper">
-                  <Image
-                    src={images.programs[idx % images.programs.length]}
-                    alt={`${prog.title} — Sankofa program at Ananse Center`}
-                    fill
-                    loading="lazy"
-                    className="object-cover"
-                    sizes={cardImageSizes}
-                  />
-                </div>
-                <div className="premium-card-header">
-                  <div className="premium-card-icon-box">
-                    <prog.icon size={22} strokeWidth={1.75} />
+        </section>
+      ) : null}
+
+      {showSection('events') ? (
+        <section className="page-section page-section--muted section-reveal">
+          <div className="page-section-container">
+            <div className="page-section-center-header">
+              <span className="section-badge">{cms['home.events.badge']}</span>
+              <h2 className="page-section-heading">{cms['home.events.heading']}</h2>
+              <p className="page-body-text">{cms['home.events.lead']}</p>
+            </div>
+            <div className="grid-cards">
+              {featuredEvents.map((event) => (
+                <article key={event.slug} className="premium-card">
+                  <div className="premium-card-image-wrapper">
+                    <Image
+                      src={event.image}
+                      alt={event.title}
+                      fill
+                      className="object-cover"
+                      sizes={cardImageSizes}
+                    />
                   </div>
-                  <span className="premium-card-featured-label">{cms['home.programs.cardLabel']}</span>
-                </div>
-                <h3 className="premium-card-title">{prog.title}</h3>
-                <p className="premium-card-description">{prog.description}</p>
-                <LocalizedLink href={prog.href} className="btn-primary premium-card-cta">
-                  {cms['home.programs.cardCta']}
-                </LocalizedLink>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="page-section page-section--muted section-reveal">
-        <div className="page-section-container">
-          <div className="page-section-center-header">
-            <span className="section-badge">{cms['home.events.badge']}</span>
-            <h2 className="page-section-heading">{cms['home.events.heading']}</h2>
-            <p className="page-body-text">{cms['home.events.lead']}</p>
-          </div>
-          <div className="grid-cards">
-            {featuredEvents.map((event) => (
-              <article key={event.slug} className="premium-card">
-                <div className="premium-card-image-wrapper">
-                  <Image
-                    src={event.image}
-                    alt={event.title}
-                    fill
-                    className="object-cover"
-                    sizes={cardImageSizes}
-                  />
-                </div>
-                <div className="premium-card-header">
-                  <EventTypeIcon type={event.type} />
-                  <span className="premium-card-featured-label">{event.type}</span>
-                </div>
-                <h3 className="premium-card-title">{event.title}</h3>
-                <div className="premium-card-meta">
-                  <span className="premium-card-date">{formatEventDateDisplay(event.date)}</span>
-                  <span className="text-slate-300">·</span>
-                  <span className="premium-card-location">{event.location}</span>
-                </div>
-                <p className="premium-card-description">{event.description}</p>
-                <LocalizedLink href={`/events/${event.slug}`} className="btn-primary premium-card-cta">
-                  {cms['home.events.cardCta']}
-                </LocalizedLink>
-              </article>
-            ))}
-          </div>
-          <p className="text-center mt-section">
-            <LocalizedLink href="/events" className="btn-outline">
-              {cms['home.events.calendarLink']}
-            </LocalizedLink>
-          </p>
-        </div>
-      </section>
-
-      <section className="page-section bg-white section-reveal">
-        <div className="page-section-container">
-          <div className="page-section-center-header">
-            <span className="section-badge">{cms['home.testimonials.badge']}</span>
-            <h2 className="page-section-heading">{cms['home.testimonials.heading']}</h2>
-            <p className="page-body-text">{cms['home.testimonials.lead']}</p>
-          </div>
-          <div className="grid-cards">
-            {impactStories.map((story) => (
-              <div key={story.name} className="testimonial-card">
-                <span className="insight-card-tag">{story.tag}</span>
-                <div className="testimonial-quote-mark">&ldquo;</div>
-                <p className="testimonial-text">{story.quote}</p>
-                <div className="testimonial-footer">
-                  <div className="testimonial-avatar" aria-hidden>
-                    {story.name.charAt(0)}
+                  <div className="premium-card-header">
+                    <EventTypeIcon type={event.type} />
+                    <span className="premium-card-featured-label">{event.type}</span>
                   </div>
-                  <p className="testimonial-name">{story.name}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="page-section page-section--muted section-reveal">
-        <div className="page-section-container">
-          <div className="page-section-center-header">
-            <span className="section-badge">{cms['home.sectors.badge']}</span>
-            <h2 className="page-section-heading">{cms['home.sectors.heading']}</h2>
-            <p className="page-body-text">{cms['home.sectors.lead']}</p>
-          </div>
-          <div className="grid-sectors sectors-grid">
-            {sectors.map((sector) => {
-              const Icon = cmsIconForKey(sector.iconKey)
-              return (
-                <div key={sector.name} className="sector-card">
-                  <FeatureIcon icon={Icon} variant="gold" size={22} />
-                  <p className="sector-name">{sector.name}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="page-cta-section section-reveal">
-        <div className="page-section-container page-cta-inner">
-          <h2 className="page-cta-heading">{cms['home.cta.heading']}</h2>
-          <p className="page-cta-body">{cms['home.cta.body']}</p>
-          <div className="page-cta-buttons">
-            {homeCtaButtons.map((btn, index) => (
-              <LocalizedLink
-                key={btn.label}
-                href={btn.href}
-                className={index === 0 ? 'btn-primary page-cta-btn' : 'btn-outline-white page-cta-btn'}
-              >
-                {btn.label}
+                  <h3 className="premium-card-title">{event.title}</h3>
+                  <div className="premium-card-meta">
+                    <span className="premium-card-date">{formatEventDateDisplay(event.date)}</span>
+                    <span className="text-slate-300">·</span>
+                    <span className="premium-card-location">{event.location}</span>
+                  </div>
+                  <p className="premium-card-description">{event.description}</p>
+                  <LocalizedLink href={`/events/${event.slug}`} className="btn-primary premium-card-cta">
+                    {cms['home.events.cardCta']}
+                  </LocalizedLink>
+                </article>
+              ))}
+            </div>
+            <p className="text-center mt-section">
+              <LocalizedLink href="/events" className="btn-outline">
+                {cms['home.events.calendarLink']}
               </LocalizedLink>
-            ))}
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
+
+      {showSection('testimonials') ? (
+        <section className="page-section bg-white section-reveal">
+          <div className="page-section-container">
+            <div className="page-section-center-header">
+              <span className="section-badge">{cms['home.testimonials.badge']}</span>
+              <h2 className="page-section-heading">{cms['home.testimonials.heading']}</h2>
+              <p className="page-body-text">{cms['home.testimonials.lead']}</p>
+            </div>
+            <div className="grid-cards">
+              {impactStories.map((story) => (
+                <div key={story.name} className="testimonial-card">
+                  <span className="insight-card-tag">{story.tag}</span>
+                  <div className="testimonial-quote-mark">&ldquo;</div>
+                  <p className="testimonial-text">{story.quote}</p>
+                  <div className="testimonial-footer">
+                    {story.photoUrl ? (
+                      <div className="testimonial-avatar testimonial-avatar--photo" aria-hidden>
+                        <Image
+                          src={story.photoUrl}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="48px"
+                        />
+                      </div>
+                    ) : (
+                      <div className="testimonial-avatar" aria-hidden>
+                        {story.name.charAt(0)}
+                      </div>
+                    )}
+                    <p className="testimonial-name">{story.name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {showSection('sectors') ? (
+        <section className="page-section page-section--muted section-reveal">
+          <div className="page-section-container">
+            <div className="page-section-center-header">
+              <span className="section-badge">{cms['home.sectors.badge']}</span>
+              <h2 className="page-section-heading">{cms['home.sectors.heading']}</h2>
+              <p className="page-body-text">{cms['home.sectors.lead']}</p>
+            </div>
+            <div className="grid-sectors sectors-grid">
+              {sectors.map((sector) => {
+                const Icon = cmsIconForKey(sector.iconKey)
+                return (
+                  <div key={sector.name} className="sector-card">
+                    <FeatureIcon icon={Icon} variant="gold" size={22} />
+                    <p className="sector-name">{sector.name}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {showSection('cta') ? (
+        <section className="page-cta-section section-reveal">
+          <div className="page-section-container page-cta-inner">
+            <h2 className="page-cta-heading">{cms['home.cta.heading']}</h2>
+            <p className="page-cta-body">{cms['home.cta.body']}</p>
+            <div className="page-cta-buttons">
+              {homeCtaButtons.map((btn, index) => (
+                <LocalizedLink
+                  key={btn.label}
+                  href={btn.href}
+                  className={index === 0 ? 'btn-primary page-cta-btn' : 'btn-outline-white page-cta-btn'}
+                >
+                  {btn.label}
+                </LocalizedLink>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 }

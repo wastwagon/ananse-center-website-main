@@ -1,15 +1,6 @@
-import type { Metadata } from 'next'
 import { fetchPrograms } from '../../../lib/api'
-import { buildPageMetadata } from '../../../lib/page-meta'
-import { images } from '../../../lib/images'
-
-export const metadata: Metadata = buildPageMetadata({
-  title: 'Programs',
-  description:
-    'Sankofa arts and culture programs for youth and community — in Accra and connecting with the global diaspora.',
-  path: '/programs',
-  ogImage: images.hero.programs,
-})
+import { buildCmsMetadata } from '../../../lib/cms/seo'
+import { images, resolveCmsImage } from '../../../lib/images'
 import {
   DEFAULT_PROGRAMS_HERO_CTA_PRIMARY,
   DEFAULT_PROGRAMS_HERO_CTA_SECONDARY,
@@ -21,6 +12,14 @@ import {
   type CmsHeroStat,
   type CmsHeroTitle,
 } from '../../../lib/cms/content'
+import {
+  DEFAULT_PROGRAMS_SECTIONS,
+  parseSectionVisibility,
+} from '../../../lib/cms/sections'
+
+export async function generateMetadata() {
+  return buildCmsMetadata('programs', { ogImage: images.hero.programs })
+}
 import LmsPortalBanner from '../../../components/LmsPortalBanner'
 import ProgramsPageClient, {
   type ProgramBenefit,
@@ -31,48 +30,52 @@ import { fallbackCatalogPrograms } from './programs-data'
 const DEFAULT_PROGRAM_BENEFITS: ProgramBenefit[] = [
   {
     title: 'Skill Development',
+    category: 'Education',
     description:
-      'Learn traditional and contemporary techniques from master practitioners with years of experience.',
+      'Learn practical cultural and creative skills from experienced practitioners through hands-on workshops, mentorship, and collaborative learning.',
     iconKey: 'Wrench',
   },
   {
     title: 'Cultural Connection',
+    category: 'Culture',
     description:
-      'Deepen your understanding and connection to African heritage through immersion and practice.',
+      'Deepen your connection to African heritage through storytelling, traditional arts, festivals, and immersive cultural practice.',
     iconKey: 'Globe',
   },
   {
     title: 'Community Building',
+    category: 'Community',
     description:
-      'Join a supportive network of learners, artists, and cultural enthusiasts from diverse backgrounds.',
+      'Join a supportive network of learners, artists, and volunteers working together to strengthen communities across Ghana and the diaspora.',
     iconKey: 'Users',
   },
   {
     title: 'Personal Growth',
+    category: 'Leadership',
     description:
-      'Discover new aspects of yourself through creative expression and ancestral wisdom.',
+      'Grow in confidence, purpose, and leadership through mentoring, creative expression, and ancestral wisdom applied to modern life.',
     iconKey: 'Sprout',
   },
 ]
 
 const DEFAULT_PROGRAM_TESTIMONIALS: ProgramTestimonial[] = [
   {
-    name: 'Ama Mensah',
-    role: 'Traditional Arts Student',
-    text: "Learning Adinkra symbols wasn't just about art—it was about understanding the wisdom of my ancestors. This program gave me a deeper connection to who I am.",
-    initials: 'AM',
+    name: 'Placeholder student',
+    role: 'Placeholder role',
+    text: 'Placeholder quote — replace with an approved student story (with permission). Optional photoUrl supported.',
+    initials: 'PS',
   },
   {
-    name: 'Kwame Johnson',
-    role: 'Music & Rhythm Student',
-    text: 'The drumming program changed my life. I found community, purpose, and a way to express emotions I did not know how to put into words.',
-    initials: 'KJ',
+    name: 'Placeholder student',
+    role: 'Placeholder role',
+    text: 'Placeholder quote — replace with an approved music or arts participant story.',
+    initials: 'PS',
   },
   {
-    name: 'Evelyn Davis',
-    role: 'Storytelling Participant',
-    text: 'As someone in the diaspora, this program helped me reconnect with my roots in the most beautiful way. I now carry these stories with pride.',
-    initials: 'ED',
+    name: 'Placeholder student',
+    role: 'Placeholder role',
+    text: 'Placeholder quote — replace with an approved diaspora or storytelling participant story.',
+    initials: 'PS',
   },
 ]
 
@@ -80,6 +83,8 @@ export default async function ProgramsPage() {
   const [cms, programs] = await Promise.all([
     getCmsTexts([
       'programs.hero.lead',
+      'programs.hero.image',
+      'programs.hero.imageAlt',
       'programs.hero.title',
       'programs.hero.stats',
       'programs.hero.cta.primary',
@@ -100,10 +105,15 @@ export default async function ProgramsPage() {
       'programs.testimonials',
       'programs.cta.heading',
       'programs.cta.body',
+      'programs.sections.visible',
     ] as const),
     fetchPrograms('catalog').catch(() => fallbackCatalogPrograms),
   ])
 
+  const sectionVisibility = parseSectionVisibility(
+    cms['programs.sections.visible'],
+    DEFAULT_PROGRAMS_SECTIONS,
+  )
   const heroTitle = parseCmsJson<CmsHeroTitle>(cms['programs.hero.title'], DEFAULT_PROGRAMS_HERO_TITLE)
   const heroStats = parseCmsJson<CmsHeroStat[]>(cms['programs.hero.stats'], DEFAULT_PROGRAMS_HERO_STATS)
   const heroPrimaryCta = parseCmsJson<CmsHeroCta>(cms['programs.hero.cta.primary'], DEFAULT_PROGRAMS_HERO_CTA_PRIMARY)
@@ -133,6 +143,8 @@ export default async function ProgramsPage() {
       heroStats={heroStats}
       heroPrimaryCta={heroPrimaryCta}
       heroSecondaryCta={heroSecondaryCta}
+      heroImageSrc={resolveCmsImage(cms['programs.hero.image'], images.hero.programs)}
+      heroImageAlt={cms['programs.hero.imageAlt']}
       catalogHeading={cms['programs.catalog.heading']}
       catalogLead={cms['programs.catalog.lead']}
       benefitsBadge={cms['programs.benefits.badge']}
@@ -150,6 +162,7 @@ export default async function ProgramsPage() {
       ctaHeading={cms['programs.cta.heading']}
       ctaBody={cms['programs.cta.body']}
       programs={programs}
+      sectionVisibility={sectionVisibility}
     />
     <LmsPortalBanner />
     </>

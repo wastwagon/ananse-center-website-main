@@ -1,10 +1,20 @@
 import { ImageResponse } from 'next/og'
 import { site } from '../lib/site'
+import { getCmsText } from '../lib/cms/content'
+import { loadCmsIconBytes } from '../lib/cms/icon-bytes'
 
 export const size = { width: 180, height: 180 }
 export const contentType = 'image/png'
 
-export default function AppleIcon() {
+export default async function AppleIcon() {
+  const cmsPath = await getCmsText('site.appleIcon')
+  const cmsIcon = await loadCmsIconBytes(cmsPath)
+  if (cmsIcon) {
+    return new Response(cmsIcon.data, {
+      headers: { 'Content-Type': cmsIcon.contentType },
+    })
+  }
+
   return new ImageResponse(
     (
       <div

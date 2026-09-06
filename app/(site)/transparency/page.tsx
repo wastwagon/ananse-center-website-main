@@ -1,14 +1,13 @@
 import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
-import { buildPageMetadata } from '../../../lib/page-meta'
-import { getCmsTexts, parseCmsJson, splitParagraphs } from '../../../lib/cms/content'
+import CmsRichText from '../../../components/CmsRichText'
+import { buildCmsMetadata } from '../../../lib/cms/seo'
+import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 import { DEFAULT_FINANCIAL_REPORTS, type CmsFinancialReport } from '../../../lib/cms/static-pages'
 import LocalizedLink from '../../../components/LocalizedLink'
 
-export const metadata = buildPageMetadata({
-  title: 'Financial Transparency',
-  description: 'How The Ananse Center allocates resources and reports impact to donors and partners.',
-  path: '/transparency',
-})
+export async function generateMetadata() {
+  return buildCmsMetadata('transparency')
+}
 
 export default async function TransparencyPage() {
   const cms = await getCmsTexts([
@@ -29,13 +28,7 @@ export default async function TransparencyPage() {
       primaryCta={{ label: 'Donate', href: '/support#donate' }}
       secondaryCta={{ label: 'Trustee Circle', href: '/trustees' }}
     >
-      <div className="content-prose-body">
-        {splitParagraphs(cms['transparency.body']).map((p) => (
-          <p key={p.slice(0, 48)} className="page-body-text content-prose-p">
-            {p}
-          </p>
-        ))}
-      </div>
+      <CmsRichText body={cms['transparency.body']} className="content-prose-body" />
       <h2 className="content-block-title content-block-title--plain">Reports</h2>
       <ul className="content-highlight-list">
         {reports.map((report) => (
