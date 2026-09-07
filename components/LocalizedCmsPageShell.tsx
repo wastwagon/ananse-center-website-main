@@ -10,6 +10,7 @@ type LocalizedCmsPageShellProps = {
   children: React.ReactNode
   primaryCta?: { label: string; href: string }
   secondaryCta?: { label: string; href: string }
+  wide?: boolean
 }
 
 export default async function LocalizedCmsPageShell({
@@ -20,6 +21,7 @@ export default async function LocalizedCmsPageShell({
   children,
   primaryCta,
   secondaryCta,
+  wide,
 }: LocalizedCmsPageShellProps) {
   const locale = await getRequestLocale()
   const chrome = localizePageChrome(locale, i18nKey, { badge, title, lead })
@@ -31,6 +33,7 @@ export default async function LocalizedCmsPageShell({
       lead={chrome.lead}
       primaryCta={primaryCta}
       secondaryCta={secondaryCta}
+      wide={wide}
     >
       {children}
     </CmsPageShell>

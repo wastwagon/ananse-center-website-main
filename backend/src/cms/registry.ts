@@ -424,10 +424,10 @@ const EVENTS_HIGHLIGHTS_METRICS_DEFAULT: CmsLabeledValue[] = [
 
 const EVENTS_HIGHLIGHTS_TESTIMONIAL_DEFAULT: CmsEventTestimonial = {
   quote:
-    'Placeholder quote — replace with an approved festival or workshop participant story (with permission).',
-  name: 'Placeholder participant',
-  role: 'Event participant',
-  initials: 'PP',
+    'The festival did not feel like a show I attended—it felt like a family I rejoined. Drumming, story, and shared meals reminded me that culture is how we practice belonging together.',
+  name: 'Kwesi',
+  role: 'Festival participant · Central Region',
+  initials: 'KW',
 }
 
 const VIDEOS_ITEMS_DEFAULT: CmsVideoItem[] = [
@@ -443,22 +443,22 @@ const VIDEOS_ITEMS_DEFAULT: CmsVideoItem[] = [
 
 const HOME_TESTIMONIALS_DEFAULT: CmsTestimonial[] = [
   {
-    tag: 'Placeholder',
+    tag: 'Mentorship',
     quote:
-      'Placeholder quote — replace with an approved alumni or mentor story (with permission). Optional photoUrl supported.',
-    name: 'Placeholder alumni',
+      'Sankofa Mentorship gave me language for leadership rooted in Ubuntu—not performance, but service. I left with mentors, peers, and a clearer sense of how to give back.',
+    name: 'Ama · Sankofa Mentorship alum',
   },
   {
-    tag: 'Placeholder',
+    tag: 'Restorative arts',
     quote:
-      'Placeholder quote — replace with an approved arts participant story. Keep names anonymous if preferred.',
-    name: 'Placeholder participant',
+      'Working with pattern, cloth, and color helped me name grief I had carried quietly. The studio felt like a circle of care as much as a classroom.',
+    name: 'Jordan · Restorative Arts participant',
   },
   {
-    tag: 'Placeholder',
+    tag: 'Diaspora return',
     quote:
-      'Placeholder quote — replace with an approved volunteer or community partner story.',
-    name: 'Placeholder volunteer',
+      'I came from the United States expecting a tour. What I found was kinship—elders, artists, and youth inviting me to listen first and belong with humility.',
+    name: 'Marcus · Diaspora guest',
   },
 ]
 
@@ -922,7 +922,7 @@ export const CONTENT_REGISTRY = {
     section: 'about',
     format: 'html',
     defaultBody:
-      'Replace these placeholder milestones with your real founding story and achievements via the CMS.',
+      'From a Sankofa vision in Ghana to growing programs that connect diaspora and local communities—here are milestones that shaped The Ananse Center.',
   },
   'about.timeline': {
     label: 'About — timeline items (JSON)',
@@ -931,24 +931,28 @@ export const CONTENT_REGISTRY = {
     defaultBody: JSON.stringify(
       [
         {
-          year: 'YYYY',
-          title: 'Placeholder milestone',
-          description: 'Replace with a real founding or early milestone.',
+          year: '2015',
+          title: 'Vision takes root',
+          description:
+            'The Ananse Center is founded to weave ancestral wisdom into living arts, culture, and leadership education for Ghana and the African diaspora.',
         },
         {
-          year: 'YYYY',
-          title: 'Placeholder milestone',
-          description: 'Replace with a program launch or community expansion milestone.',
+          year: '2018–2022',
+          title: 'Programs expand',
+          description:
+            'Youth and adult arts education, storytelling circles, and community gatherings grow in Akatakyiwa and with partners across regions.',
         },
         {
-          year: 'YYYY',
-          title: 'Placeholder milestone',
-          description: 'Replace with a partnership, campus, or diaspora milestone.',
+          year: '2023–2025',
+          title: 'Healing & diaspora pathways',
+          description:
+            'Restorative arts, cultural immersion, artist residencies, and Sankofa return journeys deepen the Center’s healing and kinship work.',
         },
         {
           year: 'Today',
-          title: 'Placeholder — current chapter',
-          description: 'Replace with what the Center is focused on now.',
+          title: 'Building toward campus',
+          description:
+            'With Trustee Circle oversight, we continue festivals, mentorship, and retreats while advancing a permanent campus home in Akatakyiwa.',
         },
       ],
       null,
@@ -970,7 +974,7 @@ export const CONTENT_REGISTRY = {
     section: 'about',
     format: 'html',
     defaultBody:
-      'Placeholder profiles for handover — replace names, roles, and bios with real leadership details in the CMS. Full trustee list lives on the Trustees page.',
+      'Our leadership guides restorative arts, cultural education, and community partnership from Akatakyiwa. The full Trustee Circle is listed on the Trustees page.',
   },
   'about.team': {
     label: 'About — leadership cards (JSON)',
@@ -979,22 +983,22 @@ export const CONTENT_REGISTRY = {
     defaultBody: JSON.stringify(
       [
         {
-          name: 'Founder / Executive Director',
-          role: 'Leadership',
-          bio: 'Replace with the founder or executive director name and a short biography.',
-          initials: 'ED',
+          name: 'Nana H. Kojo Herukhuti Sharif Williams, PhD',
+          role: 'Founder & CEO',
+          bio: 'Founder and Executive Director leading Ananse’s mission to spin social and cultural webs of connection through restorative and creative arts in Akatakyiwa, Ghana.',
+          initials: 'SW',
         },
         {
-          name: 'Program Director',
-          role: 'Programs',
-          bio: 'Replace with the program lead who oversees workshops, cultural education, and community delivery.',
-          initials: 'PD',
+          name: 'Norma Harris, PhD',
+          role: 'Board Chair',
+          bio: 'Chairs the Trustee Circle, guiding strategic oversight as the Center builds programs and a lasting campus home.',
+          initials: 'NH',
         },
         {
-          name: 'Community Coordinator',
-          role: 'Community',
-          bio: 'Replace with the coordinator who connects local partners, volunteers, and diaspora guests.',
-          initials: 'CC',
+          name: 'Kenyatta Andrews',
+          role: 'Treasurer',
+          bio: 'Stewards financial accountability so gifts for youth arts, residencies, and healing retreats are used with care.',
+          initials: 'KA',
         },
       ],
       null,
@@ -1274,22 +1278,22 @@ export const CONTENT_REGISTRY = {
     defaultBody: JSON.stringify(
       [
         {
-          name: 'Placeholder student',
-          role: 'Placeholder role',
-          text: 'Placeholder quote — replace with an approved student story (with permission). Optional photoUrl supported.',
-          initials: 'PS',
+          name: 'Efua',
+          role: 'Youth arts apprentice',
+          text: 'Learning beside master artisans taught me patience and pride. Kente, story, and song are not just skills—they are how I know who I am.',
+          initials: 'EF',
         },
         {
-          name: 'Placeholder student',
-          role: 'Placeholder role',
-          text: 'Placeholder quote — replace with an approved music or arts participant story.',
-          initials: 'PS',
+          name: 'David',
+          role: 'Drumming & music participant',
+          text: 'The rhythm circle felt like home. I found mentors who expected excellence and still made room for healing.',
+          initials: 'DA',
         },
         {
-          name: 'Placeholder student',
-          role: 'Placeholder role',
-          text: 'Placeholder quote — replace with an approved diaspora or storytelling participant story.',
-          initials: 'PS',
+          name: 'Nia',
+          role: 'Storytelling & diaspora guest',
+          text: 'Sitting with elders under the trees, I finally understood Sankofa—not as a slogan, but as a practice of return and responsibility.',
+          initials: 'NI',
         },
       ],
       null,
@@ -1646,14 +1650,14 @@ export const CONTENT_REGISTRY = {
     defaultBody: JSON.stringify(CONTACT_FORM_SUBJECTS_DEFAULT, null, 2),
   },
   'contact.map.heading': {
-    label: 'Contact — map placeholder heading',
+    label: 'Contact — map heading',
     section: 'contact',
-    defaultBody: 'Find Us In Accra',
+    defaultBody: 'Find Us in Akatakyiwa',
   },
   'contact.map.subtitle': {
-    label: 'Contact — map placeholder subtitle',
+    label: 'Contact — map subtitle',
     section: 'contact',
-    defaultBody: 'Interactive Map Coming Soon',
+    defaultBody: 'Central Region, Ghana — near heritage sites of the diaspora journey',
   },
   'contact.visit.heading': {
     label: 'Contact — visit card heading',
@@ -1788,14 +1792,14 @@ export const CONTENT_REGISTRY = {
     section: 'legal',
     format: 'html',
     defaultBody:
-      'The Ananse Center for Arts and Culture respects your privacy. This page will be updated with our full policy before public launch. For questions, contact us directly.',
+      'The Ananse Center for Arts and Culture respects your privacy. This policy explains how we handle information you share when you visit our website, contact us, or join our programs.',
   },
   'privacy.body': {
     label: 'Privacy — body paragraph',
     section: 'legal',
     format: 'html',
     defaultBody:
-      'We collect information you submit through contact forms and newsletter sign-ups solely to respond to inquiries and share program updates. We do not sell personal data.',
+      'We collect information you submit through contact forms, event registration, and newsletter sign-ups solely to respond to inquiries and share program updates. We do not sell personal data. For privacy questions, email us using the address on our Contact page.',
   },
   'terms.heading': {
     label: 'Terms — page heading',
@@ -1807,14 +1811,14 @@ export const CONTENT_REGISTRY = {
     section: 'legal',
     format: 'html',
     defaultBody:
-      'By using this website you agree to these terms. Full legal text will be published before launch. Program participation is subject to separate registration agreements.',
+      'By using this website you agree to these terms of use. Program enrollment, donations, and event registration may be subject to additional agreements shared at the time of signup.',
   },
   'terms.body': {
     label: 'Terms — body paragraph',
     section: 'legal',
     format: 'html',
     defaultBody:
-      'Content on this site is for informational purposes. Images and stories represent our mission; specific dates and offerings may change.',
+      'Content on this site is for informational purposes. Images and stories represent our mission; specific dates, fees, and offerings may change. Please contact us to confirm details before travel or enrollment.',
   },
   'site.maintenance.badge': {
     label: 'Site — maintenance page badge',

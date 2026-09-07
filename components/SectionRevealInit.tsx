@@ -5,11 +5,6 @@ import { useEffect } from 'react'
 export default function SectionRevealInit() {
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const nodes = document.querySelectorAll<HTMLElement>('.section-reveal')
-    if (reduced) {
-      nodes.forEach((el) => el.classList.add('section-reveal--visible'))
-      return
-    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -20,11 +15,30 @@ export default function SectionRevealInit() {
           }
         })
       },
-      { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+      { rootMargin: '0px 0px -4% 0px', threshold: 0.01 },
     )
 
-    nodes.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
+    const attach = (el: HTMLElement) => {
+      if (el.classList.contains('section-reveal--visible')) return
+      if (reduced) {
+        el.classList.add('section-reveal--visible')
+        return
+      }
+      observer.observe(el)
+    }
+
+    const scan = () => {
+      document.querySelectorAll<HTMLElement>('.section-reveal').forEach(attach)
+    }
+
+    scan()
+    const mutations = new MutationObserver(scan)
+    mutations.observe(document.body, { childList: true, subtree: true })
+
+    return () => {
+      observer.disconnect()
+      mutations.disconnect()
+    }
   }, [])
 
   return null

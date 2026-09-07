@@ -17,22 +17,34 @@ export type CmsJourneyStory = { name: string; origin: string; quote: string; med
 
 export const DEFAULT_TRUSTEES: CmsTrustee[] = [
   {
-    name: 'Placeholder — Board Chair',
+    name: 'Norma Harris, PhD',
     role: 'Board Chair',
-    bio: 'Placeholder bio — replace with the real Board Chair name, role, and short biography. Optional photoUrl via Media.',
-    initials: 'BC',
+    bio: 'Chairs the Trustee Circle, guiding strategic oversight as the Center builds restorative arts programs and a permanent campus in Akatakyiwa.',
+    initials: 'NH',
   },
   {
-    name: 'Placeholder — Treasurer',
+    name: 'Kenyatta Andrews',
     role: 'Treasurer',
-    bio: 'Placeholder bio — replace with the real Treasurer who oversees financial stewardship.',
-    initials: 'TR',
+    bio: 'Stewards financial accountability and transparent reporting so gifts for youth arts, residencies, and healing retreats are used with care.',
+    initials: 'KA',
   },
   {
-    name: 'Placeholder — Trustee',
+    name: 'Renee Redding-Jones',
+    role: 'Secretary',
+    bio: 'Supports governance records and Trustee Circle coordination as Ananse grows partnerships across Ghana and the African diaspora.',
+    initials: 'RR',
+  },
+  {
+    name: 'Nefertiti Macaulay',
     role: 'Trustee',
-    bio: 'Placeholder bio — replace with a real trustee or diaspora liaison profile.',
-    initials: 'TR',
+    bio: 'Serves on the Trustee Circle with a focus on community connection, cultural integrity, and inclusive participation in Center programs.',
+    initials: 'NM',
+  },
+  {
+    name: 'Nana H. Kojo Herukhuti Sharif Williams, PhD',
+    role: 'Founder & CEO',
+    bio: 'Founder and Executive Director leading Ananse’s mission to spin social and cultural webs of connection through restorative and creative arts in Akatakyiwa, Ghana.',
+    initials: 'SW',
   },
 ]
 
@@ -100,22 +112,22 @@ export const DEFAULT_FACULTY: CmsFaculty[] = [
 
 export const DEFAULT_NEWS: CmsNewsItem[] = [
   {
-    title: 'Placeholder — welcome post',
+    title: 'Ananse Storytelling Circle Welcomes Elders and Youth',
     date: 'August 2026',
     excerpt:
-      'Placeholder news item — replace or delete in Admin → News. Write real announcements with rich text and optional cover photos.',
+      'A monthly storytelling circle brings elders and young learners together under the trees at our Akatakyiwa campus.',
   },
   {
-    title: 'Placeholder — program update',
+    title: 'Kente Weaving Intensive Opens for Youth Apprentices',
     date: 'August 2026',
     excerpt:
-      'Placeholder news item — share a real program, partnership, or community update when ready.',
+      'Master artisans and youth apprentices work side by side in a hands-on intensive rooted in skill, discipline, and cultural pride.',
   },
   {
-    title: 'Placeholder — event announcement',
+    title: 'Walking the Sankofa Path: A Diaspora Reflection',
     date: 'August 2026',
     excerpt:
-      'Placeholder news item — announce an upcoming festival or workshop, then link from Events if needed.',
+      'A diaspora guest reflects on returning to Ghana as a practice of listening, repair, and belonging—not tourism alone.',
   },
 ]
 

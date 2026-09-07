@@ -8,6 +8,8 @@ type CmsPageShellProps = {
   children: React.ReactNode
   primaryCta?: { label: string; href: string }
   secondaryCta?: { label: string; href: string }
+  /** Wider layout for directories and card grids (not long-form prose). */
+  wide?: boolean
 }
 
 export default function CmsPageShell({
@@ -17,12 +19,13 @@ export default function CmsPageShell({
   children,
   primaryCta,
   secondaryCta,
+  wide = false,
 }: CmsPageShellProps) {
   return (
-    <article className="content-page">
+    <article className={`content-page${wide ? ' content-page--wide' : ''}`}>
       <ContentPageHero badge={badge} title={title} lead={lead} />
       <section className="page-section page-section--muted section-reveal">
-        <div className="page-section-container content-prose">
+        <div className={`page-section-container${wide ? ' content-prose content-prose--wide' : ' content-prose'}`}>
           {children}
           {primaryCta || secondaryCta ? (
             <div className="content-actions">

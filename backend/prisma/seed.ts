@@ -266,7 +266,7 @@ async function seedNews() {
   for (const item of DEFAULT_NEWS) {
     const slug = slugify(item.title)
     const linkHref = item.href?.trim() ?? ''
-    const body = `<p>${item.excerpt}</p><p>Placeholder article body — replace with a full story in Admin → News (rich text). Add a cover image from Media when ready.</p>`
+    const body = `<p>${item.excerpt}</p><p>Read more about this story and related programs on our site, or contact the Center to learn how to take part.</p>`
     const existing = await prisma.newsPost.findUnique({ where: { slug } })
     if (existing) {
       // Refresh placeholder posts only; leave custom posts alone

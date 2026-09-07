@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   type AdminMedia,
   fetchAdminMedia,
@@ -71,9 +72,9 @@ export default function MediaPicker({
     }
   }
 
-  if (!open) return null
+  if (!open || typeof document === 'undefined') return null
 
-  return (
+  return createPortal(
     <div className="admin-media-modal-backdrop" role="presentation" onClick={onClose}>
       <div
         className="admin-media-modal"
@@ -156,6 +157,7 @@ export default function MediaPicker({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

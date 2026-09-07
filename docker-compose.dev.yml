@@ -115,6 +115,7 @@ services:
     volumes:
       - .:/app
       - web_node_modules:/app/node_modules
+      - web_next:/app/.next
     depends_on:
       backend:
         condition: service_healthy
@@ -124,6 +125,7 @@ volumes:
   postgres_dev_data:
   redis_dev_data:
   web_node_modules:
+  web_next:
   api_node_modules:
 
 networks:

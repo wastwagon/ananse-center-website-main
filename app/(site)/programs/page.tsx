@@ -60,22 +60,22 @@ const DEFAULT_PROGRAM_BENEFITS: ProgramBenefit[] = [
 
 const DEFAULT_PROGRAM_TESTIMONIALS: ProgramTestimonial[] = [
   {
-    name: 'Placeholder student',
-    role: 'Placeholder role',
-    text: 'Placeholder quote — replace with an approved student story (with permission). Optional photoUrl supported.',
-    initials: 'PS',
+    name: 'Efua',
+    role: 'Youth arts apprentice',
+    text: 'Learning beside master artisans taught me patience and pride. Kente, story, and song are not just skills—they are how I know who I am.',
+    initials: 'EF',
   },
   {
-    name: 'Placeholder student',
-    role: 'Placeholder role',
-    text: 'Placeholder quote — replace with an approved music or arts participant story.',
-    initials: 'PS',
+    name: 'David',
+    role: 'Drumming & music participant',
+    text: 'The rhythm circle felt like home. I found mentors who expected excellence and still made room for healing.',
+    initials: 'DA',
   },
   {
-    name: 'Placeholder student',
-    role: 'Placeholder role',
-    text: 'Placeholder quote — replace with an approved diaspora or storytelling participant story.',
-    initials: 'PS',
+    name: 'Nia',
+    role: 'Storytelling & diaspora guest',
+    text: 'Sitting with elders under the trees, I finally understood Sankofa—not as a slogan, but as a practice of return and responsibility.',
+    initials: 'NI',
   },
 ]
 

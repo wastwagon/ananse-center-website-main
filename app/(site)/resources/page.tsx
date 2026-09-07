@@ -24,17 +24,18 @@ export default async function ResourcesPage() {
       lead={cms['resources.lead']}
       primaryCta={{ label: 'List your organization', href: '/contact#form' }}
       secondaryCta={{ label: 'About our mission', href: '/about' }}
+      wide
     >
-      <div className="grid-cards grid-cards--stack-narrow">
+      <div className="directory-grid">
         {entries.map((entry) => (
-          <article key={entry.name} className="insight-card">
-            <div className="insight-card-bar" />
-            <div className="insight-card-body">
-              <h3 className="insight-card-title">{entry.name}</h3>
-              <p className="insight-card-date">{entry.region}</p>
-              <p className="insight-card-description">{entry.focus}</p>
+          <article key={entry.name} className="directory-card">
+            <div className="directory-card-bar" aria-hidden />
+            <div className="directory-card-body">
+              <h3 className="directory-card-title">{entry.name}</h3>
+              <p className="directory-card-region">{entry.region}</p>
+              <p className="directory-card-focus">{entry.focus}</p>
               {entry.website ? (
-                <a href={entry.website} className="program-card-link" target="_blank" rel="noopener noreferrer">
+                <a href={entry.website} className="directory-card-link" target="_blank" rel="noopener noreferrer">
                   Visit website →
                 </a>
               ) : null}

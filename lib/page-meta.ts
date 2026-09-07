@@ -34,7 +34,8 @@ export function buildPageMetadata({
       : undefined
 
   return {
-    title: `${title} | ${site.shortName}`,
+    // Root layout already applies `template: '%s | Ananse Center'`.
+    title,
     description,
     openGraph: {
       title: `${title} | ${site.name}`,

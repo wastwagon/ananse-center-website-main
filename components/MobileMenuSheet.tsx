@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useI18n } from './I18nProvider'
@@ -55,9 +56,9 @@ export default function MobileMenuSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
 
-  if (!isOpen) return null
+  if (!isOpen || typeof document === 'undefined') return null
 
-  return (
+  return createPortal(
     <div className="mobile-menu-sheet-root" role="presentation">
       <button type="button" className="mobile-menu-sheet-backdrop" aria-label="Close menu" onClick={onClose} />
       <div
@@ -106,6 +107,7 @@ export default function MobileMenuSheet({
           </Link>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

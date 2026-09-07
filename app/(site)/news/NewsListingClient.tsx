@@ -55,7 +55,7 @@ export default function NewsListingClient({ readMore, empty, items }: NewsListin
       {filtered.length === 0 ? (
         <p className="page-body-text">{empty}</p>
       ) : (
-        <div className="grid-cards">
+        <div className="grid-cards grid-cards--stack-narrow">
           {filtered.map((item) => (
             <article
               key={item.key}
