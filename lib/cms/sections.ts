@@ -37,6 +37,8 @@ export const DEFAULT_HOME_SECTIONS: Record<string, boolean> = {
   events: true,
   testimonials: true,
   sectors: true,
+  partners: true,
+  awards: true,
   cta: true,
 }
 

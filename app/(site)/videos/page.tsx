@@ -17,6 +17,7 @@ import {
   type CmsVideoItem,
 } from '../../../lib/cms/content'
 import { images, resolveCmsImage } from '../../../lib/images'
+import { safeHttpUrl, toYoutubeEmbed, youtubeWatchUrl } from '../../../lib/public-url'
 
 export async function generateMetadata() {
   return buildCmsMetadata('videos', { ogImage: images.hero.videos })
@@ -70,15 +71,11 @@ export default async function VideosPage() {
         <div className="page-section-container">
           <div className="grid-cards">
             {videos.map((video) => {
-              let watchUrl = video.url
-              if (video.url.includes('/embed/')) {
-                const id = video.url.split('/embed/')[1]
-                if (id.startsWith('PL')) {
-                  watchUrl = `https://www.youtube.com/playlist?list=${id}`
-                } else {
-                  watchUrl = `https://www.youtube.com/watch?v=${id}`
-                }
-              }
+              const embedSrc = toYoutubeEmbed(video.url)
+              const looksLikeYoutube = /youtube\.com|youtu\.be/i.test(video.url)
+              if (looksLikeYoutube && !embedSrc) return null
+              const watchUrl = embedSrc ? youtubeWatchUrl(embedSrc) : safeHttpUrl(video.url)
+              if (!watchUrl) return null
 
               return (
                 <Link
@@ -91,15 +88,17 @@ export default async function VideosPage() {
                   <article className="premium-card h-full relative transition-all group-hover:border-f59e0b">
                     <div className="absolute inset-0 z-10 w-full h-full" aria-hidden />
                     <div className="premium-card-image-wrapper premium-card-image-wrapper--video">
-                      <iframe
-                        src={video.url}
-                        title={video.title}
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                        loading="lazy"
-                      />
+                      {embedSrc ? (
+                        <iframe
+                          src={embedSrc}
+                          title={video.title}
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                          loading="lazy"
+                        />
+                      ) : null}
                     </div>
                     <div className="premium-card-header premium-card-header--compact">
                       <span className="premium-card-featured-label">{cms['videos.card.badge'] || 'Video'}</span>

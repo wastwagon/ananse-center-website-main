@@ -1,7 +1,7 @@
 {
-  "name": "youtube-thumbnails",
+  "name": "ananse-center-website",
   "version": "1.0.0",
-  "description": "Professional YouTube video thumbnails with modern minimalistic style",
+  "description": "The Ananse Center for Arts and Culture website and admin CMS",
   "main": "index.html",
   "scripts": {
     "dev": "next dev",

@@ -8,6 +8,7 @@ import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import type { CmsHeroCta, CmsHeroStat, CmsHeroTitle } from '../../../lib/cms/registry'
 import FeatureIcon from '../../../components/FeatureIcon'
 import { submitContactMessage } from '../../../lib/api'
+import { safeHttpUrl, safeMapEmbedUrl } from '../../../lib/public-url'
 import type { PublicSiteProfile } from '../../../lib/site-profile'
 import type { LucideIcon } from 'lucide-react'
 
@@ -23,6 +24,9 @@ type ContactPageClientProps = {
   formSubjects: string[]
   mapHeading: string
   mapSubtitle: string
+  mapEmbedUrl: string
+  mapLinkUrl: string
+  mapLinkText: string
   visitHeading: string
   visitLinkText: string
   infoTitles: string[]
@@ -44,6 +48,9 @@ export default function ContactPageClient({
   formSubjects,
   mapHeading,
   mapSubtitle,
+  mapEmbedUrl,
+  mapLinkUrl,
+  mapLinkText,
   visitHeading,
   visitLinkText,
   infoTitles,
@@ -53,6 +60,8 @@ export default function ContactPageClient({
   profile,
 }: ContactPageClientProps) {
   const { contact, social } = profile
+  const mapEmbedSrc = safeMapEmbedUrl(mapEmbedUrl)
+  const mapLinkHref = safeHttpUrl(mapLinkUrl)
 
   const infoIcons: LucideIcon[] = [MapPin, Mail, Phone, Clock]
   const infoDescriptions = [contact.address, `${contact.email}\n${contact.programsEmail}`, contact.phone, contact.hours]
@@ -210,13 +219,39 @@ export default function ContactPageClient({
             </div>
 
             <div className="flex-column contact-sidebar">
-              <div className="about-visual-card contact-map-card p-0">
-                <div className="text-center contact-map-overlay">
-                  <span className="contact-map-emoji" aria-hidden>🗺️</span>
-                  <h4 className="contact-visit-title">{mapHeading}</h4>
-                  <p className="contact-visit-sub">{mapSubtitle}</p>
-                </div>
+              <div className={`about-visual-card contact-map-card p-0${mapEmbedSrc ? ' contact-map-card--embed' : ''}`}>
+                {mapEmbedSrc ? (
+                  <>
+                    <div className="contact-map-caption">
+                      <h4 className="contact-visit-title">{mapHeading}</h4>
+                      <p className="contact-visit-sub">{mapSubtitle}</p>
+                    </div>
+                    <iframe
+                      className="contact-map-frame"
+                      title={mapHeading}
+                      src={mapEmbedSrc}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      allowFullScreen
+                    />
+                  </>
+                ) : (
+                  <div className="text-center contact-map-overlay">
+                    <h4 className="contact-visit-title">{mapHeading}</h4>
+                    <p className="contact-visit-sub">{mapSubtitle}</p>
+                  </div>
+                )}
               </div>
+              {mapLinkHref ? (
+                <a
+                  href={mapLinkHref}
+                  className="program-card-link visit-card-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {mapLinkText || 'Open in Google Maps'}
+                </a>
+              ) : null}
 
               <div className="about-mini-card">
                 <h4 className="contact-visit-card-title">{visitHeading}</h4>

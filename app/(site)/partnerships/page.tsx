@@ -1,5 +1,6 @@
 import LocalizedCmsPageShell from '../../../components/LocalizedCmsPageShell'
 import CmsRichText from '../../../components/CmsRichText'
+import LogoStrip, { type LogoMark } from '../../../components/LogoStrip'
 import { buildCmsMetadata } from '../../../lib/cms/seo'
 import { getCmsTexts, parseCmsJson } from '../../../lib/cms/content'
 
@@ -16,8 +17,11 @@ export default async function PartnershipsPage() {
     'partnerships.lead',
     'partnerships.body',
     'partnerships.tiers',
+    'site.partners.heading',
+    'site.partners',
   ] as const)
   const tiers = parseCmsJson<PartnershipTier[]>(cms['partnerships.tiers'], [])
+  const partnerLogos = parseCmsJson<LogoMark[]>(cms['site.partners'], [])
 
   return (
     <LocalizedCmsPageShell
@@ -37,6 +41,7 @@ export default async function PartnershipsPage() {
           </article>
         ))}
       </div>
+      <LogoStrip embedded heading={cms['site.partners.heading']} items={partnerLogos} />
     </LocalizedCmsPageShell>
   )
 }

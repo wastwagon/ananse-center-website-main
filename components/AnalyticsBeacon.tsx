@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { getPublicApiUrl } from '../lib/api'
 
 const SESSION_KEY = 'ananse_analytics_sid'
 
@@ -28,7 +27,7 @@ export default function AnalyticsBeacon() {
   useEffect(() => {
     if (!pathname || pathname.startsWith('/admin')) return
 
-    void fetch(`${getPublicApiUrl()}/api/v1/analytics/pageview`, {
+    void fetch('/api/analytics/pageview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

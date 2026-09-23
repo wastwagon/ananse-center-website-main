@@ -34,6 +34,9 @@ export default async function ContactPage() {
       'contact.form.subjects',
       'contact.map.heading',
       'contact.map.subtitle',
+      'contact.map.embedUrl',
+      'contact.map.linkUrl',
+      'contact.map.linkText',
       'contact.visit.heading',
       'contact.visit.linkText',
       'contact.info.titles',
@@ -64,6 +67,9 @@ export default async function ContactPage() {
       formSubjects={formSubjects}
       mapHeading={cms['contact.map.heading']}
       mapSubtitle={cms['contact.map.subtitle']}
+      mapEmbedUrl={cms['contact.map.embedUrl']}
+      mapLinkUrl={cms['contact.map.linkUrl']}
+      mapLinkText={cms['contact.map.linkText']}
       visitHeading={cms['contact.visit.heading']}
       visitLinkText={cms['contact.visit.linkText']}
       infoTitles={infoTitles}

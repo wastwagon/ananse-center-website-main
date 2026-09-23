@@ -176,7 +176,7 @@ const SUPPORT_HERO_CTA_SECONDARY_DEFAULT: CmsHeroCta = { label: 'Partner With Us
 
 const CONTACT_HERO_TITLE_DEFAULT: CmsHeroTitle = { prefix: 'Visit & ', accent: 'Connect' }
 const CONTACT_HERO_STATS_DEFAULT: CmsHeroStat[] = [
-  { value: 'Accra', label: 'Main Center' },
+  { value: 'Akatakyiwa', label: 'Main Center' },
   { value: '48h', label: 'Typical Reply' },
   { value: 'Sun–Fri', label: 'Office Hours' },
   { value: 'Join', label: 'Our Community' },
@@ -1678,6 +1678,23 @@ export const CONTENT_REGISTRY = {
     section: 'contact',
     defaultBody: 'Central Region, Ghana — near heritage sites of the diaspora journey',
   },
+  'contact.map.embedUrl': {
+    label: 'Contact — map embed URL',
+    section: 'contact',
+    hint: 'Paste the src from Google Maps → Share → Embed a map (https://www.google.com/maps/embed?...). Leave blank until you have it. OpenStreetMap embed URLs also work.',
+    defaultBody: '',
+  },
+  'contact.map.linkUrl': {
+    label: 'Contact — map directions link',
+    section: 'contact',
+    hint: 'Ordinary Google Maps link visitors can open. Leave blank until you have the pin.',
+    defaultBody: '',
+  },
+  'contact.map.linkText': {
+    label: 'Contact — map directions link text',
+    section: 'contact',
+    defaultBody: 'Open in Google Maps',
+  },
   'contact.visit.heading': {
     label: 'Contact — visit card heading',
     section: 'contact',
@@ -1776,7 +1793,7 @@ export const CONTENT_REGISTRY = {
   'videos.items': {
     label: 'Videos — embed grid (JSON)',
     section: 'videos',
-    hint: 'JSON array: [{ "title", "url" }]. url should be a YouTube embed URL.',
+    hint: 'JSON array: [{ "title", "url" }]. Paste a normal YouTube link or an embed URL. Blank or invalid links are hidden.',
     defaultBody: JSON.stringify(VIDEOS_ITEMS_DEFAULT, null, 2),
   },
   'videos.card.badge': {
@@ -1843,6 +1860,28 @@ export const CONTENT_REGISTRY = {
     label: 'Site — maintenance page badge',
     section: 'site',
     defaultBody: 'Under maintenance',
+  },
+  'site.partners.heading': {
+    label: 'Site — partner logos heading',
+    section: 'site',
+    defaultBody: 'Partners',
+  },
+  'site.partners': {
+    label: 'Site — partner logos (JSON)',
+    section: 'site',
+    hint: 'JSON array: [{ "name", "imageUrl", "href" }]. Upload the logo in Media, then Choose from Media Library. Leave imageUrl empty until the logo is ready — empty rows stay hidden. href is optional.',
+    defaultBody: JSON.stringify([{ name: '', imageUrl: '', href: '' }], null, 2),
+  },
+  'site.awards.heading': {
+    label: 'Site — award logos heading',
+    section: 'site',
+    defaultBody: 'Recognition',
+  },
+  'site.awards': {
+    label: 'Site — award logos (JSON)',
+    section: 'site',
+    hint: 'JSON array: [{ "name", "imageUrl", "href" }]. Same as partner logos. Shown on the home page when a name and image are set.',
+    defaultBody: JSON.stringify([{ name: '', imageUrl: '', href: '' }], null, 2),
   },
   'site.footer.mission': {
     label: 'Site — footer mission',

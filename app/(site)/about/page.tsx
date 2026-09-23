@@ -204,8 +204,8 @@ export default async function AboutPage() {
               <p className="page-body-text">{cms['about.timeline.lead']}</p>
             </div>
             <ol className="about-timeline">
-              {timeline.map((item) => (
-                <li key={`${item.year}-${item.title}`} className="about-timeline-item">
+              {timeline.map((item, index) => (
+                <li key={`${item.year}-${item.title}-${index}`} className="about-timeline-item">
                   <span className="about-timeline-year">{item.year}</span>
                   <div>
                     <h3 className="about-timeline-title">{item.title}</h3>

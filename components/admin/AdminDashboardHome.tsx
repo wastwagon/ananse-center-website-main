@@ -257,11 +257,12 @@ export default function AdminDashboardHome() {
       ) : null}
 
       <div className="admin-card" style={{ marginTop: '1.25rem' }}>
-        <h2 className="admin-card-title">Content handover checklist</h2>
+        <h2 className="admin-card-title">Urgent — replace sample content</h2>
         <p style={{ color: '#475569', marginTop: 0, lineHeight: 1.6 }}>
-          Seeded pages use <strong>placeholders</strong> (names, quotes, milestones, stock photos) so the site
-          looks complete — replace them with approved Ananse Center content when ready. Full guide:{' '}
-          <code>docs/CMS-HANDOVER.md</code>.
+          The website is ready for you to edit. Sample stories, dates, numbers, photos, and quotes are live so
+          the pages are not empty. Replace them in Admin before public launch. No developer is required for the
+          items below. Full guide: <code>docs/CMS-HANDOVER.md</code>. After a deploy, open Site Content and click{' '}
+          <strong>Sync registry</strong> once so new map and logo fields appear.
         </p>
         <ol style={{ color: '#334155', lineHeight: 1.7, paddingLeft: '1.25rem', marginBottom: 0 }}>
           <li>
@@ -295,6 +296,22 @@ export default function AdminDashboardHome() {
           </li>
           <li>
             <Link href="/admin/content">trustees.members</Link> — replace placeholder board names
+          </li>
+          <li>
+            <Link href="/admin/content?q=contact.map">Contact map</Link> — paste a Google Maps embed URL and
+            directions link when you have the pin
+          </li>
+          <li>
+            <Link href="/admin/content?q=site.partners">Partner and award logos</Link> — upload in Media, then
+            fill <code>site.partners</code> and <code>site.awards</code>. Empty rows stay hidden
+          </li>
+          <li>
+            <Link href="/admin/content?q=videos.items">Videos</Link> — paste real YouTube links. Invalid links
+            stay hidden
+          </li>
+          <li>
+            <Link href="/admin/content?q=transparency.reports">Transparency reports</Link> — point each row at a
+            real PDF, not the contact form
           </li>
           <li>
             <Link href="/admin/content">Site Content → seo</Link> — page titles & descriptions before launch

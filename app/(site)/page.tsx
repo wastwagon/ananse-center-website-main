@@ -6,6 +6,7 @@ import { buildCmsMetadata } from '../../lib/cms/seo'
 import { formatEventDateDisplay } from '../../lib/format'
 import GlobalAudienceBand from '../../components/GlobalAudienceBand'
 import StudyHealGiveBand from '../../components/StudyHealGiveBand'
+import LogoStrip from '../../components/LogoStrip'
 import FeatureIcon from '../../components/FeatureIcon'
 import EventTypeIcon from '../../components/EventTypeIcon'
 import { cmsIconForKey } from '../../lib/cms-icons'
@@ -33,6 +34,7 @@ import {
   type CmsStoryHighlight,
   type CmsTestimonial,
 } from '../../lib/cms/content'
+import type { LogoMark } from '../../components/LogoStrip'
 
 export async function generateMetadata() {
   return buildCmsMetadata('home', { ogImage: images.hero.home })
@@ -82,6 +84,10 @@ export default async function Home() {
       'home.events.cardCta',
       'home.events.calendarLink',
       'home.sections.visible',
+      'site.partners.heading',
+      'site.partners',
+      'site.awards.heading',
+      'site.awards',
     ] as const),
     getFeaturedEventsForHome(),
     getSankofaProgramsForHome(),
@@ -105,6 +111,8 @@ export default async function Home() {
     DEFAULT_HOME_TESTIMONIALS,
   )
   const sectionVisibility = parseSectionVisibility(cms['home.sections.visible'], DEFAULT_HOME_SECTIONS)
+  const partnerLogos = parseCmsJson<LogoMark[]>(cms['site.partners'], [])
+  const awardLogos = parseCmsJson<LogoMark[]>(cms['site.awards'], [])
   const showSection = (key: string) => isSectionVisible(sectionVisibility, key)
 
   return (
@@ -346,6 +354,14 @@ export default async function Home() {
             </div>
           </div>
         </section>
+      ) : null}
+
+      {showSection('partners') ? (
+        <LogoStrip heading={cms['site.partners.heading']} items={partnerLogos} />
+      ) : null}
+
+      {showSection('awards') ? (
+        <LogoStrip heading={cms['site.awards.heading']} items={awardLogos} />
       ) : null}
 
       {showSection('cta') ? (

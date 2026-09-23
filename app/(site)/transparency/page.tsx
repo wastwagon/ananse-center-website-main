@@ -31,8 +31,8 @@ export default async function TransparencyPage() {
       <CmsRichText body={cms['transparency.body']} className="content-prose-body" />
       <h2 className="content-block-title content-block-title--plain">Reports</h2>
       <ul className="content-highlight-list">
-        {reports.map((report) => (
-          <li key={report.year + report.title} className="content-highlight-item">
+        {reports.map((report, index) => (
+          <li key={`${report.year}-${report.title}-${index}`} className="content-highlight-item">
             <span className="content-highlight-mark" aria-hidden>
               {report.year}
             </span>

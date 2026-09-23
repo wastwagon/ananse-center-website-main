@@ -1,8 +1,40 @@
 # Ananse Center Website — CMS Handover & Training Guide
 
-Train the Ananse Center team to replace **placeholder** content with real content using Admin only. No coding is required for day-to-day updates.
+**Urgent for the Ananse Center team.** Development is complete. You can change the public site from Admin whenever the real content is ready. Do not wait on a developer for copy, photos, events, programs, news, the map, or logos.
 
-Many seeded values are intentional placeholders (names, quotes, milestones, photos). Replace them when real assets are ready — the site stays usable in the meantime.
+Sample stories, dates, numbers, quotes, and stock photos are published so pages are not blank. Treat replacing them as launch-blocking.
+
+After the next deploy, open **Site Content** and click **Sync registry** once. That adds the new map and logo fields.
+
+---
+
+## 0. Your urgent checklist
+
+| Do this | Where |
+|---|---|
+| Change the admin password and add staff | `/admin/login`, then **Users** |
+| Phone, email, address, hours, social links | **Settings** |
+| Logo | `site.logo` (upload in **Media** first) |
+| Home story, hero, buttons, stats | **Site Content → home** |
+| Leadership names, bios, photos | `about.team` |
+| Board | `trustees.members` |
+| Quotes | `home.testimonials`, `programs.testimonials` |
+| Timeline years | `about.timeline` |
+| Impact numbers — verified figures only | `home.hero.stats` and **Settings** |
+| Programs with real covers | **Programs** |
+| Upcoming events with real dates and places | **Events** |
+| News and blog | **News** |
+| Map pin | `contact.map.embedUrl` and `contact.map.linkUrl` |
+| Partner and award logos | `site.partners` and `site.awards` |
+| Real YouTube links | `videos.items` |
+| Financial PDFs | `transparency.reports` |
+| Privacy and Terms, reviewed by counsel | `privacy.*`, `terms.*` |
+| Page titles | **Site Content → seo** |
+| Contact hero location | `contact.hero.stats` — should say Akatakyiwa, not Accra |
+
+Hide a section you are not ready to publish with `home.sections.visible` (and the same pattern on About, Programs, Events, and Support). Set `partners` or `awards` to `false` to hide those strips.
+
+Online donations stay offline until Paystack live keys are set in the server environment. That is the one item that is not an Admin content edit.
 
 ---
 
@@ -36,6 +68,8 @@ Many seeded values are intentional placeholders (names, quotes, milestones, phot
 | Photo uploads | **Media** → `/admin/media` |
 | Phone, email, address, social, site name | **Settings** → `/admin/settings` |
 | Trustees / board | `trustees.members` (+ `trustees.cta.*`) |
+| Contact map | `contact.map.embedUrl`, `contact.map.linkUrl` |
+| Partner and award logos | `site.partners`, `site.awards` |
 
 ---
 
@@ -198,7 +232,9 @@ Fallback JSON `news.items` is used only if zero posts exist in the database — 
 
 ### Support / Contact / Videos
 - Heroes, CTAs, donation tiers (`imageUrl` optional), other ways (`imageUrl`, `href`), transparency image  
-- Videos grid: `videos.items` + `videos.card.badge`  
+- Videos grid: `videos.items` — paste a normal YouTube link or an embed URL. Invalid links stay hidden
+- Contact map: `contact.map.embedUrl` (Google Maps → Share → Embed a map → copy the `src`), plus `contact.map.linkUrl` for “Open in Google Maps”
+- Partner logos: upload in **Media**, then `site.partners` (`name`, `imageUrl`, optional `href`). Awards: `site.awards`. They appear on the home page when a name and image are set. Partners also appear on Partnerships.  
 - Contact subjects: `contact.form.subjects`  
 
 ### Legal / secondary pages
@@ -269,9 +305,9 @@ These ship with clear placeholder / sample content so the site looks complete:
 | Timeline milestones | `about.timeline` (+ lead text) |
 | Impact stats | `home.hero.stats`, Settings impact stats — use **verified** numbers only |
 | Legal policy text | `privacy.*`, `terms.*` |
-| Contact map | `contact.map.*` (“coming soon” ok) |
+| Contact map | `contact.map.embedUrl` + `contact.map.linkUrl` — leave blank until you have the pin |
 | Hero / card photos | Stock `/images/...` until Media uploads |
-| Partner logos / awards strip | Not built yet (Phase 2 if requested) |
+| Partner and award logos | `site.partners` and `site.awards` — empty rows stay hidden |
 
 ---
 
