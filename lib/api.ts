@@ -11,6 +11,12 @@ export type ApiEvent = {
   timeLabel?: string
   capacity?: number | null
   registrationStatus?: 'auto' | 'open' | 'closed' | 'waitlist' | 'completed' | string
+  eventStatus?: 'scheduled' | 'postponed' | 'cancelled' | string
+  deliveryMode?: 'in_person' | 'online' | 'hybrid' | string
+  meetingUrl?: string | null
+  recordingUrl?: string | null
+  galleryImageUrls?: string[]
+  program?: { id: string; slug: string; title: string } | null
   location: string
   type: string
   image: string
@@ -62,6 +68,20 @@ export async function fetchEvents(): Promise<ApiEvent[]> {
 
   const payload = (await response.json()) as { data: ApiEvent[] }
   return payload.data
+}
+
+export async function fetchEventsForProgram(slug: string): Promise<ApiEvent[]> {
+  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
+  try {
+    const response = await fetch(`${base}/api/v1/programs/${encodeURIComponent(slug)}/events`, {
+      next: { revalidate: 60 },
+    })
+    if (!response.ok) return []
+    const payload = (await response.json()) as { data: ApiEvent[] }
+    return payload.data
+  } catch {
+    return []
+  }
 }
 
 export async function fetchProgramBySlug(slug: string): Promise<ApiProgram | null> {
@@ -225,12 +245,129 @@ export type ApiNewsPost = {
   coverImageUrl?: string | null
 }
 
+export type ApiInsightPost = ApiNewsPost & {
+  contentType: string
+  topics: string[]
+  showInLibraryRead?: boolean
+}
+
+export type ApiPerson = {
+  id: string
+  name: string
+  slug: string
+  roleTitle: string
+  bio: string
+  groups: string[]
+  isOrganization: boolean
+  organizationName: string
+  websiteUrl: string | null
+  photoImageUrl: string | null
+  logoImageUrl: string | null
+  featured: boolean
+}
+
+export type ApiLibraryProgramRef = { id: string; slug: string; title: string }
+export type ApiLibraryPersonRef = { id: string; slug: string; name: string }
+
+export type ApiLibraryItem = {
+  id: string
+  title: string
+  slug: string
+  description: string
+  shelf: string
+  collection: string
+  body: string
+  transcript: string
+  furtherStudy: string
+  wisdomNugget: string
+  scriptureTheme: string
+  episodeNumber: number | null
+  dateLabel: string
+  publishedAt: string | null
+  topics: string[]
+  program: ApiLibraryProgramRef | null
+  person: ApiLibraryPersonRef | null
+  coverImageUrl: string | null
+  audioUrl: string | null
+  videoUrl: string | null
+  featured: boolean
+  href: string
+}
+
+export type ApiPhotoAlbumImage = {
+  id: string
+  mediaId: string
+  caption: string
+  sortOrder: number
+  url: string
+}
+
+export type ApiPhotoAlbum = {
+  id: string
+  title: string
+  slug: string
+  description: string
+  dateLabel: string
+  place: string
+  collection: string
+  program: ApiLibraryProgramRef | null
+  event: { id: string; slug: string; title: string } | null
+  coverImageUrl: string | null
+  images: ApiPhotoAlbumImage[]
+  featured: boolean
+  href: string
+}
+
 export type SearchResults = {
   programs: { title: string; path: string; snippet: string }[]
   events: { title: string; path: string; snippet: string }[]
   archives: { title: string; path: string; snippet: string }[]
   news: { title: string; path: string; snippet: string }[]
+  insights?: { title: string; path: string; snippet: string; contentType?: string }[]
+  library?: { title: string; path: string; snippet: string }[]
+  people?: { title: string; path: string; snippet: string }[]
+  photoAlbums?: { title: string; path: string; snippet: string }[]
   pages: { title: string; path: string; snippet: string }[]
+}
+
+type ListQuery = Record<string, string | undefined>
+
+function buildQueryString(query?: ListQuery): string {
+  if (!query) return ''
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query)) {
+    const trimmed = value?.trim()
+    if (trimmed) params.set(key, trimmed)
+  }
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ''
+}
+
+async function fetchPublicList<T>(path: string, query?: ListQuery): Promise<T[]> {
+  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
+  try {
+    const response = await fetch(`${base}${path}${buildQueryString(query)}`, {
+      next: { revalidate: 60 },
+    })
+    if (!response.ok) return []
+    const payload = (await response.json()) as { data: T[] }
+    return payload.data
+  } catch {
+    return []
+  }
+}
+
+async function fetchPublicOne<T>(path: string): Promise<T | null> {
+  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
+  try {
+    const response = await fetch(`${base}${path}`, { next: { revalidate: 60 } })
+    if (response.status === 404) return null
+    if (!response.ok) return null
+    const payload = (await response.json()) as { data: T }
+    return payload.data
+  } catch {
+    return null
+  }
 }
 
 export async function fetchNewsPosts(): Promise<ApiNewsPost[]> {
@@ -246,17 +383,87 @@ export async function fetchNewsPosts(): Promise<ApiNewsPost[]> {
 }
 
 export async function fetchNewsPostBySlug(slug: string): Promise<ApiNewsPost | null> {
-  const base = typeof window === 'undefined' ? getServerApiUrl() : getPublicApiUrl()
-  try {
-    const response = await fetch(`${base}/api/v1/news/${encodeURIComponent(slug)}`, {
-      next: { revalidate: 60 },
-    })
-    if (!response.ok) return null
-    const payload = (await response.json()) as { data: ApiNewsPost }
-    return payload.data
-  } catch {
-    return null
-  }
+  return fetchPublicOne<ApiNewsPost>(`/api/v1/news/${encodeURIComponent(slug)}`)
+}
+
+export async function fetchInsights(query?: {
+  topic?: string
+  contentType?: string
+  featured?: boolean
+}): Promise<ApiInsightPost[]> {
+  return fetchPublicList<ApiInsightPost>('/api/v1/insights', {
+    topic: query?.topic,
+    contentType: query?.contentType,
+    featured: query?.featured ? 'true' : undefined,
+  })
+}
+
+export async function fetchInsightBySlug(slug: string): Promise<ApiInsightPost | null> {
+  return fetchPublicOne<ApiInsightPost>(`/api/v1/insights/${encodeURIComponent(slug)}`)
+}
+
+export async function fetchPeople(query?: {
+  group?: string
+  featured?: boolean
+}): Promise<ApiPerson[]> {
+  return fetchPublicList<ApiPerson>('/api/v1/people', {
+    group: query?.group,
+    featured: query?.featured ? 'true' : undefined,
+  })
+}
+
+export async function fetchPersonBySlug(slug: string): Promise<ApiPerson | null> {
+  return fetchPublicOne<ApiPerson>(`/api/v1/people/${encodeURIComponent(slug)}`)
+}
+
+export async function fetchLibraryItems(query?: {
+  shelf?: string
+  collection?: string
+  program?: string
+  person?: string
+  topic?: string
+  featured?: boolean
+  q?: string
+}): Promise<ApiLibraryItem[]> {
+  return fetchPublicList<ApiLibraryItem>('/api/v1/library', {
+    shelf: query?.shelf,
+    collection: query?.collection,
+    program: query?.program,
+    person: query?.person,
+    topic: query?.topic,
+    featured: query?.featured ? 'true' : undefined,
+    q: query?.q,
+  })
+}
+
+export async function fetchLibraryItemBySlug(slug: string): Promise<ApiLibraryItem | null> {
+  return fetchPublicOne<ApiLibraryItem>(`/api/v1/library/${encodeURIComponent(slug)}`)
+}
+
+export async function fetchMiddayReflectionEpisodes(): Promise<ApiLibraryItem[]> {
+  return fetchPublicList<ApiLibraryItem>('/api/v1/library/midday-reflection/episodes')
+}
+
+export async function fetchLibraryLinkedArticles(): Promise<ApiInsightPost[]> {
+  return fetchPublicList<ApiInsightPost>('/api/v1/library/read/linked-articles')
+}
+
+export async function fetchPhotoAlbums(query?: {
+  collection?: string
+  featured?: boolean
+  program?: string
+  event?: string
+}): Promise<ApiPhotoAlbum[]> {
+  return fetchPublicList<ApiPhotoAlbum>('/api/v1/photo-albums', {
+    collection: query?.collection,
+    featured: query?.featured ? 'true' : undefined,
+    program: query?.program,
+    event: query?.event,
+  })
+}
+
+export async function fetchPhotoAlbumBySlug(slug: string): Promise<ApiPhotoAlbum | null> {
+  return fetchPublicOne<ApiPhotoAlbum>(`/api/v1/photo-albums/${encodeURIComponent(slug)}`)
 }
 
 export async function fetchArchiveRecords(): Promise<ApiArchiveRecord[]> {

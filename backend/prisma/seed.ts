@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { CONTENT_KEYS, CONTENT_REGISTRY } from '../src/cms/registry.js'
-import { EVENT_DETAIL_SEED } from '../src/cms/event-detail-seed.js'
-import { PROGRAMS_SEED } from '../src/cms/programs-seed.js'
+import { LEGACY_ARTS_PROGRAM_SLUGS, LEADERSHIP_PROGRAMS } from '../../lib/leadership/programs.ts'
+import { LEGACY_ARTS_EVENT_SLUGS } from '../../lib/leadership/legacy-events.ts'
 import { DEFAULT_IMPACT_STATS, DEFAULT_SITE_PROFILE } from '../src/cms/site-defaults.js'
 import { DEFAULT_NEWS } from '../src/cms/static-pages.js'
 import { slugify } from '../src/lib/slug.js'
@@ -9,72 +9,13 @@ import { hashPassword } from '../src/lib/password.js'
 
 const prisma = new PrismaClient()
 
-const events = [
-  {
-    title: 'Ananse Storytelling Festival',
-    description:
-      'A celebration of African oral traditions featuring master storytellers, cultural performances, and community workshops.',
-    dateLabel: 'August 15-17, 2026',
-    startsAt: new Date('2026-08-15T09:00:00.000Z'),
-    endsAt: new Date('2026-08-17T18:00:00.000Z'),
-    timeLabel: '9:00–18:00 daily',
-    capacity: 250,
-    registrationStatus: 'open',
-    location: 'Accra, Ghana',
-    type: 'Festival',
-    imageEmoji: '🎭',
-    featured: true,
-  },
-  {
-    title: 'Kente Weaving Workshop Series',
-    description:
-      'Learn the ancient art of Kente weaving from master weavers in this hands-on workshop series.',
-    dateLabel: 'Every Saturday in September',
-    location: 'Kumasi, Ghana',
-    type: 'Workshop',
-    imageEmoji: '🧵',
-    featured: false,
-  },
-  {
-    title: 'Diaspora Reconnection Retreat',
-    description:
-      'A transformative retreat for members of the African diaspora seeking to reconnect with their heritage.',
-    dateLabel: 'October 10-12, 2026',
-    location: 'Cape Coast, Ghana',
-    type: 'Retreat',
-    imageEmoji: '🌿',
-    featured: true,
-  },
-  {
-    title: 'Contemporary African Art Exhibition',
-    description:
-      'Showing the work of emerging and established African artists exploring themes of identity and heritage.',
-    dateLabel: 'November 1-30, 2026',
-    location: 'Accra Arts Center',
-    type: 'Exhibition',
-    imageEmoji: '🖼️',
-    featured: false,
-  },
-  {
-    title: 'Traditional Drumming & Dance Festival',
-    description:
-      'Experience the power and beauty of traditional African drumming and dance in this vibrant festival.',
-    dateLabel: 'December 5-7, 2026',
-    location: 'Tamale, Ghana',
-    type: 'Festival',
-    imageEmoji: '🥁',
-    featured: false,
-  },
-  {
-    title: 'Cultural Heritage Symposium',
-    description:
-      'Academic and community discussions on preserving and celebrating African cultural heritage.',
-    dateLabel: 'February 20-22, 2027',
-    location: 'University of Ghana',
-    type: 'Symposium',
-    imageEmoji: '🎓',
-    featured: true,
-  },
+const LEGACY_ARTS_NEWS_SLUGS = [
+  'ananse-storytelling-circle-welcomes-elders-and-youth',
+  'kente-weaving-intensive-opens-for-youth-apprentices',
+  'drumming-dance-festival-returns-this-december',
+  'walking-the-sankofa-path-a-diaspora-reflection',
+  'how-youth-leadership-circles-build-confidence-and-service',
+  'restorative-arts-healing-through-pattern-color-and-cloth',
 ]
 
 async function seedAdmin() {
@@ -126,8 +67,18 @@ async function seedSiteSettings() {
       socialInstagram: DEFAULT_SITE_PROFILE.socialInstagram,
       socialYoutube: DEFAULT_SITE_PROFILE.socialYoutube,
       socialTwitter: DEFAULT_SITE_PROFILE.socialTwitter,
+      socialLinkedin: DEFAULT_SITE_PROFILE.socialLinkedin,
+      socialWhatsapp: DEFAULT_SITE_PROFILE.socialWhatsapp,
     },
-    update: {},
+    update: {
+      siteName: DEFAULT_SITE_PROFILE.siteName,
+      siteShortName: DEFAULT_SITE_PROFILE.siteShortName,
+      siteTagline: DEFAULT_SITE_PROFILE.siteTagline,
+      siteLocation: DEFAULT_SITE_PROFILE.siteLocation,
+      contactAddress: DEFAULT_SITE_PROFILE.contactAddress,
+      maintenanceMessage:
+        'The ANANSE Center website is undergoing scheduled updates. Thank you for your patience.',
+    },
   })
   console.log('Seeded site settings')
 }
@@ -160,46 +111,27 @@ async function seedContentBlocks() {
 }
 
 async function seedEvents() {
-  for (const event of events) {
-    const slug = slugify(event.title)
-    const detail = EVENT_DETAIL_SEED[slug]
-    await prisma.event.upsert({
-      where: { slug },
-      create: {
-        ...event,
-        slug,
-        venue: detail?.venue ?? '',
-        storyTitle: detail?.storyTitle ?? null,
-        storyBody: detail?.storyBody ?? null,
-        highlights: detail?.highlights ?? [],
-      },
-      update: {
-        ...event,
-        venue: detail?.venue ?? '',
-        storyTitle: detail?.storyTitle ?? null,
-        storyBody: detail?.storyBody ?? null,
-        highlights: detail?.highlights ?? [],
-      },
-    })
-  }
-  console.log(`Seeded ${events.length} events`)
+  const hidden = await prisma.event.updateMany({
+    where: { slug: { in: [...LEGACY_ARTS_EVENT_SLUGS] } },
+    data: { published: false, featured: false },
+  })
+  console.log(`Unpublished ${hidden.count} arts-and-culture events`)
 }
 
 async function seedPrograms() {
-  for (const program of PROGRAMS_SEED) {
-    const slug = slugify(program.title)
+  for (const program of LEADERSHIP_PROGRAMS) {
     await prisma.program.upsert({
-      where: { slug },
+      where: { slug: program.slug },
       create: {
         title: program.title,
-        slug,
+        slug: program.slug,
         description: program.description,
         category: program.category,
-        section: program.section,
+        section: 'catalog',
         duration: program.duration,
         level: program.level,
         iconKey: program.iconKey,
-        features: [...program.features],
+        features: program.features,
         sortOrder: program.sortOrder,
         published: true,
       },
@@ -207,16 +139,21 @@ async function seedPrograms() {
         title: program.title,
         description: program.description,
         category: program.category,
-        section: program.section,
+        section: 'catalog',
         duration: program.duration,
         level: program.level,
         iconKey: program.iconKey,
-        features: [...program.features],
+        features: program.features,
         sortOrder: program.sortOrder,
+        published: true,
       },
     })
   }
-  console.log(`Seeded ${PROGRAMS_SEED.length} programs`)
+  const hidden = await prisma.program.updateMany({
+    where: { slug: { in: [...LEGACY_ARTS_PROGRAM_SLUGS] } },
+    data: { published: false },
+  })
+  console.log(`Seeded ${LEADERSHIP_PROGRAMS.length} programs; unpublished ${hidden.count} arts programs`)
 }
 
 async function seedArchives() {
@@ -314,20 +251,19 @@ async function seedNews() {
   )
 }
 
+import { seedStageCContent } from './seed-stage-c.js'
+
 async function main() {
   await seedSiteSettings()
   await seedContentBlocks()
   await seedPrograms()
   await seedEvents()
-  await seedArchives()
-  // Prefer full News/Blog articles with covers when seed assets are present.
-  try {
-    const mod = await import('./seed-news-content.ts')
-    await mod.seedNewsContent(prisma)
-  } catch (err) {
-    console.warn('Full news seed unavailable, falling back to placeholders:', err)
-    await seedNews()
-  }
+  const hiddenNews = await prisma.newsPost.updateMany({
+    where: { slug: { in: LEGACY_ARTS_NEWS_SLUGS } },
+    data: { published: false, featured: false },
+  })
+  console.log(`Unpublished ${hiddenNews.count} arts-and-culture news posts`)
+  await seedStageCContent(prisma)
   await seedAdmin()
 }
 

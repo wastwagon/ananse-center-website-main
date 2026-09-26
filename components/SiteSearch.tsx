@@ -80,6 +80,72 @@ export default function SiteSearch() {
               </ul>
             </section>
           ) : null}
+          {results.insights && results.insights.length > 0 ? (
+            <section>
+              <h2 className="content-block-title content-block-title--plain">Insights</h2>
+              <ul className="content-highlight-list">
+                {results.insights.map((item) => (
+                  <li key={item.path} className="content-highlight-item">
+                    {item.path.startsWith('http') ? (
+                      <a href={item.path} className="content-cta-link" rel="noopener noreferrer">
+                        {item.title}
+                      </a>
+                    ) : (
+                      <LocalizedLink href={item.path} className="content-cta-link">
+                        {item.title}
+                      </LocalizedLink>
+                    )}
+                    <span className="text-body-sm">{item.snippet}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          {results.library && results.library.length > 0 ? (
+            <section>
+              <h2 className="content-block-title content-block-title--plain">Library</h2>
+              <ul className="content-highlight-list">
+                {results.library.map((item) => (
+                  <li key={item.path} className="content-highlight-item">
+                    <LocalizedLink href={item.path} className="content-cta-link">
+                      {item.title}
+                    </LocalizedLink>
+                    <span className="text-body-sm">{item.snippet}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          {results.people && results.people.length > 0 ? (
+            <section>
+              <h2 className="content-block-title content-block-title--plain">People</h2>
+              <ul className="content-highlight-list">
+                {results.people.map((item) => (
+                  <li key={item.path} className="content-highlight-item">
+                    <LocalizedLink href={item.path} className="content-cta-link">
+                      {item.title}
+                    </LocalizedLink>
+                    <span className="text-body-sm">{item.snippet}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          {results.photoAlbums && results.photoAlbums.length > 0 ? (
+            <section>
+              <h2 className="content-block-title content-block-title--plain">Photo galleries</h2>
+              <ul className="content-highlight-list">
+                {results.photoAlbums.map((item) => (
+                  <li key={item.path} className="content-highlight-item">
+                    <LocalizedLink href={item.path} className="content-cta-link">
+                      {item.title}
+                    </LocalizedLink>
+                    <span className="text-body-sm">{item.snippet}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {results.news?.length > 0 ? (
             <section>
               <h2 className="content-block-title content-block-title--plain">News</h2>
@@ -134,6 +200,10 @@ export default function SiteSearch() {
           {results.programs.length === 0 &&
           results.events.length === 0 &&
           (results.news?.length ?? 0) === 0 &&
+          (results.insights?.length ?? 0) === 0 &&
+          (results.library?.length ?? 0) === 0 &&
+          (results.people?.length ?? 0) === 0 &&
+          (results.photoAlbums?.length ?? 0) === 0 &&
           (results.archives?.length ?? 0) === 0 &&
           results.pages.length === 0 ? (
             <p className="page-body-text">No results found.</p>

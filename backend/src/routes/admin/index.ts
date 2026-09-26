@@ -15,6 +15,9 @@ import { adminArchiveRoutes } from './archives.js'
 import { adminExportRoutes } from './export.js'
 import { adminUserRoutes } from './users.js'
 import { adminNewsRoutes } from './news.js'
+import { adminPeopleRoutes } from './people.js'
+import { adminLibraryRoutes } from './library.js'
+import { adminPhotoAlbumRoutes } from './photo-albums.js'
 import { adminAnalyticsRoutes } from './analytics.js'
 
 export async function adminRoutes(app: FastifyInstance) {
@@ -33,6 +36,9 @@ export async function adminRoutes(app: FastifyInstance) {
   await app.register(adminInboxRoutes)
   await app.register(adminArchiveRoutes)
   await app.register(adminNewsRoutes)
+  await app.register(adminPeopleRoutes)
+  await app.register(adminLibraryRoutes)
+  await app.register(adminPhotoAlbumRoutes)
   await app.register(adminExportRoutes)
   await app.register(adminUserRoutes)
 }

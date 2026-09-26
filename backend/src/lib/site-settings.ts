@@ -43,6 +43,8 @@ export async function getSiteSettings() {
       socialInstagram: DEFAULT_SITE_PROFILE.socialInstagram,
       socialYoutube: DEFAULT_SITE_PROFILE.socialYoutube,
       socialTwitter: DEFAULT_SITE_PROFILE.socialTwitter,
+      socialLinkedin: DEFAULT_SITE_PROFILE.socialLinkedin,
+      socialWhatsapp: DEFAULT_SITE_PROFILE.socialWhatsapp,
       lmsPortalUrl: DEFAULT_SITE_PROFILE.lmsPortalUrl ?? '',
       googleAnalyticsId: DEFAULT_SITE_PROFILE.googleAnalyticsId ?? '',
       legacyRedirectHost: DEFAULT_SITE_PROFILE.legacyRedirectHost ?? 'anansecenter.oceancyber.site',
@@ -93,6 +95,8 @@ export function mapSiteProfile(settings: SiteSettingsRow) {
       instagram: settings.socialInstagram,
       youtube: settings.socialYoutube,
       twitter: settings.socialTwitter,
+      linkedin: settings.socialLinkedin,
+      whatsapp: settings.socialWhatsapp,
     },
   }
 }

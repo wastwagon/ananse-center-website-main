@@ -2,10 +2,12 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import LocalizedLink from '../../../../components/LocalizedLink'
-import { fetchProgramBySlug } from '../../../../lib/api'
+import { fetchEventsForProgram, fetchProgramBySlug } from '../../../../lib/api'
+import { LEGACY_ARTS_PROGRAM_SLUGS, leadershipProgramBySlug, programSummary } from '../../../../lib/leadership/programs'
 import { buildPageMetadata } from '../../../../lib/page-meta'
 import { programIconForKey } from '../../../../lib/program-icons'
 import { cardImageSizes, resolveProgramCoverImage } from '../../../../lib/images'
+import { deliveryModeLabel, eventStatusLabel } from '../../../../lib/leadership/taxonomy'
 
 export async function generateMetadata({
   params,
@@ -13,13 +15,16 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const program = await fetchProgramBySlug(slug)
+  if ((LEGACY_ARTS_PROGRAM_SLUGS as readonly string[]).includes(slug)) {
+    return buildPageMetadata({ title: 'Program', path: `/programs/${slug}` })
+  }
+  const program = (await fetchProgramBySlug(slug).catch(() => null)) ?? leadershipProgramBySlug(slug)
   if (!program) {
     return buildPageMetadata({ title: 'Program', path: `/programs/${slug}` })
   }
   return buildPageMetadata({
     title: program.title,
-    description: program.description,
+    description: programSummary(program.description),
     path: `/programs/${slug}`,
     ogImage: program.coverImageUrl ?? undefined,
   })
@@ -31,9 +36,11 @@ export default async function ProgramDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const program = await fetchProgramBySlug(slug)
+  if ((LEGACY_ARTS_PROGRAM_SLUGS as readonly string[]).includes(slug)) notFound()
+  const program = (await fetchProgramBySlug(slug).catch(() => null)) ?? leadershipProgramBySlug(slug)
   if (!program) notFound()
 
+  const relatedEvents = await fetchEventsForProgram(program.slug)
   const Icon = programIconForKey(program.iconKey)
   const cover = resolveProgramCoverImage(program)
 
@@ -43,7 +50,7 @@ export default async function ProgramDetailPage({
         <div className="page-section-container content-page-hero-inner">
           <span className="section-badge">{program.category}</span>
           <h1 className="content-page-hero-title">{program.title}</h1>
-          <p className="content-page-hero-lead">{program.description.slice(0, 220)}…</p>
+          <p className="content-page-hero-lead">{programSummary(program.description)}</p>
         </div>
       </section>
       <section className="page-section page-section--muted section-reveal">
@@ -58,7 +65,11 @@ export default async function ProgramDetailPage({
               <Icon size={22} />
             </div>
           </div>
-          <p className="page-body-text content-prose-p">{program.description}</p>
+          {program.description.split(/\n\s*\n/).map((paragraph) => (
+            <p key={paragraph} className="page-body-text content-prose-p">
+              {paragraph}
+            </p>
+          ))}
           {program.features.length > 0 ? (
             <ul className="content-highlight-list">
               {program.features.map((feature) => (
@@ -72,15 +83,44 @@ export default async function ProgramDetailPage({
             </ul>
           ) : null}
           <div className="content-actions">
-            <LocalizedLink href="/contact#form" className="btn-primary">
-              Apply now
+            <LocalizedLink href="/get-involved" className="btn-primary">
+              Get involved
             </LocalizedLink>
+            {program.slug === 'midday-reflection' ? (
+              <LocalizedLink href="/library/midday-reflection" className="btn-outline">
+                Episode archive
+              </LocalizedLink>
+            ) : null}
             <LocalizedLink href="/programs" className="btn-outline">
               All programs
             </LocalizedLink>
           </div>
         </div>
       </section>
+
+      {relatedEvents.length > 0 ? (
+        <section className="page-section section-reveal bg-white">
+          <div className="page-section-container">
+            <h2 className="page-section-heading">Related gatherings</h2>
+            <p className="page-body-text">
+              Lectures, conversations, and other gatherings linked to this program. Each page stays as the record after the date.
+            </p>
+            <ul className="about-focus-list">
+              {relatedEvents.map((event) => (
+                <li key={event.id}>
+                  <LocalizedLink href={`/events/${event.slug}`}>{event.title}</LocalizedLink>
+                  {' · '}
+                  {event.date}
+                  {event.eventStatus && event.eventStatus !== 'scheduled'
+                    ? ` · ${eventStatusLabel(event.eventStatus)}`
+                    : ''}
+                  {event.deliveryMode ? ` · ${deliveryModeLabel(event.deliveryMode)}` : ''}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
     </article>
   )
 }

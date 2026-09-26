@@ -42,6 +42,8 @@ export default function AdminSettingsPage() {
           socialInstagram: data.social.instagram,
           socialYoutube: data.social.youtube,
           socialTwitter: data.social.twitter,
+          socialLinkedin: data.social.linkedin ?? '',
+          socialWhatsapp: data.social.whatsapp ?? '',
           lmsPortalUrl: data.integrations?.lmsPortalUrl ?? '',
           googleAnalyticsId: data.integrations?.googleAnalyticsId ?? '',
           legacyRedirectHost: data.integrations?.legacyRedirectHost ?? '',
@@ -367,6 +369,26 @@ export default function AdminSettingsPage() {
                 type="url"
                 value={patch.socialTwitter ?? ''}
                 onChange={(e) => updateField('socialTwitter', e.target.value)}
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="socialLinkedin">LinkedIn</label>
+              <input
+                id="socialLinkedin"
+                type="url"
+                value={patch.socialLinkedin ?? ''}
+                onChange={(e) => updateField('socialLinkedin', e.target.value)}
+                placeholder="https://www.linkedin.com/…"
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="socialWhatsapp">WhatsApp</label>
+              <input
+                id="socialWhatsapp"
+                type="url"
+                value={patch.socialWhatsapp ?? ''}
+                onChange={(e) => updateField('socialWhatsapp', e.target.value)}
+                placeholder="https://wa.me/…"
               />
             </div>
           </div>

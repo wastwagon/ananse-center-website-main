@@ -1,10 +1,14 @@
-# The Ananse Center for Arts and Culture
+# ANANSE Center for Leadership Development
 
-Public website and admin CMS. Day-to-day copy, photos, events, programs, news, the contact map, and partner logos are edited in Admin. No code change is required when real content is ready.
+Public website and admin CMS for **ANANSE Center for Leadership Development** (EAGLESonline). Programs, events, insights, library, people, and site copy are edited in Admin without code changes.
 
-**Handover for the center team (urgent):** [docs/CMS-HANDOVER.md](docs/CMS-HANDOVER.md)
-
-**Production deploy:** [COOLIFY.md](COOLIFY.md)
+| Doc | Purpose |
+|-----|---------|
+| [docs/DAY-1-INVENTORY.md](docs/DAY-1-INVENTORY.md) | What ships on go-live (routes, admin, content caps) |
+| [docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md) | Short staff guide (Insights, Library, People, Events) |
+| [docs/LAUNCH.md](docs/LAUNCH.md) | Coolify go-live checklist |
+| [COOLIFY.md](COOLIFY.md) | Environment variables |
+| [docs/CMS-HANDOVER.md](docs/CMS-HANDOVER.md) | Extended CMS reference (legacy arts notes may remain) |
 
 ```bash
 docker compose -f docker-compose.dev.yml up --build

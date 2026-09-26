@@ -6,8 +6,12 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Archive,
   BarChart3,
+  BookMarked,
+  BookOpen,
   CalendarDays,
+  Camera,
   Contact,
+  ExternalLink,
   FileText,
   FolderOpen,
   HeartHandshake,
@@ -19,8 +23,8 @@ import {
   Newspaper,
   Settings,
   Server,
+  UserCircle2,
   Users,
-  ExternalLink,
 } from 'lucide-react'
 import { adminLogout, adminMe } from '../../lib/admin-api'
 
@@ -53,6 +57,10 @@ const links: {
   { href: '/admin/events', label: 'Events', roles: ['superadmin', 'admin', 'editor'], icon: CalendarDays },
   { href: '/admin/programs', label: 'Programs', roles: ['superadmin', 'admin', 'editor'], icon: FolderOpen },
   { href: '/admin/archives', label: 'Archives', roles: ['superadmin', 'admin', 'editor'], icon: Archive },
+  { href: '/admin/insights', label: 'Insights', roles: ['superadmin', 'admin', 'editor'], icon: BookOpen },
+  { href: '/admin/library', label: 'Library', roles: ['superadmin', 'admin', 'editor'], icon: BookMarked },
+  { href: '/admin/photo-albums', label: 'Photo albums', roles: ['superadmin', 'admin', 'editor'], icon: Camera },
+  { href: '/admin/people', label: 'People', roles: ['superadmin', 'admin', 'editor'], icon: UserCircle2 },
   { href: '/admin/news', label: 'News', roles: ['superadmin', 'admin', 'editor'], icon: Newspaper },
   { href: '/admin/inbox', label: 'Inbox', roles: ['superadmin', 'admin', 'editor'], icon: Inbox },
   {

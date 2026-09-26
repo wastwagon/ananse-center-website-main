@@ -1,388 +1,222 @@
-import Image from 'next/image'
 import LocalizedLink from '../../components/LocalizedLink'
 import HeroPremium from '../../components/HeroPremium'
-import CmsRichText from '../../components/CmsRichText'
 import { buildCmsMetadata } from '../../lib/cms/seo'
-import { formatEventDateDisplay } from '../../lib/format'
-import GlobalAudienceBand from '../../components/GlobalAudienceBand'
-import StudyHealGiveBand from '../../components/StudyHealGiveBand'
-import LogoStrip from '../../components/LogoStrip'
-import FeatureIcon from '../../components/FeatureIcon'
-import EventTypeIcon from '../../components/EventTypeIcon'
 import { cmsIconForKey } from '../../lib/cms-icons'
-import { cardImageSizes, images, resolveCmsImage } from '../../lib/images'
-import { getFeaturedEventsForHome } from '../../lib/featured-events'
-import { getSankofaProgramsForHome } from '../../lib/sankofa-programs'
-import { DEFAULT_HOME_SECTIONS, isSectionVisible, parseSectionVisibility } from '../../lib/cms/sections'
+import { images } from '../../lib/images'
+import { fetchPrograms } from '../../lib/api'
 import {
-  DEFAULT_HOME_PILLARS,
-  DEFAULT_HOME_SECTORS,
-  DEFAULT_HOME_HERO_CTA_PRIMARY,
-  DEFAULT_HOME_HERO_CTA_SECONDARY,
-  DEFAULT_HOME_HERO_STATS,
-  DEFAULT_HOME_CTA_BUTTONS,
-  DEFAULT_HOME_HERO_TITLE,
-  DEFAULT_HOME_STORY_HIGHLIGHTS,
-  DEFAULT_HOME_TESTIMONIALS,
-  getCmsTexts,
-  parseCmsJson,
-  type CmsHeroCta,
-  type CmsHeroStat,
-  type CmsHomeHeroTitle,
-  type CmsPillar,
-  type CmsSector,
-  type CmsStoryHighlight,
-  type CmsTestimonial,
-} from '../../lib/cms/content'
-import type { LogoMark } from '../../components/LogoStrip'
+  GET_INVOLVED_PATHS,
+  HOME_HERO,
+  HOME_INSIGHTS,
+  HOME_MIDDAY,
+  HOME_PEOPLE,
+  HOME_PROGRAMS_INTRO,
+  HOME_WELCOME,
+  HOME_WHATS_NEW,
+  HOME_WHY,
+  INSIGHT_TOPICS,
+} from '../../lib/leadership/copy'
+import { programSummary, selectLeadershipPrograms } from '../../lib/leadership/programs'
 
 export async function generateMetadata() {
   return buildCmsMetadata('home', { ogImage: images.hero.home })
 }
 
 export default async function Home() {
-  const [cms, featuredEvents, sankofaPrograms] = await Promise.all([
-    getCmsTexts([
-      'home.hero.lead',
-      'home.hero.trust',
-      'home.hero.image',
-      'home.hero.imageAlt',
-      'home.hero.title',
-      'home.hero.stats',
-      'home.hero.cta.primary',
-      'home.hero.cta.secondary',
-      'home.story',
-      'home.story.badge',
-      'home.story.heading',
-      'home.story.highlights',
-      'home.pillars.badge',
-      'home.pillars.heading',
-      'home.pillars.lead',
-      'home.pillars',
-      'home.programs.badge',
-      'home.programs.heading',
-      'home.programs.lead',
-      'home.events.badge',
-      'home.events.heading',
-      'home.events.lead',
-      'home.testimonials.badge',
-      'home.testimonials.heading',
-      'home.testimonials.lead',
-      'home.testimonials',
-      'home.sectors.badge',
-      'home.sectors.heading',
-      'home.sectors.lead',
-      'home.sectors',
-      'home.cta.heading',
-      'home.cta.body',
-      'home.cta.buttons',
-      'home.story.cta',
-      'home.pillars.cardCta',
-      'home.programs.link',
-      'home.programs.cardLabel',
-      'home.programs.cardCta',
-      'home.events.cardCta',
-      'home.events.calendarLink',
-      'home.sections.visible',
-      'site.partners.heading',
-      'site.partners',
-      'site.awards.heading',
-      'site.awards',
-    ] as const),
-    getFeaturedEventsForHome(),
-    getSankofaProgramsForHome(),
-  ])
-  const homeHeroTitle = parseCmsJson<CmsHomeHeroTitle>(cms['home.hero.title'], DEFAULT_HOME_HERO_TITLE)
-  const homeHeroStats = parseCmsJson<CmsHeroStat[]>(cms['home.hero.stats'], DEFAULT_HOME_HERO_STATS)
-  const homeHeroPrimaryCta = parseCmsJson<CmsHeroCta>(cms['home.hero.cta.primary'], DEFAULT_HOME_HERO_CTA_PRIMARY)
-  const homeHeroSecondaryCta = parseCmsJson<CmsHeroCta>(
-    cms['home.hero.cta.secondary'],
-    DEFAULT_HOME_HERO_CTA_SECONDARY,
-  )
-  const homeCtaButtons = parseCmsJson<CmsHeroCta[]>(cms['home.cta.buttons'], DEFAULT_HOME_CTA_BUTTONS)
-  const storyHighlights = parseCmsJson<CmsStoryHighlight[]>(
-    cms['home.story.highlights'],
-    DEFAULT_HOME_STORY_HIGHLIGHTS,
-  )
-  const pillars = parseCmsJson<CmsPillar[]>(cms['home.pillars'], DEFAULT_HOME_PILLARS)
-  const sectors = parseCmsJson<CmsSector[]>(cms['home.sectors'], DEFAULT_HOME_SECTORS)
-  const impactStories = parseCmsJson<CmsTestimonial[]>(
-    cms['home.testimonials'],
-    DEFAULT_HOME_TESTIMONIALS,
-  )
-  const sectionVisibility = parseSectionVisibility(cms['home.sections.visible'], DEFAULT_HOME_SECTIONS)
-  const partnerLogos = parseCmsJson<LogoMark[]>(cms['site.partners'], [])
-  const awardLogos = parseCmsJson<LogoMark[]>(cms['site.awards'], [])
-  const showSection = (key: string) => isSectionVisible(sectionVisibility, key)
+  let programs = selectLeadershipPrograms([])
+  try {
+    programs = selectLeadershipPrograms(await fetchPrograms('catalog'))
+  } catch {
+    programs = selectLeadershipPrograms([])
+  }
 
   return (
     <div>
       <HeroPremium
-        lead={cms['home.hero.lead']}
-        trustLine={cms['home.hero.trust']}
-        imageSrc={resolveCmsImage(cms['home.hero.image'], images.hero.home)}
-        imageAlt={cms['home.hero.imageAlt']}
-        title={homeHeroTitle}
-        stats={homeHeroStats}
-        primaryCta={homeHeroPrimaryCta}
-        secondaryCta={homeHeroSecondaryCta}
+        lead={HOME_HERO.lead}
+        trustLine={HOME_HERO.trust}
+        imageSrc={images.hero.home}
+        imageAlt="ANANSE Center for Leadership Development"
+        title={{ line1: HOME_HERO.line1, accent: HOME_HERO.accent }}
+        stats={HOME_HERO.stats}
+        primaryCta={HOME_HERO.primary}
+        secondaryCta={HOME_HERO.secondary}
+        scrollHref="#welcome"
+        scrollLabel="Scroll to welcome"
       />
 
-      {showSection('globalBand') ? <GlobalAudienceBand /> : null}
+      <section id="welcome" className="page-section bg-white section-reveal">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">Welcome to ANANSE</span>
+          <h2 className="page-section-heading">{HOME_WELCOME.heading}</h2>
+          {HOME_WELCOME.paragraphs.map((paragraph) => (
+            <p key={paragraph} className="page-body-text">
+              {paragraph}
+            </p>
+          ))}
+          <LocalizedLink href="/about" className="btn-primary page-inline-cta">
+            Learn more about ANANSE
+          </LocalizedLink>
+        </div>
+      </section>
 
-      {showSection('journey') ? <StudyHealGiveBand /> : null}
-
-      {showSection('story') ? (
-        <section id="our-story" className="page-section bg-white section-reveal">
-          <div className="page-section-container">
-            <div className="two-col-section">
-              <div>
-                <span className="section-badge">{cms['home.story.badge']}</span>
-                <h2 className="page-section-heading">{cms['home.story.heading']}</h2>
-                <CmsRichText body={cms['home.story']} className="cms-richtext" />
-                <LocalizedLink href="/about" className="btn-primary page-inline-cta">
-                  {cms['home.story.cta']}
-                </LocalizedLink>
-              </div>
-              <div className="about-visual-card">
-                <div className="about-visual-grid">
-                  {storyHighlights.map((item) => {
-                    const Icon = cmsIconForKey(item.iconKey)
-                    return (
-                      <div key={item.label} className="about-mini-card">
-                        <FeatureIcon icon={Icon} variant="gold" />
-                        <p className="about-mini-label">{item.label}</p>
-                        <p className="about-mini-sub">{item.sub}</p>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
+      <section id="programs" className="page-section page-section--muted ananse-network-pattern section-reveal">
+        <div className="page-section-container">
+          <div className="section-header-split">
+            <div>
+              <span className="section-badge">Programs</span>
+              <h2 className="page-section-heading">{HOME_PROGRAMS_INTRO.heading}</h2>
+              <p className="page-body-text">{HOME_PROGRAMS_INTRO.lead}</p>
+              <p className="page-body-text">{HOME_PROGRAMS_INTRO.body}</p>
             </div>
+            <LocalizedLink href="/programs" className="btn-outline page-section-cta-link">
+              Explore all programs
+            </LocalizedLink>
           </div>
-        </section>
-      ) : null}
-
-      {showSection('pillars') ? (
-        <section className="page-section page-section--muted section-reveal">
-          <div className="page-section-container">
-            <div className="page-section-center-header">
-              <span className="section-badge">{cms['home.pillars.badge']}</span>
-              <h2 className="page-section-heading">{cms['home.pillars.heading']}</h2>
-              <p className="page-body-text">{cms['home.pillars.lead']}</p>
-            </div>
-            <div className="grid-cards">
-              {pillars.map((goal, idx) => {
-                const Icon = cmsIconForKey(goal.iconKey)
-                return (
-                  <article key={goal.title} className="premium-card">
-                    <div className="premium-card-image-wrapper">
-                      <Image
-                        src={resolveCmsImage(goal.imageUrl, images.goals[idx % images.goals.length])}
-                        alt={`${goal.title} — Ananse Center program pillar`}
-                        fill
-                        loading="lazy"
-                        className="object-cover"
-                        sizes={cardImageSizes}
-                      />
-                    </div>
-                    <div className="premium-card-header">
-                      <div className="premium-card-icon-box">
-                        <Icon size={22} strokeWidth={1.75} />
-                      </div>
-                    </div>
-                    <h3 className="premium-card-title">{goal.title}</h3>
-                    <p className="premium-card-description">{goal.description}</p>
-                    <LocalizedLink href="/about" className="btn-secondary premium-card-cta">
-                      {cms['home.pillars.cardCta']}
-                    </LocalizedLink>
-                  </article>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {showSection('programs') ? (
-        <section className="page-section bg-white section-reveal">
-          <div className="page-section-container">
-            <div className="section-header-split">
-              <div>
-                <span className="section-badge">{cms['home.programs.badge']}</span>
-                <h2 className="page-section-heading">{cms['home.programs.heading']}</h2>
-                <p className="page-body-text">{cms['home.programs.lead']}</p>
-              </div>
-              <LocalizedLink href="/programs" className="btn-outline page-section-cta-link">
-                {cms['home.programs.link']}
-              </LocalizedLink>
-            </div>
-            <div className="grid-cards">
-              {sankofaPrograms.map((prog, idx) => (
-                <article key={prog.title} className="premium-card">
-                  <div className="premium-card-image-wrapper">
-                    <Image
-                      src={images.programs[idx % images.programs.length]}
-                      alt={`${prog.title} — Sankofa program at Ananse Center`}
-                      fill
-                      loading="lazy"
-                      className="object-cover"
-                      sizes={cardImageSizes}
-                    />
-                  </div>
+          <div className="grid-cards">
+            {programs.map((program) => {
+              const Icon = cmsIconForKey(program.iconKey)
+              return (
+                <article key={program.slug} className="premium-card">
                   <div className="premium-card-header">
                     <div className="premium-card-icon-box">
-                      <prog.icon size={22} strokeWidth={1.75} />
+                      <Icon size={22} strokeWidth={1.75} />
                     </div>
-                    <span className="premium-card-featured-label">{cms['home.programs.cardLabel']}</span>
                   </div>
-                  <h3 className="premium-card-title">{prog.title}</h3>
-                  <p className="premium-card-description">{prog.description}</p>
-                  <LocalizedLink href={prog.href} className="btn-primary premium-card-cta">
-                    {cms['home.programs.cardCta']}
+                  <h3 className="premium-card-title">{program.title}</h3>
+                  <p className="premium-card-description">{programSummary(program.description)}</p>
+                  <LocalizedLink href={`/programs/${program.slug}`} className="btn-secondary premium-card-cta">
+                    Explore {program.title}
                   </LocalizedLink>
                 </article>
-              ))}
-            </div>
+              )
+            })}
           </div>
-        </section>
-      ) : null}
+        </div>
+      </section>
 
-      {showSection('events') ? (
-        <section className="page-section page-section--muted section-reveal">
-          <div className="page-section-container">
-            <div className="page-section-center-header">
-              <span className="section-badge">{cms['home.events.badge']}</span>
-              <h2 className="page-section-heading">{cms['home.events.heading']}</h2>
-              <p className="page-body-text">{cms['home.events.lead']}</p>
-            </div>
-            <div className="grid-cards">
-              {featuredEvents.map((event) => (
-                <article key={event.slug} className="premium-card">
-                  <div className="premium-card-image-wrapper">
-                    <Image
-                      src={event.image}
-                      alt={event.title}
-                      fill
-                      className="object-cover"
-                      sizes={cardImageSizes}
-                    />
-                  </div>
-                  <div className="premium-card-header">
-                    <EventTypeIcon type={event.type} />
-                    <span className="premium-card-featured-label">{event.type}</span>
-                  </div>
-                  <h3 className="premium-card-title">{event.title}</h3>
-                  <div className="premium-card-meta">
-                    <span className="premium-card-date">{formatEventDateDisplay(event.date)}</span>
-                    <span className="text-slate-300">·</span>
-                    <span className="premium-card-location">{event.location}</span>
-                  </div>
-                  <p className="premium-card-description">{event.description}</p>
-                  <LocalizedLink href={`/events/${event.slug}`} className="btn-primary premium-card-cta">
-                    {cms['home.events.cardCta']}
-                  </LocalizedLink>
-                </article>
-              ))}
-            </div>
-            <p className="text-center mt-section">
-              <LocalizedLink href="/events" className="btn-outline">
-                {cms['home.events.calendarLink']}
-              </LocalizedLink>
+      <section id="midday-reflection" className="page-section bg-white section-reveal">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">Midday Reflection</span>
+          <h2 className="page-section-heading">{HOME_MIDDAY.kicker}</h2>
+          {HOME_MIDDAY.paragraphs.map((paragraph) => (
+            <p key={paragraph} className="page-body-text">
+              {paragraph}
             </p>
-          </div>
-        </section>
-      ) : null}
-
-      {showSection('testimonials') ? (
-        <section className="page-section bg-white section-reveal">
-          <div className="page-section-container">
-            <div className="page-section-center-header">
-              <span className="section-badge">{cms['home.testimonials.badge']}</span>
-              <h2 className="page-section-heading">{cms['home.testimonials.heading']}</h2>
-              <p className="page-body-text">{cms['home.testimonials.lead']}</p>
-            </div>
-            <div className="grid-cards">
-              {impactStories.map((story) => (
-                <div key={story.name} className="testimonial-card">
-                  <span className="insight-card-tag">{story.tag}</span>
-                  <div className="testimonial-quote-mark">&ldquo;</div>
-                  <p className="testimonial-text">{story.quote}</p>
-                  <div className="testimonial-footer">
-                    {story.photoUrl ? (
-                      <div className="testimonial-avatar testimonial-avatar--photo" aria-hidden>
-                        <Image
-                          src={story.photoUrl}
-                          alt=""
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                      </div>
-                    ) : (
-                      <div className="testimonial-avatar" aria-hidden>
-                        {story.name.charAt(0)}
-                      </div>
-                    )}
-                    <p className="testimonial-name">{story.name}</p>
-                  </div>
-                </div>
-              ))}
+          ))}
+          <div className="insight-card p-0" style={{ marginTop: '1.5rem' }}>
+            <div className="insight-card-bar" />
+            <div className="insight-card-body p-20">
+              <h3 className="premium-card-title">Latest episode</h3>
+              <p className="page-body-text">{HOME_MIDDAY.empty}</p>
             </div>
           </div>
-        </section>
-      ) : null}
-
-      {showSection('sectors') ? (
-        <section className="page-section page-section--muted section-reveal">
-          <div className="page-section-container">
-            <div className="page-section-center-header">
-              <span className="section-badge">{cms['home.sectors.badge']}</span>
-              <h2 className="page-section-heading">{cms['home.sectors.heading']}</h2>
-              <p className="page-body-text">{cms['home.sectors.lead']}</p>
-            </div>
-            <div className="grid-sectors sectors-grid">
-              {sectors.map((sector) => {
-                const Icon = cmsIconForKey(sector.iconKey)
-                return (
-                  <div key={sector.name} className="sector-card">
-                    <FeatureIcon icon={Icon} variant="gold" size={22} />
-                    <p className="sector-name">{sector.name}</p>
-                  </div>
-                )
-              })}
-            </div>
+          <p className="page-body-text" style={{ marginTop: '1.25rem' }}>
+            {HOME_MIDDAY.weekly}
+          </p>
+          <div className="page-cta-buttons" style={{ marginTop: '1.25rem' }}>
+            <LocalizedLink href="/programs/midday-reflection" className="btn-primary">
+              Explore Midday Reflection
+            </LocalizedLink>
+            <LocalizedLink href="/library/midday-reflection" className="btn-outline">
+              Episode archive
+            </LocalizedLink>
           </div>
-        </section>
-      ) : null}
+        </div>
+      </section>
 
-      {showSection('partners') ? (
-        <LogoStrip heading={cms['site.partners.heading']} items={partnerLogos} />
-      ) : null}
+      <section id="what-is-new" className="page-section page-section--muted ananse-network-pattern section-reveal">
+        <div className="page-section-container">
+          <div className="page-section-center-header">
+            <span className="section-badge">What is new</span>
+            <h2 className="page-section-heading">{HOME_WHATS_NEW.heading}</h2>
+            <p className="page-body-text">{HOME_WHATS_NEW.lead}</p>
+            <p className="page-body-text">{HOME_WHATS_NEW.body}</p>
+          </div>
+          <div className="grid-cards">
+            {HOME_WHATS_NEW.slots.map((slot) => (
+              <article key={slot.title} className="premium-card">
+                <h3 className="premium-card-title">{slot.title}</h3>
+                <p className="premium-card-description">{slot.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      {showSection('awards') ? (
-        <LogoStrip heading={cms['site.awards.heading']} items={awardLogos} />
-      ) : null}
+      <section id="insights" className="page-section bg-white section-reveal">
+        <div className="page-section-container">
+          <span className="section-badge">Insights</span>
+          <h2 className="page-section-heading">{HOME_INSIGHTS.heading}</h2>
+          <p className="page-body-text">{HOME_INSIGHTS.kicker}</p>
+          {HOME_INSIGHTS.paragraphs.map((paragraph) => (
+            <p key={paragraph} className="page-body-text">
+              {paragraph}
+            </p>
+          ))}
+          <ul className="about-focus-list">
+            {INSIGHT_TOPICS.map((topic) => (
+              <li key={topic}>{topic}</li>
+            ))}
+          </ul>
+          <LocalizedLink href="/insights" className="btn-primary page-inline-cta">
+            Explore ANANSE Insights
+          </LocalizedLink>
+        </div>
+      </section>
 
-      {showSection('cta') ? (
-        <section className="page-cta-section section-reveal">
-          <div className="page-section-container page-cta-inner">
-            <h2 className="page-cta-heading">{cms['home.cta.heading']}</h2>
-            <p className="page-cta-body">{cms['home.cta.body']}</p>
-            <div className="page-cta-buttons">
-              {homeCtaButtons.map((btn, index) => (
-                <LocalizedLink
-                  key={btn.label}
-                  href={btn.href}
-                  className={index === 0 ? 'btn-primary page-cta-btn' : 'btn-outline-white page-cta-btn'}
-                >
-                  {btn.label}
+      <section id="why-ananse" className="page-section page-section--muted ananse-network-pattern section-reveal">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">Why the name matters</span>
+          <h2 className="page-section-heading">{HOME_WHY.heading}</h2>
+          <p className="page-body-text">{HOME_WHY.kicker}</p>
+          {HOME_WHY.paragraphs.map((paragraph) => (
+            <p key={paragraph} className="page-body-text">
+              {paragraph}
+            </p>
+          ))}
+          <LocalizedLink href="/about#the-ananse-story" className="btn-primary page-inline-cta">
+            Read the ANANSE story
+          </LocalizedLink>
+        </div>
+      </section>
+
+      <section id="people" className="page-section bg-white section-reveal">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">People</span>
+          <h2 className="page-section-heading">{HOME_PEOPLE.heading}</h2>
+          <p className="page-body-text">{HOME_PEOPLE.kicker}</p>
+          {HOME_PEOPLE.paragraphs.map((paragraph) => (
+            <p key={paragraph} className="page-body-text">
+              {paragraph}
+            </p>
+          ))}
+          <LocalizedLink href="/people" className="btn-primary page-inline-cta">
+            Meet the ANANSE community
+          </LocalizedLink>
+        </div>
+      </section>
+
+      <section id="get-involved" className="page-section page-section--muted ananse-network-pattern section-reveal">
+        <div className="page-section-container">
+          <div className="page-section-center-header">
+            <span className="section-badge">How to take part</span>
+            <h2 className="page-section-heading">Be part of the ANANSE journey.</h2>
+            <p className="page-body-text">There are many ways to connect, contribute, and grow with ANANSE.</p>
+          </div>
+          <div className="grid-cards">
+            {GET_INVOLVED_PATHS.map((path) => (
+              <article key={path.id} className="premium-card">
+                <h3 className="premium-card-title">{path.title}</h3>
+                <p className="premium-card-description">{path.body}</p>
+                <LocalizedLink href={path.href.startsWith('#') ? `/get-involved${path.href}` : path.href} className="btn-secondary premium-card-cta">
+                  {path.cta}
                 </LocalizedLink>
-              ))}
-            </div>
+              </article>
+            ))}
           </div>
-        </section>
-      ) : null}
+        </div>
+      </section>
     </div>
   )
 }

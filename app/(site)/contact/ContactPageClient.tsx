@@ -256,7 +256,7 @@ export default function ContactPageClient({
               <div className="about-mini-card">
                 <h4 className="contact-visit-card-title">{visitHeading}</h4>
                 <p className="page-body-text contact-visit-card-body">{visitBlurb}</p>
-                <LocalizedLink href="/about" className="program-card-link visit-card-link">
+                <LocalizedLink href="/get-involved" className="program-card-link visit-card-link">
                   {visitLinkText}
                 </LocalizedLink>
               </div>

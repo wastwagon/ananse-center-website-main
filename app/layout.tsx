@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from 'next'
 import SiteAnalytics from '../components/SiteAnalytics'
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Source_Sans_3, Playfair_Display } from 'next/font/google'
 import './globals.css'
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0f172a',
+  themeColor: '#1c1917',
 }
 
-const inter = Inter({
+const sourceSans = Source_Sans_3({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
@@ -24,22 +24,19 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: 'The Ananse Center for Arts and Culture',
-    template: '%s | Ananse Center',
+    default: 'ANANSE Center for Leadership Development',
+    template: '%s | ANANSE Center',
   },
   description:
-    'Empowering Africa\'s next generation of leaders through cultural arts, education, and community programs. Weaving wisdom into solutions.',
+    'Developing people. Transforming lives. Strengthening communities. Leadership education, mentoring, and practical service.',
   keywords: [
-    'Ananse Center',
-    'African arts',
-    'Akatakyiwa',
-    'Central Region Ghana',
-    'restorative arts',
-    'African diaspora',
-    'repatriation Ghana',
-    'Sankofa',
-    'cultural center',
-    'non-profit donation Ghana',
+    'ANANSE Center',
+    'Leadership Development',
+    'EAGLESonline',
+    'Midday Reflection',
+    'Sankofa ADR',
+    'Mentorship',
+    'Excellence Lectures',
   ],
   metadataBase: process.env.NEXT_PUBLIC_SITE_URL
     ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
@@ -50,12 +47,12 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: 'Ananse Center',
+    title: 'ANANSE Center',
     statusBarStyle: 'black-translucent',
   },
   openGraph: {
-    title: 'The Ananse Center for Arts and Culture',
-    description: 'Weaving wisdom into solutions — empowering Africa\'s next generation.',
+    title: 'ANANSE Center for Leadership Development',
+    description: 'Developing people. Transforming lives. Strengthening communities.',
     type: 'website',
     locale: 'en_GB',
     alternateLocale: ['fr_FR'],
@@ -64,7 +61,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`} data-scroll-behavior="smooth">
+    <html lang="en" className={`${sourceSans.variable} ${playfair.variable}`} data-scroll-behavior="smooth">
       <body className="min-h-screen flex flex-col bg-white antialiased font-body">
         <SiteAnalytics />
         {children}

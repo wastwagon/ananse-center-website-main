@@ -4,11 +4,21 @@ import { FormEvent, useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
+import GalleryMediaField from '../../../components/admin/GalleryMediaField'
+import {
+  EVENT_DELIVERY_MODES,
+  EVENT_GATHERING_TYPES,
+  EVENT_STATUSES,
+  deliveryModeLabel,
+  eventStatusLabel,
+} from '../../../lib/leadership/taxonomy'
 import {
   type AdminEvent,
+  type AdminProgram,
   createAdminEvent,
   deleteAdminEvent,
   fetchAdminEvents,
+  fetchAdminPrograms,
   updateAdminEvent,
 } from '../../../lib/admin-api'
 
@@ -38,11 +48,17 @@ const emptyForm = {
   registrationStatus: 'auto',
   location: '',
   venue: '',
-  type: 'Festival',
-  imageEmoji: '🎭',
+  type: EVENT_GATHERING_TYPES[0] as string,
+  imageEmoji: '📅',
   storyTitle: '',
   storyBody: '',
   highlightsText: '',
+  eventStatus: 'scheduled',
+  deliveryMode: 'in_person',
+  meetingUrl: '',
+  recordingUrl: '',
+  galleryMediaIds: [] as string[],
+  programId: '',
   featured: false,
   published: true,
   coverMediaId: null as string | null,
@@ -50,6 +66,7 @@ const emptyForm = {
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<AdminEvent[]>([])
+  const [programs, setPrograms] = useState<AdminProgram[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -60,8 +77,9 @@ export default function AdminEventsPage() {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await fetchAdminEvents()
-      setEvents(data)
+      const [eventsRes, programsRes] = await Promise.all([fetchAdminEvents(), fetchAdminPrograms()])
+      setEvents(eventsRes.data)
+      setPrograms(programsRes.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load events')
     } finally {
@@ -96,6 +114,12 @@ export default function AdminEventsPage() {
       storyTitle: event.storyTitle ?? '',
       storyBody: event.storyBody ?? '',
       highlightsText: (event.highlights ?? []).join('\n'),
+      eventStatus: event.eventStatus || 'scheduled',
+      deliveryMode: event.deliveryMode || 'in_person',
+      meetingUrl: event.meetingUrl ?? '',
+      recordingUrl: event.recordingUrl ?? '',
+      galleryMediaIds: event.galleryMediaIds ?? [],
+      programId: event.programId ?? '',
       featured: event.featured,
       published: event.published,
       coverMediaId: event.coverMediaId,
@@ -127,6 +151,12 @@ export default function AdminEventsPage() {
           .split('\n')
           .map((line) => line.trim())
           .filter(Boolean),
+        eventStatus: form.eventStatus,
+        deliveryMode: form.deliveryMode,
+        meetingUrl: form.meetingUrl.trim(),
+        recordingUrl: form.recordingUrl.trim(),
+        galleryMediaIds: form.galleryMediaIds,
+        programId: form.programId || null,
         featured: form.featured,
         published: form.published,
         coverMediaId: form.coverMediaId,
@@ -273,13 +303,89 @@ export default function AdminEventsPage() {
               />
             </div>
             <div className="admin-field">
-              <label htmlFor="type">Type</label>
-              <input
+              <label htmlFor="type">Gathering type</label>
+              <select
                 id="type"
+                className="admin-input"
                 required
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
+              >
+                {EVENT_GATHERING_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+                {!EVENT_GATHERING_TYPES.includes(form.type as (typeof EVENT_GATHERING_TYPES)[number]) ? (
+                  <option value={form.type}>{form.type}</option>
+                ) : null}
+              </select>
+            </div>
+            <div className="admin-field">
+              <label htmlFor="eventStatus">Event status</label>
+              <select
+                id="eventStatus"
+                className="admin-input"
+                value={form.eventStatus}
+                onChange={(e) => setForm({ ...form, eventStatus: e.target.value })}
+              >
+                {EVENT_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {eventStatusLabel(status)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="admin-field">
+              <label htmlFor="deliveryMode">Delivery mode</label>
+              <select
+                id="deliveryMode"
+                className="admin-input"
+                value={form.deliveryMode}
+                onChange={(e) => setForm({ ...form, deliveryMode: e.target.value })}
+              >
+                {EVENT_DELIVERY_MODES.map((mode) => (
+                  <option key={mode} value={mode}>
+                    {deliveryModeLabel(mode)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {form.deliveryMode !== 'in_person' ? (
+              <div className="admin-field">
+                <label htmlFor="meetingUrl">Online meeting URL</label>
+                <input
+                  id="meetingUrl"
+                  value={form.meetingUrl}
+                  onChange={(e) => setForm({ ...form, meetingUrl: e.target.value })}
+                  placeholder="https://"
+                />
+              </div>
+            ) : null}
+            <div className="admin-field">
+              <label htmlFor="recordingUrl">Recording URL (optional)</label>
+              <input
+                id="recordingUrl"
+                value={form.recordingUrl}
+                onChange={(e) => setForm({ ...form, recordingUrl: e.target.value })}
+                placeholder="https://"
               />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="programId">Linked program (optional)</label>
+              <select
+                id="programId"
+                className="admin-input"
+                value={form.programId}
+                onChange={(e) => setForm({ ...form, programId: e.target.value })}
+              >
+                <option value="">— None —</option>
+                {programs.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
             </div>
             <CoverMediaField
               value={form.coverMediaId}
@@ -318,6 +424,10 @@ export default function AdminEventsPage() {
                 onChange={(e) => setForm({ ...form, highlightsText: e.target.value })}
               />
             </div>
+            <GalleryMediaField
+              value={form.galleryMediaIds}
+              onChange={(galleryMediaIds) => setForm({ ...form, galleryMediaIds })}
+            />
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <input
                 type="checkbox"
@@ -359,6 +469,7 @@ export default function AdminEventsPage() {
               <tr>
                 <th>Title</th>
                 <th>Date</th>
+                <th>Delivery</th>
                 <th>Registration</th>
                 <th>Status</th>
                 <th />
@@ -377,6 +488,7 @@ export default function AdminEventsPage() {
                       <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{event.timeLabel}</div>
                     ) : null}
                   </td>
+                  <td>{deliveryModeLabel(event.deliveryMode || 'in_person')}</td>
                   <td>{event.registrationStatus || 'auto'}</td>
                   <td>
                     <span

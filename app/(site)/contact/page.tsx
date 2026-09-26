@@ -15,6 +15,7 @@ import {
 } from '../../../lib/cms/content'
 import { getPublicSiteProfile } from '../../../lib/site-profile'
 import ContactPageClient from './ContactPageClient'
+import { CONTACT_SUBJECTS } from '../../../lib/leadership/copy'
 
 export async function generateMetadata() {
   return buildCmsMetadata('contact', { ogImage: images.hero.contact })
@@ -56,24 +57,24 @@ export default async function ContactPage() {
 
   return (
     <ContactPageClient
-      heroLead={cms['contact.hero.lead']}
-      heroTitle={heroTitle}
-      heroStats={heroStats}
-      heroPrimaryCta={heroPrimaryCta}
-      heroSecondaryCta={heroSecondaryCta}
+      heroLead="Write to ANANSE Center for Leadership Development. The same form is on Get Involved, which is where Contact lives in the menu."
+      heroTitle={{ prefix: 'Contact ', accent: 'ANANSE' }}
+      heroStats={[]}
+      heroPrimaryCta={{ label: 'Get involved', href: '/get-involved' }}
+      heroSecondaryCta={{ label: 'Send a message', href: '#form' }}
       heroImageSrc={resolveCmsImage(cms['contact.hero.image'], images.hero.contact)}
       heroImageAlt={cms['contact.hero.imageAlt']}
       formHeading={cms['contact.form.heading']}
-      formSubjects={formSubjects}
-      mapHeading={cms['contact.map.heading']}
-      mapSubtitle={cms['contact.map.subtitle']}
-      mapEmbedUrl={cms['contact.map.embedUrl']}
-      mapLinkUrl={cms['contact.map.linkUrl']}
-      mapLinkText={cms['contact.map.linkText']}
-      visitHeading={cms['contact.visit.heading']}
-      visitLinkText={cms['contact.visit.linkText']}
+      formSubjects={[...CONTACT_SUBJECTS]}
+      mapHeading="Write to us"
+      mapSubtitle="A public street address will be added when ANANSE confirms it."
+      mapEmbedUrl=""
+      mapLinkUrl=""
+      mapLinkText=""
+      visitHeading="Get involved"
+      visitLinkText="See ways to take part"
       infoTitles={infoTitles}
-      visitBlurb={cms['contact.visit.blurb']}
+      visitBlurb="Learn, attend, mentor, partner, support, or share. Contact sits with those pathways."
       ctaHeading={cms['contact.cta.heading']}
       ctaBody={cms['contact.cta.body']}
       profile={profile}

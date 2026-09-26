@@ -1,7 +1,7 @@
 {
   "name": "ananse-center-website",
   "version": "1.0.0",
-  "description": "The Ananse Center for Arts and Culture website and admin CMS",
+  "description": "ANANSE Center for Leadership Development — public website and admin CMS",
   "main": "index.html",
   "scripts": {
     "dev": "next dev",

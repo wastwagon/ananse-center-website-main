@@ -15,6 +15,17 @@ import {
   type CmsNavLink,
 } from '../lib/cms/nav'
 
+function flattenNav(links: readonly CmsNavLink[]): Array<CmsNavLink & { child?: boolean }> {
+  const out: Array<CmsNavLink & { child?: boolean }> = []
+  for (const link of links) {
+    out.push(link)
+    for (const child of link.children ?? []) {
+      out.push({ ...child, child: true })
+    }
+  }
+  return out
+}
+
 function compactTitleForPath(pathname: string, allLinks: CmsNavLink[]): string | null {
   const logical = stripLocalePrefix(pathname)
   if (logical === '/') return null
@@ -44,23 +55,22 @@ export default function Navbar({
 
   const sheetLinks: readonly MobileMenuLink[] = useMemo(
     () =>
-      sheetLinksCms.map((link) => {
+      flattenNav([...primaryLinks, ...sheetLinksCms]).map((link) => {
         const { path, hash } = splitHref(link.href)
         return {
           name: link.label,
           href: localizedPath(path, locale) + hash,
+          child: Boolean(link.child),
         }
       }),
-    [locale, sheetLinksCms],
+    [locale, primaryLinks, sheetLinksCms],
   )
 
   const allNavLinks = useMemo(() => [...primaryLinks, ...sheetLinksCms], [primaryLinks, sheetLinksCms])
   const compactTitle = useMemo(() => compactTitleForPath(pathname, allNavLinks), [pathname, allNavLinks])
-  const donateLink = primaryLinks.find(
-    (link) => /donate|support/i.test(link.label) || link.href.startsWith('/support'),
-  )
-  const donateHref = donateLink?.href || '/support'
-  const donateLabel = donateLink?.label || translate('nav.donate')
+  const involveLink = primaryLinks.find((link) => link.href.startsWith('/get-involved'))
+  const involveHref = involveLink?.href || '/get-involved'
+  const involveLabel = involveLink?.label || 'Get Involved'
 
   useEffect(() => {
     const handle = () => setIsScrolled(window.scrollY > 12)
@@ -90,16 +100,33 @@ export default function Navbar({
             const { path, hash } = splitHref(link.href)
             const active =
               logicalPath === path ||
-              (path === '/contact' && logicalPath.startsWith('/contact'))
+              (path !== '/' && logicalPath.startsWith(path))
             return (
-              <Link
-                key={`${link.label}-${link.href}`}
-                href={localizedPath(path, locale) + hash}
-                className={`navbar-link${active ? ' navbar-link-active' : ''}`}
-                aria-current={active ? 'page' : undefined}
-              >
-                {link.label}
-              </Link>
+              <div key={`${link.label}-${link.href}`} className="nav-item">
+                <Link
+                  href={localizedPath(path, locale) + hash}
+                  className={`navbar-link${active ? ' navbar-link-active' : ''}`}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  {link.label}
+                </Link>
+                {link.children && link.children.length > 0 ? (
+                  <div className="nav-submenu" role="navigation" aria-label={`${link.label} sections`}>
+                    {link.children.map((child) => {
+                      const childParts = splitHref(child.href)
+                      return (
+                        <Link
+                          key={`${child.label}-${child.href}`}
+                          href={localizedPath(childParts.path, locale) + childParts.hash}
+                          className="nav-submenu-link"
+                        >
+                          {child.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </div>
             )
           })}
           <LocalizedLink
@@ -110,12 +137,6 @@ export default function Navbar({
           >
             <Search size={18} strokeWidth={2} aria-hidden />
           </LocalizedLink>
-          <Link
-            href={localizedPath(splitHref(donateHref).path, locale) + splitHref(donateHref).hash}
-            className="btn-primary navbar-cta"
-          >
-            {donateLabel}
-          </Link>
         </div>
 
         <button
@@ -133,8 +154,9 @@ export default function Navbar({
         isOpen={menuOpen}
         onClose={closeMenu}
         links={sheetLinks}
-        title={translate('nav.more')}
-        donateLabel={donateLabel}
+        title="Menu"
+        footerHref={localizedPath(splitHref(involveHref).path, locale)}
+        footerLabel={involveLabel}
       />
     </nav>
   )

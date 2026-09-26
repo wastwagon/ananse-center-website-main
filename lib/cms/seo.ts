@@ -10,6 +10,11 @@ export type SeoPageId =
   | 'events'
   | 'support'
   | 'contact'
+  | 'insights'
+  | 'library'
+  | 'people'
+  | 'getInvolved'
+  | 'accessibility'
   | 'videos'
   | 'visit'
   | 'repatriation'
@@ -36,38 +41,68 @@ export const SEO_PAGE_DEFAULTS: Record<SeoPageId, SeoPageDefaults> = {
   home: {
     title: 'Home',
     description:
-      'The Ananse Center for Arts and Culture — Sankofa programs, events, and Pan-African leadership development in Accra and across the diaspora.',
+      'ANANSE Center for Leadership Development — developing people through leadership education, mentoring, and practical service.',
     path: '/',
   },
   about: {
     title: 'About',
     description:
-      'Learn about The Ananse Center mission, vision, leadership, and Sankofa approach to cultural restoration.',
+      'Who ANANSE is, why the name matters, the vision and mission, seven core values, and EAGLESonline.',
     path: '/about',
   },
   programs: {
     title: 'Programs',
     description:
-      'Explore Sankofa arts, culture, and leadership programs at The Ananse Center in Ghana.',
+      'Ten ANANSE programs, including Leadership Development, Mentorship, Excellence Lectures, Midday Reflection, and Sankofa ADR.',
     path: '/programs',
   },
   events: {
     title: 'Events',
     description:
-      'Festivals, workshops, and community gatherings at The Ananse Center for Arts and Culture.',
+      'Lectures, seminars, and conversations at ANANSE Center for Leadership Development. Registration stays open on the event page until the gathering closes.',
     path: '/events',
   },
   support: {
     title: 'Support',
     description:
-      'Donate and partner with The Ananse Center to sustain cultural arts education and community programs.',
+      'Financial gifts to ANANSE Center for Leadership Development through Paystack. Giving is separate from offering time, skill, or opportunities.',
     path: '/support',
   },
   contact: {
     title: 'Contact',
     description:
-      'Contact The Ananse Center for partnerships, visits, programs, and press inquiries.',
+      'Contact ANANSE Center for Leadership Development. The form also lives under Get Involved.',
     path: '/contact',
+  },
+  insights: {
+    title: 'Insights',
+    description:
+      'Articles, essays, and reflections on leadership, character, wisdom, and service — filtered by topic, not separate menus.',
+    path: '/insights',
+  },
+  library: {
+    title: 'Library',
+    description:
+      'The ANANSE Library — listen, watch, read, and photo galleries. Lectures, Midday Reflection, study materials, and more.',
+    path: '/library',
+  },
+  people: {
+    title: 'People',
+    description:
+      'The ANANSE community: leadership, mentors, speakers, fellows, and partners. Profiles published only with permission.',
+    path: '/people',
+  },
+  getInvolved: {
+    title: 'Get Involved',
+    description:
+      'Learn, attend, mentor, partner, support, and share with ANANSE Center for Leadership Development.',
+    path: '/get-involved',
+  },
+  accessibility: {
+    title: 'Accessibility',
+    description:
+      'Accessibility statement for the ANANSE Center for Leadership Development website.',
+    path: '/accessibility',
   },
   videos: {
     title: 'Videos',
@@ -103,8 +138,9 @@ export const SEO_PAGE_DEFAULTS: Record<SeoPageId, SeoPageDefaults> = {
     path: '/community',
   },
   news: {
-    title: 'News',
-    description: 'News and updates from The Ananse Center for Arts and Culture.',
+    title: 'Insights',
+    description:
+      'Articles and reflections from ANANSE Center for Leadership Development. Public listing lives at /insights.',
     path: '/news',
   },
   partnerships: {
@@ -124,22 +160,23 @@ export const SEO_PAGE_DEFAULTS: Record<SeoPageId, SeoPageDefaults> = {
   },
   trustees: {
     title: 'Trustees',
-    description: 'Meet the Board of Trustees of The Ananse Center for Arts and Culture.',
+    description: 'Governance information for ANANSE Center for Leadership Development.',
     path: '/trustees',
   },
   privacy: {
     title: 'Privacy Policy',
-    description: 'Privacy policy for The Ananse Center website and community programs.',
+    description: 'Privacy policy for the ANANSE Center for Leadership Development website.',
     path: '/privacy',
   },
   terms: {
     title: 'Terms of Service',
-    description: 'Terms of service for The Ananse Center website.',
+    description: 'Terms of service for the ANANSE Center for Leadership Development website.',
     path: '/terms',
   },
   search: {
     title: 'Search',
-    description: 'Search The Ananse Center website for programs, events, and resources.',
+    description:
+      'Search ANANSE for programs, events, insights, library records, people, and pages.',
     path: '/search',
   },
 }

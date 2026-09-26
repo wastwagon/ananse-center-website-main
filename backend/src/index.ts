@@ -14,6 +14,10 @@ import { registrationRoutes } from './routes/registrations.js'
 import { communityRoutes } from './routes/community.js'
 import { archiveRoutes } from './routes/archives.js'
 import { newsRoutes } from './routes/news.js'
+import { insightsRoutes } from './routes/insights.js'
+import { peopleRoutes } from './routes/people.js'
+import { libraryRoutes } from './routes/library.js'
+import { photoAlbumRoutes } from './routes/photo-albums.js'
 import { analyticsRoutes } from './routes/analytics.js'
 import { adminRoutes } from './routes/admin/index.js'
 import { mediaRoutes } from './routes/media.js'
@@ -75,6 +79,10 @@ await app.register(registrationRoutes)
 await app.register(communityRoutes)
 await app.register(archiveRoutes)
 await app.register(newsRoutes)
+await app.register(insightsRoutes)
+await app.register(peopleRoutes)
+await app.register(libraryRoutes)
+await app.register(photoAlbumRoutes)
 await app.register(analyticsRoutes)
 await app.register(adminRoutes)
 

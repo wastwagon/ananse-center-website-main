@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import LocalizedLink from '../../../components/LocalizedLink'
 import PageCtaBand from '../../../components/PageCtaBand'
-import { fetchEvents, subscribeNewsletter, type ApiEvent } from '../../../lib/api'
-import { fallbackEvents } from './events-data'
+import { fetchEvents, type ApiEvent } from '../../../lib/api'
+import { EVENTS_EMPTY, EVENTS_HERO } from '../../../lib/leadership/copy'
+import { withoutLegacyArtsEvents } from '../../../lib/leadership/legacy-events'
+import { deliveryModeLabel, eventStatusLabel } from '../../../lib/leadership/taxonomy'
 import HeroSplit from '../../../components/HeroSplit'
 import { useCmsTexts } from '../../../lib/cms/client'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
@@ -111,10 +113,11 @@ export default function EventsPage() {
     () => parseCmsJson<CmsHeroCta>(cms['events.hero.cta.secondary'], DEFAULT_EVENTS_HERO_CTA_SECONDARY),
     [cms['events.hero.cta.secondary']],
   )
-  const categories = useMemo(
-    () => parseCmsJson<string[]>(cms['events.filter.categories'], DEFAULT_EVENTS_FILTER_CATEGORIES),
-    [cms['events.filter.categories']],
-  )
+  const categories = useMemo(() => {
+    const parsed = parseCmsJson<string[]>(cms['events.filter.categories'], DEFAULT_EVENTS_FILTER_CATEGORIES)
+    const looksLikeArts = parsed.some((category) => /festival|exhibition|retreat|symposium/i.test(category))
+    return looksLikeArts ? DEFAULT_EVENTS_FILTER_CATEGORIES : parsed
+  }, [cms['events.filter.categories']])
   const highlightMetrics = useMemo(
     () => parseCmsJson<CmsLabeledValue[]>(cms['events.highlights.metrics'], DEFAULT_EVENTS_HIGHLIGHTS_METRICS),
     [cms['events.highlights.metrics']],
@@ -129,10 +132,9 @@ export default function EventsPage() {
   )
   const [activeTab, setActiveTab] = useState('All Events')
   const [timingFilter, setTimingFilter] = useState<TimingFilter>('Upcoming')
-  const [events, setEvents] = useState<ApiEvent[]>(fallbackEvents)
-  const [newsletterEmail, setNewsletterEmail] = useState('')
-  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [newsletterMessage, setNewsletterMessage] = useState('')
+  const [deliveryFilter, setDeliveryFilter] = useState<'All' | 'in_person' | 'online' | 'hybrid'>('All')
+  const [viewMode, setViewMode] = useState<'list' | 'month'>('list')
+  const [events, setEvents] = useState<ApiEvent[]>([])
 
   const detailsLabel = cms['home.events.cardCta'] ?? 'Event Details'
   const registerLabel = cms['events.card.register'] || 'Register Now'
@@ -182,10 +184,10 @@ export default function EventsPage() {
 
     fetchEvents()
       .then((data) => {
-        if (!cancelled && data.length > 0) setEvents(data)
+        if (!cancelled) setEvents(withoutLegacyArtsEvents(data))
       })
       .catch(() => {
-        if (!cancelled) setEvents(fallbackEvents)
+        if (!cancelled) setEvents([])
       })
 
     return () => {
@@ -200,43 +202,44 @@ export default function EventsPage() {
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
+      if (event.eventStatus === 'cancelled' && timingFilter === 'Upcoming') return false
       const matchesType = activeTab === 'All Events' || event.type === activeTab
       if (!matchesType) return false
+      const mode = event.deliveryMode || 'in_person'
+      if (deliveryFilter !== 'All' && mode !== deliveryFilter) return false
       if (timingFilter === 'All') return true
-      const upcoming = isEventOpen(event)
+      const upcoming = isEventOpen(event) && event.eventStatus !== 'cancelled'
       return timingFilter === 'Upcoming' ? upcoming : !upcoming
     })
-  }, [events, activeTab, timingFilter])
+  }, [events, activeTab, timingFilter, deliveryFilter])
 
-  async function handleNewsletterSubmit() {
-    if (!newsletterEmail.trim()) return
-    setNewsletterStatus('loading')
-    setNewsletterMessage('')
-    try {
-      const result = await subscribeNewsletter(newsletterEmail.trim())
-      setNewsletterStatus('success')
-      setNewsletterMessage(result.message)
-      setNewsletterEmail('')
-    } catch (error) {
-      setNewsletterStatus('error')
-      setNewsletterMessage(error instanceof Error ? error.message : 'Subscription failed')
+  const eventsByMonth = useMemo(() => {
+    const groups = new Map<string, ApiEvent[]>()
+    for (const event of filteredEvents) {
+      const key = event.startsAt
+        ? event.startsAt.slice(0, 7)
+        : event.date || 'Undated'
+      const list = groups.get(key) ?? []
+      list.push(event)
+      groups.set(key, list)
     }
-  }
+    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
+  }, [filteredEvents])
 
   return (
     <div className="events-page">
       <HeroSplit
         compact
         imageSrc={resolveCmsImage(cms['events.hero.image'], images.hero.events)}
-        imageAlt={cms['events.hero.imageAlt'] || 'Cultural festivals at Ananse Center'}
-        title={renderSplitHeroTitle(heroTitle)}
-        description={cms['events.hero.lead']}
-        primaryCta={heroPrimaryCta}
-        secondaryCta={heroSecondaryCta}
-        stats={heroStats}
+        imageAlt="Gatherings at ANANSE Center for Leadership Development"
+        title={renderSplitHeroTitle(EVENTS_HERO.title)}
+        description={EVENTS_HERO.lead}
+        primaryCta={EVENTS_HERO.primary}
+        secondaryCta={EVENTS_HERO.secondary}
+        stats={[]}
       />
 
-      {showSection('featured') ? (
+      {showSection('featured') && events.length > 0 ? (
       <section id="calendar" className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
           <div className="page-section-center-header">
@@ -331,6 +334,47 @@ export default function EventsPage() {
             </div>
           </div>
 
+          <div className="filter-scroll" style={{ marginBottom: '1rem' }}>
+            <div className="segmented-control" role="tablist" aria-label="Delivery filter">
+              {(
+                [
+                  ['All', 'All'],
+                  ['in_person', 'In person'],
+                  ['online', 'Online'],
+                  ['hybrid', 'Hybrid'],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={deliveryFilter === value}
+                  onClick={() => setDeliveryFilter(value)}
+                  className={`filter-btn ${deliveryFilter === value ? 'filter-btn-active' : ''}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-scroll" style={{ marginBottom: '1rem' }}>
+            <div className="segmented-control" role="tablist" aria-label="Events view">
+              {(['list', 'month'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  role="tab"
+                  aria-selected={viewMode === mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`filter-btn ${viewMode === mode ? 'filter-btn-active' : ''}`}
+                >
+                  {mode === 'list' ? 'List' : 'Month'}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="filter-scroll">
             <div className="segmented-control" role="tablist" aria-label="Event category filter">
               {categories.map((cat) => (
@@ -351,11 +395,31 @@ export default function EventsPage() {
           <div className="grid-cards grid-cards--stack-narrow">
             {filteredEvents.length === 0 ? (
               <p className="page-body-text" style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
-                No events match this filter yet. Check back soon or subscribe below.
+                {EVENTS_EMPTY}
               </p>
+            ) : viewMode === 'month' ? (
+              eventsByMonth.map(([month, monthEvents]) => (
+                <div key={month} style={{ gridColumn: '1 / -1' }}>
+                  <h3 className="page-subsection-heading">{month}</h3>
+                  <ul className="about-focus-list">
+                    {monthEvents.map((event) => (
+                      <li key={event.id}>
+                        <LocalizedLink href={`/events/${event.slug}`}>{event.title}</LocalizedLink>
+                        {' · '}
+                        {formatEventDateDisplay(event.date)}
+                        {' · '}
+                        {deliveryModeLabel(event.deliveryMode || 'in_person')}
+                        {event.eventStatus && event.eventStatus !== 'scheduled'
+                          ? ` · ${eventStatusLabel(event.eventStatus)}`
+                          : ''}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
             ) : (
               filteredEvents.map((event) => {
-                const open = isEventOpen(event)
+                const open = isEventOpen(event) && event.eventStatus !== 'cancelled'
                 const status = getEventStatus(event)
                 return (
                   <article key={event.id} className="insight-card" aria-label={event.title}>
@@ -364,7 +428,9 @@ export default function EventsPage() {
                       <div className="insight-card-header-row">
                         <span className="insight-card-tag">{event.type}</span>
                         <span className={`event-status-badge ${status === 'open' || status === 'waitlist' ? 'event-status-badge--open' : 'event-status-badge--past'}`}>
-                          {statusLabels[status]}
+                          {event.eventStatus && event.eventStatus !== 'scheduled'
+                            ? eventStatusLabel(event.eventStatus)
+                            : statusLabels[status]}
                         </span>
                       </div>
 
@@ -373,6 +439,8 @@ export default function EventsPage() {
                       <p className="insight-card-date">
                         {formatEventDateDisplay(event.date)}
                         {event.timeLabel ? ` · ${event.timeLabel}` : ''}
+                        {' · '}
+                        {deliveryModeLabel(event.deliveryMode || 'in_person')}
                       </p>
 
                       <p className="insight-card-description">{event.description}</p>
@@ -380,7 +448,7 @@ export default function EventsPage() {
                       <div className="insight-card-footer" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.75rem' }}>
                         <div className="text-sm text-gray-500 flex items-center gap-1.5">
                           <MapPin size={14} className="shrink-0" aria-hidden />
-                          {event.location}
+                          {event.deliveryMode === 'online' ? 'Online' : event.location}
                           {event.capacity ? ` · ${event.capacity} seats` : ''}
                         </div>
                         <EventActions
@@ -401,7 +469,7 @@ export default function EventsPage() {
 
       ) : null}
 
-      {showSection('highlights') ? (
+      {false && showSection('highlights') ? (
       <section className="page-section section-reveal bg-white py-16">
         <div className="page-section-container">
           <div className="two-col-section">
@@ -441,44 +509,6 @@ export default function EventsPage() {
 
       ) : null}
 
-      {showSection('newsletter') ? (
-      <section id="newsletter" className="page-section bg-slate-50 section-reveal">
-        <div className="page-section-container">
-          <div className="page-section-center-header">
-            <h2 className="page-section-heading">{cms['events.newsletter.heading']}</h2>
-            <p className="page-body-text">{cms['events.newsletter.lead']}</p>
-          </div>
-          <div className="newsletter-inline-form">
-            <label htmlFor="newsletter-email" className="sr-only">Email address</label>
-            <input
-              id="newsletter-email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              className="form-input newsletter-form-input"
-              placeholder={cms['events.newsletter.placeholder'] || 'Enter your email'}
-              value={newsletterEmail}
-              onChange={(e) => setNewsletterEmail(e.target.value)}
-            />
-            <button
-              type="button"
-              className="btn-primary newsletter-form-btn"
-              onClick={handleNewsletterSubmit}
-              disabled={newsletterStatus === 'loading'}
-            >
-              {newsletterStatus === 'loading' ? 'Subscribing...' : cms['events.newsletter.subscribeLabel'] || 'Subscribe'}
-            </button>
-          </div>
-          {newsletterMessage ? (
-            <p className="page-body-text text-body-md mt-note">
-              {newsletterMessage}
-            </p>
-          ) : null}
-        </div>
-      </section>
-
-      ) : null}
-
       {showSection('cta') ? (
       <PageCtaBand
         heading={cms['events.cta.heading']}
@@ -488,8 +518,8 @@ export default function EventsPage() {
           href: bottomCtaPrimary.href,
         }}
         secondary={{
-          label: bottomCtaSecondary.label,
-          href: bottomCtaSecondary.href,
+          label: 'Get involved',
+          href: '/get-involved',
           variant: 'outline-white',
         }}
       />

@@ -35,6 +35,7 @@ import {
   isSectionVisible,
   parseSectionVisibility,
 } from '../../../lib/cms/sections'
+import { SUPPORT_GIVING_NOTE, SUPPORT_HERO } from '../../../lib/leadership/copy'
 
 export async function generateMetadata() {
   return buildCmsMetadata('support', { ogImage: images.hero.support })
@@ -111,7 +112,10 @@ export default async function SupportPage() {
     cms['support.sections.visible'],
     DEFAULT_SUPPORT_SECTIONS,
   )
-  const show = (key: string) => isSectionVisible(sectionVisibility, key)
+  const show = (key: string) => {
+    if (key === 'donation' || key === 'otherWays' || key === 'transparency' || key === 'standards') return false
+    return isSectionVisible(sectionVisibility, key)
+  }
 
   return (
     <div className="support-page">
@@ -119,11 +123,11 @@ export default async function SupportPage() {
         compact
         imageSrc={resolveCmsImage(cms['support.hero.image'], images.hero.support)}
         imageAlt={cms['support.hero.imageAlt']}
-        title={renderSplitHeroTitle(heroTitle)}
-        description={cms['support.hero.lead']}
-        primaryCta={heroPrimaryCta}
-        secondaryCta={heroSecondaryCta}
-        stats={heroStats}
+        title={renderSplitHeroTitle(SUPPORT_HERO.title)}
+        description={SUPPORT_HERO.lead}
+        primaryCta={SUPPORT_HERO.primary}
+        secondaryCta={SUPPORT_HERO.secondary}
+        stats={[]}
       />
 
       {show('donation') ? (
@@ -166,12 +170,21 @@ export default async function SupportPage() {
         <DonationStatusBanner />
       </Suspense>
       {show('donate') ? (
+      <>
+      <p className="page-body-text page-section-container">{SUPPORT_GIVING_NOTE}</p>
       <DonateSection
-        heading={cms['support.donate.heading']}
-        leadReady={cms['support.donate.lead.ready']}
-        leadOffline={cms['support.donate.lead.offline']}
-        presets={donatePresets}
+        heading="Give"
+        leadReady={SUPPORT_GIVING_NOTE}
+        leadOffline="Online giving is unavailable just now. You can still write to us through Get Involved."
+        presets={[
+          { amount: 50, label: 'GH₵ 50' },
+          { amount: 100, label: 'GH₵ 100' },
+          { amount: 250, label: 'GH₵ 250' },
+          { amount: 500, label: 'GH₵ 500' },
+          { amount: 1000, label: 'GH₵ 1,000' },
+        ]}
       />
+      </>
       ) : null}
 
       {show('otherWays') ? (
@@ -275,10 +288,10 @@ export default async function SupportPage() {
 
       {show('cta') ? (
       <PageCtaBand
-        heading={cms['support.cta.heading']}
-        body={cms['support.cta.body']}
-        primary={{ label: bottomPrimary.label, href: bottomPrimary.href }}
-        secondary={{ label: bottomSecondary.label, href: bottomSecondary.href, variant: 'outline-white' }}
+        heading="Giving is one way to take part"
+        body="Time, skill, resources, and opportunities are offered separately, under Get Involved."
+        primary={{ label: 'Give', href: '/support#donate' }}
+        secondary={{ label: 'Get involved', href: '/get-involved', variant: 'outline-white' }}
       />
       ) : null}
     </div>

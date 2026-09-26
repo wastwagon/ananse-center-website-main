@@ -2,6 +2,8 @@
 
 Self-hosted stack only (no WordPress or third-party CMS). Set variables on the Coolify application that uses `docker-compose.yml` at the repo root.
 
+**Go-live sequence (day 1):** [docs/LAUNCH.md](docs/LAUNCH.md) · **Site inventory:** [docs/DAY-1-INVENTORY.md](docs/DAY-1-INVENTORY.md)
+
 **Rebuild `web` after any `NEXT_PUBLIC_*` change** (values are baked into the Next.js build).
 
 Copy-paste production baseline: [`config/coolify-production.env.example`](config/coolify-production.env.example)

@@ -26,35 +26,39 @@ import ProgramsPageClient, {
   type ProgramTestimonial,
 } from './ProgramsPageClient'
 import { fallbackCatalogPrograms } from './programs-data'
+import { selectLeadershipPrograms } from '../../../lib/leadership/programs'
+import { HOME_PROGRAMS_INTRO } from '../../../lib/leadership/copy'
 
 const DEFAULT_PROGRAM_BENEFITS: ProgramBenefit[] = [
   {
-    title: 'Skill Development',
-    category: 'Education',
-    description:
-      'Learn practical cultural and creative skills from experienced practitioners through hands-on workshops, mentorship, and collaborative learning.',
-    iconKey: 'Wrench',
+    title: 'Leadership education',
+    category: 'Development',
+    description: 'Providing knowledge, frameworks, and practical tools for effective leadership.',
+    iconKey: 'Award',
   },
   {
-    title: 'Cultural Connection',
-    category: 'Culture',
-    description:
-      'Deepen your connection to African heritage through storytelling, traditional arts, festivals, and immersive cultural practice.',
-    iconKey: 'Globe',
-  },
-  {
-    title: 'Community Building',
-    category: 'Community',
-    description:
-      'Join a supportive network of learners, artists, and volunteers working together to strengthen communities across Ghana and the diaspora.',
+    title: 'Mentoring',
+    category: 'Development',
+    description: 'Connecting emerging leaders with people whose experience and wisdom can help guide their development.',
     iconKey: 'Users',
   },
   {
-    title: 'Personal Growth',
-    category: 'Leadership',
-    description:
-      'Grow in confidence, purpose, and leadership through mentoring, creative expression, and ancestral wisdom applied to modern life.',
-    iconKey: 'Sprout',
+    title: 'Intellectual engagement',
+    category: 'Development',
+    description: 'Encouraging thoughtful inquiry, critical thinking, conversation, and lifelong learning.',
+    iconKey: 'BookOpen',
+  },
+  {
+    title: 'Authentic spirituality',
+    category: 'Development',
+    description: 'Recognizing genuine inner transformation, values, meaning, and a life grounded in authentic spiritual convictions.',
+    iconKey: 'Sun',
+  },
+  {
+    title: 'Practical service',
+    category: 'Development',
+    description: 'Turning knowledge and influence into meaningful contribution and service to others.',
+    iconKey: 'HandHeart',
   },
 ]
 
@@ -80,7 +84,7 @@ const DEFAULT_PROGRAM_TESTIMONIALS: ProgramTestimonial[] = [
 ]
 
 export default async function ProgramsPage() {
-  const [cms, programs] = await Promise.all([
+  const [cms, loadedPrograms] = await Promise.all([
     getCmsTexts([
       'programs.hero.lead',
       'programs.hero.image',
@@ -109,11 +113,12 @@ export default async function ProgramsPage() {
     ] as const),
     fetchPrograms('catalog').catch(() => fallbackCatalogPrograms),
   ])
+  const programs = selectLeadershipPrograms(loadedPrograms)
 
-  const sectionVisibility = parseSectionVisibility(
-    cms['programs.sections.visible'],
-    DEFAULT_PROGRAMS_SECTIONS,
-  )
+  const sectionVisibility = {
+    ...parseSectionVisibility(cms['programs.sections.visible'], DEFAULT_PROGRAMS_SECTIONS),
+    testimonials: false,
+  }
   const heroTitle = parseCmsJson<CmsHeroTitle>(cms['programs.hero.title'], DEFAULT_PROGRAMS_HERO_TITLE)
   const heroStats = parseCmsJson<CmsHeroStat[]>(cms['programs.hero.stats'], DEFAULT_PROGRAMS_HERO_STATS)
   const heroPrimaryCta = parseCmsJson<CmsHeroCta>(cms['programs.hero.cta.primary'], DEFAULT_PROGRAMS_HERO_CTA_PRIMARY)
@@ -138,29 +143,29 @@ export default async function ProgramsPage() {
   return (
     <>
     <ProgramsPageClient
-      heroLead={cms['programs.hero.lead']}
-      heroTitle={heroTitle}
-      heroStats={heroStats}
-      heroPrimaryCta={heroPrimaryCta}
-      heroSecondaryCta={heroSecondaryCta}
+      heroLead={HOME_PROGRAMS_INTRO.lead + ' ' + HOME_PROGRAMS_INTRO.body}
+      heroTitle={{ prefix: 'Our ', accent: 'programs' }}
+      heroStats={[]}
+      heroPrimaryCta={{ label: 'Browse programs', href: '/programs#catalog' }}
+      heroSecondaryCta={{ label: 'Get involved', href: '/get-involved' }}
       heroImageSrc={resolveCmsImage(cms['programs.hero.image'], images.hero.programs)}
-      heroImageAlt={cms['programs.hero.imageAlt']}
-      catalogHeading={cms['programs.catalog.heading']}
-      catalogLead={cms['programs.catalog.lead']}
-      benefitsBadge={cms['programs.benefits.badge']}
-      benefitsHeading={cms['programs.benefits.heading']}
-      benefitsCardLabel={cms['programs.benefits.cardLabel']}
+      heroImageAlt="ANANSE programs"
+      catalogHeading="Ten programs"
+      catalogLead="Human development is multidimensional. From leadership development and mentorship to marriage and relationships, music and culture, healthy living, and peacemaking, these programs share one purpose: developing people, transforming lives, and strengthening communities."
+      benefitsBadge="Our mission"
+      benefitsHeading="Five dimensions of development"
+      benefitsCardLabel="Development"
       testimonialsBadge={cms['programs.testimonials.badge']}
       testimonialsHeading={cms['programs.testimonials.heading']}
-      cardCtaPrimary={cms['programs.card.cta.primary']}
-      cardCtaSecondary={cms['programs.card.cta.secondary']}
+      cardCtaPrimary="Get involved"
+      cardCtaSecondary="Learn more"
       ctaPrimary={ctaPrimary}
-      ctaSecondary={ctaSecondary}
-      benefitsLead={cms['programs.benefits.lead']}
-      benefits={benefits}
+      ctaSecondary={{ label: 'Get involved', href: '/get-involved' }}
+      benefitsLead="To develop people through leadership education, mentoring, intellectual engagement, authentic spirituality, and practical service."
+      benefits={DEFAULT_PROGRAM_BENEFITS}
       testimonials={testimonials}
-      ctaHeading={cms['programs.cta.heading']}
-      ctaBody={cms['programs.cta.body']}
+      ctaHeading="There is a place for you at ANANSE"
+      ctaBody="Whether you are a student seeking direction, a young professional looking for mentorship, an experienced leader with wisdom to share, or an organization seeking development opportunities, there are many ways to connect."
       programs={programs}
       sectionVisibility={sectionVisibility}
     />

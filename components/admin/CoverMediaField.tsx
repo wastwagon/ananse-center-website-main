@@ -10,12 +10,14 @@ type CoverMediaFieldProps = {
   label?: string
   value: string | null
   onChange: (mediaId: string | null) => void
+  imagesOnly?: boolean
 }
 
 export default function CoverMediaField({
   label = 'Cover image',
   value,
   onChange,
+  imagesOnly = true,
 }: CoverMediaFieldProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const previewUrl = value ? mediaFileUrl(value) : null
@@ -27,7 +29,7 @@ export default function CoverMediaField({
   return (
     <div className="admin-field">
       <label>{label}</label>
-      {previewUrl ? (
+      {previewUrl && imagesOnly ? (
         <div className="admin-cover-preview">
           <Image
             src={previewUrl}
@@ -46,6 +48,16 @@ export default function CoverMediaField({
             </button>
           </div>
         </div>
+      ) : previewUrl ? (
+        <div className="admin-actions" style={{ marginBottom: '0.5rem' }}>
+          <span className="admin-help">Media selected</span>
+          <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setPickerOpen(true)}>
+            Replace
+          </button>
+          <button type="button" className="admin-btn admin-btn--danger" onClick={() => onChange(null)}>
+            Remove
+          </button>
+        </div>
       ) : (
         <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setPickerOpen(true)}>
           Choose from library
@@ -56,7 +68,7 @@ export default function CoverMediaField({
         onClose={() => setPickerOpen(false)}
         onSelect={onSelect}
         selectedId={value}
-        imagesOnly
+        imagesOnly={imagesOnly}
       />
     </div>
   )

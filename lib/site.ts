@@ -1,13 +1,12 @@
 /** Single source of truth — NGO-style contact & links (Ashoka / Africa Center pattern) */
 
 export const site = {
-  name: 'The Ananse Center for Arts and Culture',
-  shortName: 'Ananse Center',
-  tagline: 'Weaving wisdom into solutions',
-  footerMission:
-    'Preserving cultural memory and restoring identity through arts education, community programs, and Pan-African leadership development in Ghana and across the diaspora.',
-  location: 'Akatakyiwa, Central Region, Ghana',
-  address: 'The Ananse Center for Arts and Culture\nAkatakyiwa, Central Region\nGhana',
+  name: 'ANANSE Center for Leadership Development',
+  shortName: 'ANANSE',
+  tagline: 'Leadership. Character. Excellence. Service.',
+  footerMission: 'Developing people. Transforming lives. Strengthening communities.',
+  location: 'Ghana',
+  address: 'ANANSE Center for Leadership Development\nGhana',
 } as const
 
 export const contact = {
@@ -24,14 +23,16 @@ export const social = {
   instagram: 'https://www.instagram.com/anansecenter',
   youtube: 'https://www.youtube.com/@anansecenter',
   twitter: 'https://twitter.com/anansecenter',
+  linkedin: '',
+  whatsapp: '',
 } as const
 
 /** Impact metrics — update when you have audited figures */
 export const impactStats = [
-  { value: '500+', label: 'Lives Impacted' },
-  { value: '50+', label: 'Programs Delivered' },
-  { value: '15+', label: 'Communities Reached' },
-  { value: '6', label: 'Mission Pillars' },
+  { value: '10', label: 'Programs' },
+  { value: 'Character', label: 'Before influence' },
+  { value: 'Wisdom', label: 'For the journey' },
+  { value: 'Service', label: 'With responsibility' },
 ] as const
 
 export const heroStatsDefault = impactStats

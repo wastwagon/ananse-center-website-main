@@ -2,7 +2,8 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
 import { slugify } from '../../lib/slug.js'
-import { parseHighlights } from '../../lib/event-map.js'
+import { eventIncludeAdmin, mapAdminEvent } from '../../lib/event-map.js'
+import { EVENT_DELIVERY_MODES, EVENT_STATUSES } from '../../lib/taxonomy.js'
 import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 
 const registrationStatusSchema = z.enum(['auto', 'open', 'closed', 'waitlist', 'completed'])
@@ -16,6 +17,12 @@ const eventBodySchema = z.object({
   timeLabel: z.string().max(120).optional(),
   capacity: z.number().int().positive().optional().nullable(),
   registrationStatus: registrationStatusSchema.optional(),
+  eventStatus: z.enum(EVENT_STATUSES).optional(),
+  deliveryMode: z.enum(EVENT_DELIVERY_MODES).optional(),
+  meetingUrl: z.string().max(500).optional(),
+  recordingUrl: z.string().max(500).optional(),
+  galleryMediaIds: z.array(z.string().cuid()).max(48).optional(),
+  programId: z.string().cuid().optional().nullable(),
   location: z.string().min(2).max(200),
   venue: z.string().max(200).optional(),
   type: z.string().min(2).max(80),
@@ -36,70 +43,24 @@ function parseOptionalDate(value: string | null | undefined): Date | null | unde
   return Number.isNaN(date.getTime()) ? null : date
 }
 
-function mapEvent(event: {
-  id: string
-  title: string
-  slug: string
-  description: string
-  dateLabel: string
-  startsAt: Date | null
-  endsAt: Date | null
-  timeLabel: string
-  capacity: number | null
-  registrationStatus: string
-  location: string
-  venue: string
-  type: string
-  imageEmoji: string
-  storyTitle: string | null
-  storyBody: string | null
-  highlights: unknown
-  featured: boolean
-  published: boolean
-  coverMediaId: string | null
-  createdAt: Date
-  updatedAt: Date
-}) {
-  return {
-    id: event.id,
-    title: event.title,
-    slug: event.slug,
-    description: event.description,
-    dateLabel: event.dateLabel,
-    startsAt: event.startsAt?.toISOString() ?? null,
-    endsAt: event.endsAt?.toISOString() ?? null,
-    timeLabel: event.timeLabel,
-    capacity: event.capacity,
-    registrationStatus: event.registrationStatus,
-    location: event.location,
-    venue: event.venue,
-    type: event.type,
-    imageEmoji: event.imageEmoji,
-    storyTitle: event.storyTitle,
-    storyBody: event.storyBody,
-    highlights: parseHighlights(event.highlights),
-    featured: event.featured,
-    published: event.published,
-    coverMediaId: event.coverMediaId,
-    createdAt: event.createdAt.toISOString(),
-    updatedAt: event.updatedAt.toISOString(),
-  }
-}
-
 export async function adminEventRoutes(app: FastifyInstance) {
   const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
 
   app.get('/api/v1/admin/events', guard, async () => {
     const events = await prisma.event.findMany({
+      include: eventIncludeAdmin,
       orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }],
     })
-    return { data: events.map(mapEvent) }
+    return { data: events.map(mapAdminEvent) }
   })
 
   app.get<{ Params: { id: string } }>('/api/v1/admin/events/:id', guard, async (request, reply) => {
-    const event = await prisma.event.findUnique({ where: { id: request.params.id } })
+    const event = await prisma.event.findUnique({
+      where: { id: request.params.id },
+      include: eventIncludeAdmin,
+    })
     if (!event) return reply.status(404).send({ error: 'Event not found' })
-    return { data: mapEvent(event) }
+    return { data: mapAdminEvent(event) }
   })
 
   app.post('/api/v1/admin/events', guard, async (request, reply) => {
@@ -126,10 +87,16 @@ export async function adminEventRoutes(app: FastifyInstance) {
         timeLabel: data.timeLabel ?? '',
         capacity: data.capacity ?? null,
         registrationStatus: data.registrationStatus ?? 'auto',
+        eventStatus: data.eventStatus ?? 'scheduled',
+        deliveryMode: data.deliveryMode ?? 'in_person',
+        meetingUrl: data.meetingUrl ?? '',
+        recordingUrl: data.recordingUrl ?? '',
+        galleryMediaIds: data.galleryMediaIds ?? [],
+        programId: data.programId ?? null,
         location: data.location,
         venue: data.venue ?? '',
         type: data.type,
-        imageEmoji: data.imageEmoji ?? '🎭',
+        imageEmoji: data.imageEmoji ?? '📅',
         storyTitle: data.storyTitle ?? null,
         storyBody: data.storyBody ?? null,
         highlights: data.highlights ?? [],
@@ -137,9 +104,10 @@ export async function adminEventRoutes(app: FastifyInstance) {
         published: data.published ?? true,
         coverMediaId: data.coverMediaId ?? null,
       },
+      include: eventIncludeAdmin,
     })
 
-    return reply.status(201).send({ data: mapEvent(event) })
+    return reply.status(201).send({ data: mapAdminEvent(event) })
   })
 
   app.patch<{ Params: { id: string } }>('/api/v1/admin/events/:id', guard, async (request, reply) => {
@@ -173,6 +141,12 @@ export async function adminEventRoutes(app: FastifyInstance) {
         ...(data.registrationStatus !== undefined
           ? { registrationStatus: data.registrationStatus }
           : {}),
+        ...(data.eventStatus !== undefined ? { eventStatus: data.eventStatus } : {}),
+        ...(data.deliveryMode !== undefined ? { deliveryMode: data.deliveryMode } : {}),
+        ...(data.meetingUrl !== undefined ? { meetingUrl: data.meetingUrl } : {}),
+        ...(data.recordingUrl !== undefined ? { recordingUrl: data.recordingUrl } : {}),
+        ...(data.galleryMediaIds !== undefined ? { galleryMediaIds: data.galleryMediaIds } : {}),
+        ...(data.programId !== undefined ? { programId: data.programId } : {}),
         ...(data.location !== undefined ? { location: data.location } : {}),
         ...(data.venue !== undefined ? { venue: data.venue } : {}),
         ...(data.type !== undefined ? { type: data.type } : {}),
@@ -184,9 +158,10 @@ export async function adminEventRoutes(app: FastifyInstance) {
         ...(data.published !== undefined ? { published: data.published } : {}),
         ...(data.coverMediaId !== undefined ? { coverMediaId: data.coverMediaId } : {}),
       },
+      include: eventIncludeAdmin,
     })
 
-    return { data: mapEvent(event) }
+    return { data: mapAdminEvent(event) }
   })
 
   app.delete<{ Params: { id: string } }>('/api/v1/admin/events/:id', guard, async (request, reply) => {

@@ -33,7 +33,7 @@ export default async function MaintenancePage() {
         </h1>
         <p className="content-page-hero-lead">
           {copy?.maintenanceMessage ||
-            'The Ananse Center website is undergoing scheduled updates. Thank you for your patience.'}
+            'The ANANSE Center for Leadership Development website is undergoing scheduled updates. Thank you for your patience.'}
         </p>
         <Link href="/admin/login" className="btn-primary maintenance-page-btn">
           {t('maintenance.admin', locale)}

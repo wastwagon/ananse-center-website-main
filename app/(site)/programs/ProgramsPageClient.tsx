@@ -10,6 +10,7 @@ import FeatureIcon from '../../../components/FeatureIcon'
 import { cardImageSizes, resolveCmsImage, resolveProgramCoverImage } from '../../../lib/images'
 import { programIconForKey } from '../../../lib/program-icons'
 import type { ApiProgram } from '../../../lib/api'
+import { programSummary } from '../../../lib/leadership/programs'
 export type ProgramBenefit = {
   title: string
   description: string
@@ -171,23 +172,13 @@ export default function ProgramsPageClient({
                       ) : null}
                     </div>
                   ) : null}
-                  <p className="premium-card-description">{program.description}</p>
-                  {program.features.length > 0 ? (
-                    <div className="program-feature-list">
-                      {program.features.map((feature) => (
-                        <div key={feature} className="program-feature-item">
-                          <div className="program-feature-dot" aria-hidden />
-                          <span className="text-body-md">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
+                  <p className="premium-card-description">{programSummary(program.description)}</p>
                   <div className="program-card-actions">
                     <LocalizedLink href={`/programs/${program.slug}`} className="btn-outline-dark">
                       {cardCtaSecondary || 'Learn More'}
                     </LocalizedLink>
-                    <LocalizedLink href="/contact#form" className="btn-primary premium-card-cta">
-                      {cardCtaPrimary}
+                    <LocalizedLink href="/get-involved" className="btn-primary premium-card-cta">
+                      {cardCtaPrimary || 'Get involved'}
                     </LocalizedLink>
                   </div>
                 </article>

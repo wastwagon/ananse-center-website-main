@@ -12,13 +12,15 @@ import {
   DEFAULT_FOOTER_PROGRAM_LINKS,
   DEFAULT_FOOTER_QUICK_LINKS,
   DEFAULT_MOBILE_NAV,
-  DEFAULT_PRIMARY_NAV,
-  DEFAULT_SHEET_NAV,
+  resolveFooterLinks,
+  resolvePrimaryNav,
+  resolveSheetNav,
   type CmsMobileNavLink,
   type CmsNavLink,
 } from '../../lib/cms/nav'
 import { resolveCmsImage } from '../../lib/images'
 import { getPublicSiteProfile } from '../../lib/site-profile'
+import { site as leadershipSite } from '../../lib/site'
 import { organizationJsonLd, websiteJsonLd } from '../../lib/structured-data'
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -37,25 +39,34 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     ] as const),
   ])
 
-  const footerPrimaryCta = parseCmsJson<CmsHeroCta>(chromeCms['site.footer.cta.primary'], {
-    label: 'Support Our Mission',
+  const storedFooterPrimary = parseCmsJson<CmsHeroCta>(chromeCms['site.footer.cta.primary'], {
+    label: 'Get involved',
+    href: '/get-involved',
+  })
+  const storedFooterSecondary = parseCmsJson<CmsHeroCta>(chromeCms['site.footer.cta.secondary'], {
+    label: 'Support',
     href: '/support',
   })
-  const footerSecondaryCta = parseCmsJson<CmsHeroCta>(chromeCms['site.footer.cta.secondary'], {
-    label: 'Get In Touch',
-    href: '/contact#form',
-  })
-  const primaryNav = parseCmsJson<CmsNavLink[]>(chromeCms['site.nav.primary'], DEFAULT_PRIMARY_NAV)
-  const quickLinks = parseCmsJson<CmsNavLink[]>(
-    chromeCms['site.footer.quickLinks'],
+  const footerPrimaryCta = /support our mission|donate/i.test(storedFooterPrimary.label)
+    ? { label: 'Get involved', href: '/get-involved' }
+    : storedFooterPrimary
+  const footerSecondaryCta = /get in touch|contact/i.test(storedFooterSecondary.label)
+    ? { label: 'Support', href: '/support' }
+    : storedFooterSecondary
+  const storedPrimary = parseCmsJson<CmsNavLink[]>(chromeCms['site.nav.primary'], [])
+  const primaryNav = resolvePrimaryNav(storedPrimary)
+  const quickLinks = resolveFooterLinks(
+    parseCmsJson<CmsNavLink[]>(chromeCms['site.footer.quickLinks'], []),
     DEFAULT_FOOTER_QUICK_LINKS,
   )
-  const programLinks = parseCmsJson<CmsNavLink[]>(
-    chromeCms['site.footer.programLinks'],
-    DEFAULT_FOOTER_PROGRAM_LINKS,
-  )
-  const mobileNavLinks = parseCmsJson<CmsMobileNavLink[]>(chromeCms['site.nav.mobile'], DEFAULT_MOBILE_NAV)
-  const sheetLinks = parseCmsJson<CmsNavLink[]>(chromeCms['site.nav.sheet'], DEFAULT_SHEET_NAV)
+  const programLinks = DEFAULT_FOOTER_PROGRAM_LINKS
+  const storedMobile = parseCmsJson<CmsMobileNavLink[]>(chromeCms['site.nav.mobile'], [])
+  const mobileNavLinks = storedMobile.some((link) => link.href.startsWith('/support') || link.href.startsWith('/contact'))
+    ? DEFAULT_MOBILE_NAV
+    : storedMobile.length
+      ? storedMobile
+      : DEFAULT_MOBILE_NAV
+  const sheetLinks = resolveSheetNav(parseCmsJson<CmsNavLink[]>(chromeCms['site.nav.sheet'], []))
   const logoSrc = resolveCmsImage(chromeCms['site.logo'], '/ananse-logo.png')
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
@@ -81,7 +92,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           contact={profile.contact}
           social={profile.social}
           impactStats={profile.impactStats}
-          footerMission={chromeCms['site.footer.mission']}
+          footerMission={
+            /arts|cultural memory|heritage preservation/i.test(chromeCms['site.footer.mission'])
+              ? leadershipSite.footerMission
+              : chromeCms['site.footer.mission']
+          }
           footerPrimaryCta={footerPrimaryCta}
           footerSecondaryCta={footerSecondaryCta}
           logoSrc={logoSrc}

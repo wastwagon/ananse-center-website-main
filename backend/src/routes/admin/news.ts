@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
 import { slugify } from '../../lib/slug.js'
 import { mapAdminNewsPost, newsIncludeCover } from '../../lib/news-map.js'
+import { INSIGHT_CONTENT_TYPES, INSIGHT_TOPICS } from '../../lib/taxonomy.js'
 import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 
 const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
@@ -15,6 +16,9 @@ const newsSchema = z.object({
   dateLabel: z.string().max(80).optional(),
   author: z.string().max(120).optional(),
   category: z.string().max(80).optional(),
+  contentType: z.enum(INSIGHT_CONTENT_TYPES).optional(),
+  topics: z.array(z.enum(INSIGHT_TOPICS)).max(13).optional(),
+  showInLibraryRead: z.boolean().optional(),
   featured: z.boolean().optional(),
   linkHref: z.string().max(500).optional(),
   coverMediaId: z.string().cuid().optional().nullable(),
@@ -37,6 +41,7 @@ export async function adminNewsRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Invalid news payload', details: parsed.error.flatten() })
     }
     const slug = parsed.data.slug?.trim() || slugify(parsed.data.title)
+    const contentType = parsed.data.contentType ?? 'Articles'
     try {
       const row = await prisma.newsPost.create({
         data: {
@@ -46,7 +51,10 @@ export async function adminNewsRoutes(app: FastifyInstance) {
           body: parsed.data.body ?? '',
           dateLabel: parsed.data.dateLabel ?? '',
           author: parsed.data.author ?? '',
-          category: parsed.data.category ?? 'News',
+          category: parsed.data.category ?? contentType,
+          contentType,
+          topics: parsed.data.topics ?? [],
+          showInLibraryRead: parsed.data.showInLibraryRead ?? false,
           featured: parsed.data.featured ?? false,
           linkHref: parsed.data.linkHref ?? '',
           coverMediaId: parsed.data.coverMediaId ?? null,
@@ -78,6 +86,9 @@ export async function adminNewsRoutes(app: FastifyInstance) {
           ...(data.dateLabel !== undefined ? { dateLabel: data.dateLabel } : {}),
           ...(data.author !== undefined ? { author: data.author } : {}),
           ...(data.category !== undefined ? { category: data.category } : {}),
+          ...(data.contentType !== undefined ? { contentType: data.contentType } : {}),
+          ...(data.topics !== undefined ? { topics: data.topics } : {}),
+          ...(data.showInLibraryRead !== undefined ? { showInLibraryRead: data.showInLibraryRead } : {}),
           ...(data.featured !== undefined ? { featured: data.featured } : {}),
           ...(data.linkHref !== undefined ? { linkHref: data.linkHref } : {}),
           ...(data.coverMediaId !== undefined ? { coverMediaId: data.coverMediaId } : {}),

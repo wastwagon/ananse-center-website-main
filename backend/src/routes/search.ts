@@ -44,57 +44,118 @@ export async function searchRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { q?: string } }>('/api/v1/search', async (request) => {
     const q = request.query.q?.trim() ?? ''
     if (q.length < 2) {
-      return { data: { programs: [], events: [], pages: [] } }
+      return {
+        data: {
+          programs: [],
+          events: [],
+          archives: [],
+          news: [],
+          insights: [],
+          library: [],
+          people: [],
+          photoAlbums: [],
+          pages: [],
+        },
+      }
     }
 
     const contains = { contains: q, mode: 'insensitive' as const }
 
-    const [programs, events, archives, newsPosts, blocks] = await Promise.all([
-      prisma.program.findMany({
-        where: {
-          published: true,
-          OR: [{ title: contains }, { description: contains }, { category: contains }],
-        },
-        take: 12,
-        orderBy: { sortOrder: 'asc' },
-      }),
-      prisma.event.findMany({
-        where: {
-          published: true,
-          OR: [{ title: contains }, { description: contains }, { location: contains }, { type: contains }],
-        },
-        take: 12,
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.archiveRecord.findMany({
-        where: {
-          published: true,
-          OR: [
-            { title: contains },
-            { description: contains },
-            { culture: contains },
-            { era: contains },
-          ],
-        },
-        take: 8,
-        orderBy: { sortOrder: 'asc' },
-      }),
-      prisma.newsPost.findMany({
-        where: {
-          published: true,
-          OR: [{ title: contains }, { excerpt: contains }, { body: contains }],
-        },
-        take: 8,
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.contentBlock.findMany({
-        where: {
-          published: true,
-          OR: [{ key: contains }, { body: contains }, { label: contains }],
-        },
-        take: 20,
-      }),
-    ])
+    const [programs, events, archives, newsPosts, libraryItems, people, photoAlbums, blocks] =
+      await Promise.all([
+        prisma.program.findMany({
+          where: {
+            published: true,
+            OR: [{ title: contains }, { description: contains }, { category: contains }],
+          },
+          take: 12,
+          orderBy: { sortOrder: 'asc' },
+        }),
+        prisma.event.findMany({
+          where: {
+            published: true,
+            OR: [
+              { title: contains },
+              { description: contains },
+              { location: contains },
+              { type: contains },
+              { venue: contains },
+              { meetingUrl: contains },
+            ],
+          },
+          take: 12,
+          orderBy: { createdAt: 'desc' },
+        }),
+        prisma.archiveRecord.findMany({
+          where: {
+            published: true,
+            OR: [
+              { title: contains },
+              { description: contains },
+              { culture: contains },
+              { era: contains },
+            ],
+          },
+          take: 8,
+          orderBy: { sortOrder: 'asc' },
+        }),
+        prisma.newsPost.findMany({
+          where: {
+            published: true,
+            OR: [{ title: contains }, { excerpt: contains }, { body: contains }, { contentType: contains }],
+          },
+          take: 8,
+          orderBy: { createdAt: 'desc' },
+        }),
+        prisma.libraryItem.findMany({
+          where: {
+            published: true,
+            OR: [
+              { title: contains },
+              { description: contains },
+              { body: contains },
+              { transcript: contains },
+              { collection: contains },
+              { wisdomNugget: contains },
+            ],
+          },
+          take: 10,
+          orderBy: { sortOrder: 'asc' },
+        }),
+        prisma.person.findMany({
+          where: {
+            published: true,
+            OR: [
+              { name: contains },
+              { roleTitle: contains },
+              { bio: contains },
+              { organizationName: contains },
+            ],
+          },
+          take: 10,
+          orderBy: { sortOrder: 'asc' },
+        }),
+        prisma.photoAlbum.findMany({
+          where: {
+            published: true,
+            OR: [
+              { title: contains },
+              { description: contains },
+              { place: contains },
+              { collection: contains },
+            ],
+          },
+          take: 8,
+          orderBy: { sortOrder: 'asc' },
+        }),
+        prisma.contentBlock.findMany({
+          where: {
+            published: true,
+            OR: [{ key: contains }, { body: contains }, { label: contains }],
+          },
+          take: 20,
+        }),
+      ])
 
     const pages = blocks
       .map((block) => {
@@ -111,6 +172,15 @@ export async function searchRoutes(app: FastifyInstance) {
       .filter((item, index, arr) => arr.findIndex((x) => x.path === item.path) === index)
       .slice(0, 8)
 
+    const insightHits = newsPosts.map((n) => ({
+      title: n.title,
+      path: n.linkHref?.trim() && /^https?:\/\//i.test(n.linkHref)
+        ? n.linkHref
+        : `/insights/${n.slug}`,
+      snippet: n.excerpt.slice(0, 140),
+      contentType: n.contentType,
+    }))
+
     return {
       data: {
         programs: programs.map((p) => ({
@@ -121,7 +191,7 @@ export async function searchRoutes(app: FastifyInstance) {
         events: events.map((e) => ({
           title: e.title,
           path: `/events/${e.slug}`,
-          snippet: e.description.slice(0, 140),
+          snippet: `${e.deliveryMode === 'online' ? 'Online · ' : ''}${e.description.slice(0, 120)}`,
         })),
         archives: archives.map((a) => ({
           title: a.title,
@@ -134,6 +204,22 @@ export async function searchRoutes(app: FastifyInstance) {
             ? n.linkHref
             : `/news/${n.slug}`,
           snippet: n.excerpt.slice(0, 140),
+        })),
+        insights: insightHits,
+        library: libraryItems.map((item) => ({
+          title: item.title,
+          path: `/library/${item.slug}`,
+          snippet: `${item.shelf} · ${item.collection} — ${item.description.slice(0, 100)}`,
+        })),
+        people: people.map((person) => ({
+          title: person.name,
+          path: `/people/${person.slug}`,
+          snippet: person.roleTitle || person.bio.slice(0, 120),
+        })),
+        photoAlbums: photoAlbums.map((album) => ({
+          title: album.title,
+          path: `/library/photos/${album.slug}`,
+          snippet: `${album.collection} · ${album.description.slice(0, 100)}`,
         })),
         pages,
       },

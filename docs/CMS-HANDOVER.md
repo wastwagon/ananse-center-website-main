@@ -1,5 +1,7 @@
 # Ananse Center Website — CMS Handover & Training Guide
 
+> **Leadership site (current):** Prefer the shorter [ADMIN-GUIDE.md](./ADMIN-GUIDE.md) and [DAY-1-INVENTORY.md](./DAY-1-INVENTORY.md) for ANANSE Center for Leadership Development. This document retains extended CMS detail from the earlier arts-and-culture build; some keys and paths (e.g. News, trustees) may not match the primary menu.
+
 **Urgent for the Ananse Center team.** Development is complete. You can change the public site from Admin whenever the real content is ready. Do not wait on a developer for copy, photos, events, programs, news, the map, or logos.
 
 Sample stories, dates, numbers, quotes, and stock photos are published so pages are not blank. Treat replacing them as launch-blocking.

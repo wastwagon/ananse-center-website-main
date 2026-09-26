@@ -419,11 +419,11 @@ const SUPPORT_DONATE_PRESETS_DEFAULT: CmsDonatePreset[] = [
 
 const EVENTS_FILTER_CATEGORIES_DEFAULT = [
   'All Events',
-  'Festival',
+  'Lecture',
+  'Seminar',
   'Workshop',
-  'Retreat',
-  'Exhibition',
-  'Symposium',
+  'Conference',
+  'Conversation',
 ]
 
 const EVENTS_HIGHLIGHTS_METRICS_DEFAULT: CmsLabeledValue[] = [
@@ -1828,14 +1828,14 @@ export const CONTENT_REGISTRY = {
     section: 'legal',
     format: 'html',
     defaultBody:
-      'The Ananse Center for Arts and Culture respects your privacy. This policy explains how we handle information you share when you visit our website, contact us, or join our programs.',
+      'ANANSE Center for Leadership Development respects your privacy. This page will be updated with the full policy before public launch.',
   },
   'privacy.body': {
     label: 'Privacy — body paragraph',
     section: 'legal',
     format: 'html',
     defaultBody:
-      'We collect information you submit through contact forms, event registration, and newsletter sign-ups solely to respond to inquiries and share program updates. We do not sell personal data. For privacy questions, email us using the address on our Contact page.',
+      'We store information you submit through contact forms, mentor expressions of interest, and event registration so we can respond. We do not sell personal data, and this site does not send a newsletter. For privacy questions, email us using the address on Get Involved.',
   },
   'terms.heading': {
     label: 'Terms — page heading',

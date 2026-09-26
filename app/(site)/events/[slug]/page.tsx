@@ -17,6 +17,9 @@ import {
   parseCmsJson,
   type CmsHeroCta,
 } from '../../../../lib/cms/content'
+import { LEGACY_ARTS_EVENT_SLUGS } from '../../../../lib/leadership/legacy-events'
+import { deliveryModeLabel, eventStatusLabel } from '../../../../lib/leadership/taxonomy'
+import { resolveEventRegistrationStatus } from '../../../../lib/format'
 
 export async function generateMetadata({
   params,
@@ -24,6 +27,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
+  if (LEGACY_ARTS_EVENT_SLUGS.has(slug)) {
+    return buildPageMetadata({ title: 'Event', path: `/events/${slug}` })
+  }
   const event = await fetchEventBySlug(slug)
   if (!event) {
     return buildPageMetadata({ title: 'Event', path: `/events/${slug}` })
@@ -42,6 +48,7 @@ export default async function EventDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  if (LEGACY_ARTS_EVENT_SLUGS.has(slug)) notFound()
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
   const [event, cms] = await Promise.all([
     fetchEventBySlug(slug),
@@ -76,6 +83,19 @@ export default async function EventDetailPage({
   })
 
   const displayDate = formatEventDateDisplay(event.date)
+  const lifecycle = event.eventStatus || 'scheduled'
+  const delivery = event.deliveryMode || 'in_person'
+  const registrationState = resolveEventRegistrationStatus({
+    registrationStatus: event.registrationStatus,
+    dateLabel: event.date,
+    startsAt: event.startsAt,
+    endsAt: event.endsAt,
+  })
+  const registrationOpen =
+    lifecycle !== 'cancelled' &&
+    registrationState !== 'closed' &&
+    registrationState !== 'completed'
+  const gallery = event.galleryImageUrls ?? []
 
   return (
     <article className="content-page">
@@ -98,7 +118,7 @@ export default async function EventDetailPage({
       <section className="event-detail-hero">
         <Image
           src={resolveEventCoverImage(event)}
-          alt={`${event.title} — event at The Ananse Center`}
+          alt={`${event.title} — event at ANANSE Center for Leadership Development`}
           fill
           priority
           className="event-detail-hero-image"
@@ -108,6 +128,11 @@ export default async function EventDetailPage({
         <div className="event-detail-hero-content page-section-container">
           <div className="event-detail-hero-inner">
             <span className="section-badge">{event.type}</span>
+            {lifecycle !== 'scheduled' ? (
+              <span className="section-badge" style={{ marginLeft: '0.5rem' }}>
+                {eventStatusLabel(lifecycle)}
+              </span>
+            ) : null}
             <h1 className="hero-page-title">{event.title}</h1>
             <div className="event-detail-meta">
               <span className="event-detail-meta-item">
@@ -117,7 +142,8 @@ export default async function EventDetailPage({
               </span>
               <span className="event-detail-meta-item">
                 <MapPin size={16} className="text-accent" aria-hidden />
-                {event.location}
+                {deliveryModeLabel(delivery)}
+                {delivery !== 'online' && event.location ? ` · ${event.location}` : ''}
                 {event.capacity ? ` · ${event.capacity} seats` : ''}
               </span>
             </div>
@@ -136,13 +162,31 @@ export default async function EventDetailPage({
             <div className="detail-info-card">
               <h3 className="detail-info-label">{cms['events.detail.whenLabel']}</h3>
               <p className="detail-info-value">{displayDate}</p>
+              {lifecycle !== 'scheduled' ? (
+                <p className="detail-info-sub">{eventStatusLabel(lifecycle)}</p>
+              ) : null}
             </div>
             <div className="detail-info-card">
               <h3 className="detail-info-label">{cms['events.detail.whereLabel']}</h3>
-              <p className="detail-info-value">{event.location}</p>
+              <p className="detail-info-value">{deliveryModeLabel(delivery)}</p>
+              {delivery !== 'online' ? <p className="detail-info-sub">{event.location}</p> : null}
               {event.venue ? <p className="detail-info-sub">{event.venue}</p> : null}
+              {delivery !== 'in_person' && event.meetingUrl ? (
+                <p className="detail-info-sub">
+                  <a href={event.meetingUrl} target="_blank" rel="noopener noreferrer">
+                    Join online
+                  </a>
+                </p>
+              ) : null}
             </div>
           </div>
+
+          {event.program ? (
+            <p className="page-body-text">
+              Part of{' '}
+              <LocalizedLink href={`/programs/${event.program.slug}`}>{event.program.title}</LocalizedLink>
+            </p>
+          ) : null}
 
           <div className="content-block">
             <h2 className="content-block-title content-block-title--plain">
@@ -160,24 +204,59 @@ export default async function EventDetailPage({
             </ul>
           </div>
 
-          <div id="register" className="content-block">
-            <h2 className="content-block-title content-block-title--plain">
-              {cms['events.detail.registerHeading']}
-            </h2>
-            <CmsRichText
-              body={cms['events.detail.registerLead']}
-              className="page-body-text text-body-md mb-section"
-            />
-            <EventRegistrationForm eventSlug={slug} eventTitle={event.title} />
-          </div>
+          {gallery.length > 0 || event.recordingUrl ? (
+            <div className="content-block">
+              <h2 className="content-block-title content-block-title--plain">Media from this gathering</h2>
+              {event.recordingUrl ? (
+                <p className="page-body-text">
+                  <a href={event.recordingUrl} target="_blank" rel="noopener noreferrer">
+                    Watch or listen to the recording
+                  </a>
+                </p>
+              ) : null}
+              {gallery.length > 0 ? (
+                <div className="grid-cards">
+                  {gallery.map((src) => (
+                    <div key={src} className="card-image-wrapper" style={{ position: 'relative', minHeight: 180 }}>
+                      <Image src={src} alt="" fill className="object-cover" sizes="(max-width:768px) 100vw, 33vw" />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {registrationOpen ? (
+            <div id="register" className="content-block">
+              <h2 className="content-block-title content-block-title--plain">
+                {cms['events.detail.registerHeading']}
+              </h2>
+              <CmsRichText
+                body={cms['events.detail.registerLead']}
+                className="page-body-text text-body-md mb-section"
+              />
+              <EventRegistrationForm eventSlug={slug} eventTitle={event.title} />
+            </div>
+          ) : (
+            <div id="register" className="content-block">
+              <h2 className="content-block-title content-block-title--plain">Registration</h2>
+              <p className="page-body-text">
+                {lifecycle === 'cancelled'
+                  ? 'This gathering has been cancelled. Registration is closed.'
+                  : lifecycle === 'postponed'
+                    ? 'This gathering has been postponed. Registration will reopen when a new date is set.'
+                    : 'Registration is closed for this gathering. The page remains as the record.'}
+              </p>
+            </div>
+          )}
 
           <div className="content-cta-bar">
-            <LocalizedLink href="/contact#form" className="btn-primary">
+            <LocalizedLink href="/get-involved#contact" className="btn-primary">
               {reserveCta.label}
             </LocalizedLink>
             <p className="content-cta-note">
               {cms['events.detail.questionsPrefix']}{' '}
-              <LocalizedLink href="/contact#form" className="content-cta-link">
+              <LocalizedLink href="/get-involved#contact" className="content-cta-link">
                 {cms['events.detail.contactLinkText']}
               </LocalizedLink>
             </p>

@@ -5,7 +5,7 @@ import { localizedPath } from './locale-path'
 import { absoluteAssetUrl, defaultOgImage } from './og'
 
 const defaultDescription =
-  'Preserving heritage, restoring identity, and developing Pan-African leaders through Sankofa arts and culture programs in Ghana and across the diaspora.'
+  'ANANSE Center for Leadership Development — developing people through leadership education, mentoring, intellectual engagement, authentic spirituality, and practical service.'
 
 export function buildPageMetadata({
   title,

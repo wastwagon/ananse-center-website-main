@@ -37,6 +37,8 @@ const patchSchema = z.object({
   socialInstagram: z.string().url().optional(),
   socialYoutube: z.string().url().optional(),
   socialTwitter: z.string().url().optional(),
+  socialLinkedin: z.union([z.string().url(), z.literal('')]).optional(),
+  socialWhatsapp: z.union([z.string().url(), z.literal('')]).optional(),
   lmsPortalUrl: z.string().max(500).optional(),
   googleAnalyticsId: z.string().max(80).optional(),
   legacyRedirectHost: z.string().max(200).optional(),

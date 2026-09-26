@@ -1,379 +1,235 @@
-import Image from 'next/image'
 import LocalizedLink from '../../../components/LocalizedLink'
-import PageCtaBand from '../../../components/PageCtaBand'
 import HeroSplit from '../../../components/HeroSplit'
-import CmsRichText from '../../../components/CmsRichText'
 import { buildCmsMetadata } from '../../../lib/cms/seo'
-import { cmsIconForKey } from '../../../lib/cms-icons'
-import { renderSplitHeroTitle } from '../../../lib/cms/hero'
+import { images } from '../../../lib/images'
 import {
-  DEFAULT_ABOUT_APPROACH,
-  DEFAULT_ABOUT_HERO_CTA_PRIMARY,
-  DEFAULT_ABOUT_HERO_CTA_SECONDARY,
-  DEFAULT_ABOUT_HERO_STATS,
-  DEFAULT_ABOUT_HERO_TITLE,
-  DEFAULT_ABOUT_IMPACT_METRICS,
-  DEFAULT_ABOUT_PHILOSOPHY,
-  getCmsTexts,
-  parseCmsJson,
-  type CmsApproachStep,
-  type CmsHeroCta,
-  type CmsHeroStat,
-  type CmsHeroTitle,
-  type CmsLabeledValue,
-  type CmsPhilosophyCard,
-} from '../../../lib/cms/content'
-import { cardImageSizes, images, resolveCmsImage } from '../../../lib/images'
-import { DEFAULT_ABOUT_SECTIONS, isSectionVisible, parseSectionVisibility } from '../../../lib/cms/sections'
-
-type AboutTimelineItem = { year: string; title: string; description: string }
-type AboutTeamMember = {
-  name: string
-  role: string
-  bio: string
-  initials?: string
-  photoUrl?: string
-}
+  ABOUT_JUMPS,
+  BELIEF_EMPHASES,
+  CORE_VALUES,
+  LEARNING_BY_DOING,
+  MISSION_DIMENSIONS,
+  WHO_WE_SERVE,
+} from '../../../lib/leadership/copy'
 
 export async function generateMetadata() {
   return buildCmsMetadata('about', { ogImage: images.hero.about })
 }
 
-export default async function AboutPage() {
-  const cms = await getCmsTexts([
-    'about.hero.lead',
-    'about.hero.image',
-    'about.hero.imageAlt',
-    'about.hero.title',
-    'about.hero.stats',
-    'about.hero.cta.primary',
-    'about.hero.cta.secondary',
-    'about.whoWeAre.badge',
-    'about.whoWeAre.heading',
-    'about.whoWeAre.body',
-    'about.whoWeAre.focusHeading',
-    'about.whoWeAre.focusAreas',
-    'about.whoWeAre.teamCta',
-    'about.story.image',
-    'about.mission.heading',
-    'about.vision.heading',
-    'about.mission',
-    'about.mission.continuation',
-    'about.vision',
-    'about.timeline.badge',
-    'about.timeline.heading',
-    'about.timeline.lead',
-    'about.timeline',
-    'about.team.badge',
-    'about.team.heading',
-    'about.team.lead',
-    'about.team',
-    'about.philosophy.badge',
-    'about.philosophy.heading',
-    'about.philosophy.cardLabel',
-    'about.philosophy.cardCta',
-    'about.philosophy.lead',
-    'about.philosophy',
-    'about.approach.badge',
-    'about.approach.heading',
-    'about.approach.lead',
-    'about.approach',
-    'about.impact.cardBadge',
-    'about.impact.cardHeading',
-    'about.impact.cardCta',
-    'about.impact.metrics',
-    'about.cta.heading',
-    'about.cta.body',
-    'about.cta.primary',
-    'about.cta.secondary',
-    'about.sections.visible',
-  ] as const)
-
-  const heroTitle = parseCmsJson<CmsHeroTitle>(cms['about.hero.title'], DEFAULT_ABOUT_HERO_TITLE)
-  const heroStats = parseCmsJson<CmsHeroStat[]>(cms['about.hero.stats'], DEFAULT_ABOUT_HERO_STATS)
-  const heroPrimaryCta = parseCmsJson<CmsHeroCta>(cms['about.hero.cta.primary'], DEFAULT_ABOUT_HERO_CTA_PRIMARY)
-  const heroSecondaryCta = parseCmsJson<CmsHeroCta>(cms['about.hero.cta.secondary'], DEFAULT_ABOUT_HERO_CTA_SECONDARY)
-  const aboutCtaPrimary = parseCmsJson<CmsHeroCta>(
-    cms['about.cta.primary'],
-    { label: 'Donate', href: '/support#donate' },
-  )
-  const aboutCtaSecondary = parseCmsJson<CmsHeroCta>(
-    cms['about.cta.secondary'],
-    { label: 'Explore Programs', href: '/programs' },
-  )
-  const teamCta = parseCmsJson<CmsHeroCta>(
-    cms['about.whoWeAre.teamCta'],
-    { label: 'Meet Our Trustees', href: '/trustees' },
-  )
-  const focusAreas = parseCmsJson<string[]>(
-    cms['about.whoWeAre.focusAreas'],
-    ['Education', 'Culture', 'Leadership', 'Community Development'],
-  )
-  const philosophies = parseCmsJson<CmsPhilosophyCard[]>(
-    cms['about.philosophy'],
-    DEFAULT_ABOUT_PHILOSOPHY,
-  )
-  const approaches = parseCmsJson<CmsApproachStep[]>(cms['about.approach'], DEFAULT_ABOUT_APPROACH)
-  const impactMetrics = parseCmsJson<CmsLabeledValue[]>(
-    cms['about.impact.metrics'],
-    DEFAULT_ABOUT_IMPACT_METRICS,
-  )
-  const timeline = parseCmsJson<AboutTimelineItem[]>(cms['about.timeline'], [])
-  const team = parseCmsJson<AboutTeamMember[]>(cms['about.team'], [])
-  const sectionVisibility = parseSectionVisibility(cms['about.sections.visible'], DEFAULT_ABOUT_SECTIONS)
-  const showSection = (key: string) => isSectionVisible(sectionVisibility, key)
-
+export default function AboutPage() {
   return (
     <div className="about-page">
       <HeroSplit
         compact
-        imageSrc={resolveCmsImage(cms['about.hero.image'], images.hero.about)}
-        imageAlt={cms['about.hero.imageAlt']}
-        title={renderSplitHeroTitle(heroTitle)}
-        description={cms['about.hero.lead']}
-        primaryCta={heroPrimaryCta}
-        secondaryCta={heroSecondaryCta}
-        stats={heroStats}
+        imageSrc={images.hero.about}
+        imageAlt="ANANSE Center for Leadership Development"
+        title={
+          <>
+            About <span className="text-accent">ANANSE</span>
+          </>
+        }
+        description="Developing people. Transforming lives. Strengthening communities. ANANSE Center for Leadership Development is committed to developing people who lead with character, wisdom, competence, excellence, and purpose."
+        primaryCta={{ label: 'Explore programs', href: '/programs' }}
+        secondaryCta={{ label: 'Get involved', href: '/get-involved' }}
+        stats={[]}
       />
 
-      {showSection('whoWeAre') ? (
-        <section className="page-section section-reveal bg-slate-50">
-          <div className="page-section-container">
-            <div className="two-col-section gap-xl">
-              <div>
-                <span className="section-badge">{cms['about.whoWeAre.badge']}</span>
-                <h2 className="page-section-heading">{cms['about.whoWeAre.heading']}</h2>
-                <CmsRichText body={cms['about.whoWeAre.body']} className="cms-richtext cms-richtext--lg" />
-                <p className="page-body-text" style={{ marginTop: '1.5rem', fontWeight: 600 }}>
-                  {cms['about.whoWeAre.focusHeading']}
-                </p>
-                <ul className="about-focus-list">
-                  {focusAreas.map((area) => (
-                    <li key={area}>{area}</li>
-                  ))}
-                </ul>
-                <LocalizedLink href={teamCta.href} className="btn-primary" style={{ marginTop: '1.75rem' }}>
-                  {teamCta.label}
-                </LocalizedLink>
-              </div>
+      <nav className="about-jump-nav" aria-label="About sections">
+        <div className="page-section-container about-jump-nav-inner">
+          {ABOUT_JUMPS.map((jump) => (
+            <a key={jump.id} href={`#${jump.id}`} className="about-jump-link">
+              {jump.label}
+            </a>
+          ))}
+        </div>
+      </nav>
 
-              <div className="premium-card-image-wrapper" style={{ height: 'min(420px, 70vw)', marginBottom: 0 }}>
-                <Image
-                  src={resolveCmsImage(cms['about.story.image'], images.story)}
-                  alt="Ananse Center community gathering"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 899px) 100vw, 45vw"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : null}
+      <section id="who-we-are" className="page-section section-reveal bg-white">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">Who We Are</span>
+          <h2 className="page-section-heading">Leadership beyond position</h2>
+          <p className="page-body-text">
+            ANANSE exists to cultivate leaders who understand that leadership is not merely about position—it is about character, responsibility, influence, and service.
+          </p>
+          <p className="page-body-text">
+            We seek to develop people who are intellectually equipped, morally grounded, spiritually authentic, practically capable, and committed to making a positive contribution to the world around them.
+          </p>
+          <p className="page-body-text">
+            Our approach recognizes that people learn in different ways and that leadership development must move beyond theory. We therefore combine ideas with experience, learning with practice, and mentorship with opportunity.
+          </p>
+          <p className="page-body-text">
+            We believe that meaningful leadership begins with the development of the whole person. Leadership is not simply about occupying a position or acquiring a set of skills. It is about becoming the kind of person who can be trusted with influence and who uses that influence responsibly in service of others.
+          </p>
+          <p className="page-body-text">
+            Through leadership education, mentoring, intellectual engagement, authentic spirituality, and practical service, ANANSE creates opportunities for people to learn, grow, lead, and serve.
+          </p>
 
-      {showSection('missionVision') ? (
-        <section className="page-section section-reveal bg-white">
-          <div className="page-section-container">
-            <div className="two-col-section gap-xl">
-              <div>
-                <h2 className="page-section-heading">{cms['about.mission.heading']}</h2>
-                <CmsRichText body={cms['about.mission']} className="cms-richtext cms-richtext--lg" />
-                <div style={{ marginTop: '1rem' }}>
-                  <CmsRichText
-                    body={cms['about.mission.continuation']}
-                    className="cms-richtext cms-richtext--lg"
-                  />
-                </div>
-              </div>
+          <h3 className="page-subsection-heading">Who we serve</h3>
+          <p className="page-body-text">
+            ANANSE works with people who are seeking to learn, grow, lead, and serve, including:
+          </p>
+          <ul className="value-list">
+            {WHO_WE_SERVE.map((item) => (
+              <li key={item.title}>
+                <strong>{item.title}</strong>
+                <span>{item.body}</span>
+              </li>
+            ))}
+          </ul>
 
-              <div>
-                <h2 className="page-section-heading">{cms['about.vision.heading']}</h2>
-                <CmsRichText body={cms['about.vision']} className="cms-richtext cms-richtext--lg" />
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : null}
+          <h3 className="page-subsection-heading">What we believe about leadership</h3>
+          <p className="page-body-text">Character before influence.</p>
+          <p className="page-body-text">Leadership without character can become an exercise in power. Competence without wisdom can produce unintended consequences. Knowledge without responsibility can fail to serve society.</p>
+          <p className="page-body-text">
+            For ANANSE, leadership development therefore involves more than preparing people to do leadership. It involves helping them become people who can be trusted with leadership.
+          </p>
+          <ul className="value-list">
+            {BELIEF_EMPHASES.map((item) => (
+              <li key={item.title}>
+                <strong>{item.title}</strong>
+                <span>{item.body}</span>
+              </li>
+            ))}
+          </ul>
 
-      {showSection('timeline') && timeline.length > 0 ? (
-        <section className="page-section section-reveal bg-slate-50">
-          <div className="page-section-container">
-            <div className="page-section-center-header">
-              <span className="section-badge">{cms['about.timeline.badge']}</span>
-              <h2 className="page-section-heading">{cms['about.timeline.heading']}</h2>
-              <p className="page-body-text">{cms['about.timeline.lead']}</p>
-            </div>
-            <ol className="about-timeline">
-              {timeline.map((item, index) => (
-                <li key={`${item.year}-${item.title}-${index}`} className="about-timeline-item">
-                  <span className="about-timeline-year">{item.year}</span>
-                  <div>
-                    <h3 className="about-timeline-title">{item.title}</h3>
-                    <p className="page-body-text text-body-md">{item.description}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-      ) : null}
+          <h3 className="page-subsection-heading">Our approach</h3>
+          <p className="page-body-text">From learning to transformation.</p>
+          <p className="page-body-text">ANANSE believes that effective leadership development should move through three interconnected stages:</p>
+          <ul className="value-list">
+            <li>
+              <strong>Learn</strong>
+              <span>Acquire knowledge, encounter ideas, ask questions, and develop understanding.</span>
+            </li>
+            <li>
+              <strong>Develop</strong>
+              <span>Apply what has been learned, build practical skills, receive mentoring, and develop character.</span>
+            </li>
+            <li>
+              <strong>Serve</strong>
+              <span>Use knowledge, skills, relationships, and influence to create meaningful value for others.</span>
+            </li>
+          </ul>
+          <p className="page-body-text">The goal is not simply informed people. It is formed people—people whose knowledge, character, competence, and influence are increasingly aligned.</p>
 
-      {showSection('team') && team.length > 0 ? (
-        <section className="page-section section-reveal bg-white">
-          <div className="page-section-container">
-            <div className="page-section-center-header">
-              <span className="section-badge">{cms['about.team.badge']}</span>
-              <h2 className="page-section-heading">{cms['about.team.heading']}</h2>
-              <p className="page-body-text">{cms['about.team.lead']}</p>
-            </div>
-            <div className="grid-cards">
-              {team.map((member) => (
-                <article key={member.name} className="premium-card">
-                  {member.photoUrl ? (
-                    <div
-                      className="premium-card-image-wrapper premium-card-image-wrapper--short"
-                      style={{ borderRadius: '50%', width: 88, height: 88, marginBottom: '1rem' }}
-                    >
-                      <Image
-                        src={member.photoUrl}
-                        alt={member.name}
-                        fill
-                        className="object-cover"
-                        sizes="88px"
-                      />
-                    </div>
-                  ) : (
-                    <div className="testimonial-avatar" style={{ width: 48, height: 48, fontSize: 14 }}>
-                      {member.initials || member.name.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <h3 className="premium-card-title">{member.name}</h3>
-                  <span className="premium-card-featured-label">{member.role}</span>
-                  <p className="premium-card-description">{member.bio}</p>
-                </article>
-              ))}
-            </div>
-            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-              <LocalizedLink href={teamCta.href} className="btn-outline-dark">
-                {teamCta.label}
-              </LocalizedLink>
-            </div>
-          </div>
-        </section>
-      ) : null}
+          <h3 className="page-subsection-heading">Learning by doing</h3>
+          <p className="page-body-text">From theory to practice. Leadership cannot be fully learned from books or lectures alone.</p>
+          <p className="page-body-text">
+            ANANSE therefore places value on hands-on learning, mentoring, practical engagement, and opportunities to apply knowledge to real situations. Our programs are designed to encourage participants to:
+          </p>
+          <ul className="about-focus-list">
+            {LEARNING_BY_DOING.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <p className="page-body-text">
+            Where appropriate, ANANSE also supports training, mentorship, and internship opportunities, particularly for students and young professionals.
+          </p>
+        </div>
+      </section>
 
-      {showSection('philosophy') ? (
-        <section className="page-section section-reveal bg-slate-50">
-          <div className="page-section-container">
-            <div className="page-section-center-header">
-              <span className="section-badge">{cms['about.philosophy.badge']}</span>
-              <h2 className="page-section-heading">{cms['about.philosophy.heading']}</h2>
-              <p className="page-body-text">{cms['about.philosophy.lead']}</p>
-            </div>
+      <section id="the-ananse-story" className="page-section section-reveal bg-slate-50">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">The ANANSE Story</span>
+          <h2 className="page-section-heading">The wisdom behind the name</h2>
+          <p className="page-body-text">
+            Ananse is the Ghanaian word for spider and is one of the most recognizable figures in Ghanaian traditional storytelling.
+          </p>
+          <p className="page-body-text">
+            In Ghanaian folk stories, Ananse is often used as a didactic character—a vehicle through which wisdom and life lessons are communicated. The stories explore themes such as wisdom, wit, resourcefulness, practical skills, creativity, ingenuity, and problem-solving.
+          </p>
+          <p className="page-body-text">
+            The spider therefore provides an apt metaphor for the spirit of ANANSE: the ability to think creatively, learn from experience, work with available resources, solve problems, and navigate the complexities of life.
+          </p>
+          <p className="page-body-text">The name ANANSE also represents:</p>
+          <p className="page-body-text">African Network &amp; Advisory for Needed Services &amp; Excellence</p>
+          <p className="page-body-text">
+            Together, the name and the acronym express our commitment to developing people, sharing knowledge, building practical capacity, and contributing solutions to real needs.
+          </p>
 
-            <div className="grid-cards">
-              {philosophies.map((item, idx) => {
-                const Icon = cmsIconForKey(item.iconKey)
-                return (
-                  <article key={item.title} className="premium-card">
-                    <div className="premium-card-image-wrapper premium-card-image-wrapper--short">
-                      <Image
-                        src={resolveCmsImage(item.imageUrl, `/images/image (${idx + 7}).jpeg`)}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                        sizes={cardImageSizes}
-                      />
-                    </div>
-                    <div className="premium-card-header">
-                      <div className="premium-card-icon-box">
-                        <Icon size={22} strokeWidth={1.75} />
-                      </div>
-                      <span className="premium-card-featured-label">{cms['about.philosophy.cardLabel']}</span>
-                    </div>
-                    <h3 className="premium-card-title">{item.title}</h3>
-                    <p className="premium-card-description">{item.description}</p>
-                    <LocalizedLink href="/programs" className="btn-primary premium-card-cta">
-                      {cms['about.philosophy.cardCta']}
-                    </LocalizedLink>
-                  </article>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
+          <h3 className="page-subsection-heading">ANANSE &amp; Africa</h3>
+          <p className="page-body-text">Rooted in Africa. Open to the world.</p>
+          <p className="page-body-text">
+            ANANSE carries an African identity and is particularly concerned with the development of people, institutions, and communities across the African continent and diaspora.
+          </p>
+          <p className="page-body-text">
+            Our African focus is not simply geographical. It reflects a conviction that Africa possesses immense human potential, wisdom, creativity, and resources—and that developing this potential requires investment in people.
+          </p>
+          <p className="page-body-text">
+            We seek to contribute by encouraging leadership, education, mentorship, practical skills, innovation, excellence, and responsible service.
+          </p>
+          <p className="page-body-text">
+            At the same time, ANANSE&apos;s conversations and resources are not limited to Africa. The challenges of leadership, character, relationships, culture, spirituality, education, and human development are shared across societies.
+          </p>
+          <p className="page-body-text">Our roots are African. Our conversations are global.</p>
+        </div>
+      </section>
 
-      {showSection('approach') || showSection('impact') ? (
-        <section className="page-section section-reveal bg-white">
-          <div className="page-section-container">
-            <div className="two-col-section">
-              {showSection('approach') ? (
-                <div className="max-w-md">
-                  <span className="section-badge">{cms['about.approach.badge']}</span>
-                  <h2 className="page-section-heading">{cms['about.approach.heading']}</h2>
-                  <p className="page-body-text mb-section">
-                    {cms['about.approach.lead']}
-                  </p>
+      <section id="vision-mission" className="page-section section-reveal bg-white">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">Vision &amp; Mission</span>
+          <h2 className="page-section-heading">Our vision</h2>
+          <p className="page-body-text">A generation prepared to lead and serve.</p>
+          <p className="page-body-text">
+            A generation of principled, competent, spiritually grounded, and transformational leaders who use their influence to serve others and strengthen society.
+          </p>
+          <p className="page-body-text">
+            Our vision extends beyond preparing people for positions of leadership. We seek to prepare people for the responsibilities that accompany influence—in their families, professions, institutions, communities, and society.
+          </p>
 
-                  <div className="flex-column gap-medium">
-                    {approaches.map((step) => (
-                      <div key={step.title} className="approach-step">
-                        <div
-                          className="approach-step-num"
-                          style={{ backgroundColor: step.backgroundColor, color: step.textColor }}
-                        >
-                          {step.num}
-                        </div>
-                        <div>
-                          <h4 className="approach-step-title">{step.title}</h4>
-                          <p className="page-body-text text-body-md">{step.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
+          <h2 className="page-section-heading">Our mission</h2>
+          <p className="page-body-text">Developing people for life, leadership, and service.</p>
+          <p className="page-body-text">
+            To develop people through leadership education, mentoring, intellectual engagement, authentic spirituality, and practical service, equipping them to lead with character, excellence, and purpose.
+          </p>
+          <p className="page-body-text">Our mission brings together five dimensions of development:</p>
+          <ul className="value-list">
+            {MISSION_DIMENSIONS.map((item) => (
+              <li key={item.title}>
+                <strong>{item.title}</strong>
+                <span>{item.body}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
-              {showSection('impact') ? (
-                <article className="premium-card">
-                  <div className="premium-card-header">
-                    <span className="premium-card-featured-label">{cms['about.impact.cardBadge']}</span>
-                  </div>
+      <section id="core-values" className="page-section section-reveal bg-slate-50">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">Core Values</span>
+          <h2 className="page-section-heading">What guides our work</h2>
+          <p className="page-body-text">The work of ANANSE is grounded in seven core values:</p>
+          <ol className="value-list value-list--numbered">
+            {CORE_VALUES.map((value) => (
+              <li key={value.title}>
+                <strong>{value.title}</strong>
+                <span>{value.body}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="page-body-text">
+            These values shape how we think about leadership, how we develop people, and how we serve others.
+          </p>
+        </div>
+      </section>
 
-                  <h3 className="premium-card-title premium-card-title--lg">
-                    {cms['about.impact.cardHeading']}
-                  </h3>
-
-                  <div className="flex-column flex-column--snug" style={{ marginTop: '1rem' }}>
-                    {impactMetrics.map((row) => (
-                      <div key={row.label} className="impact-metric-row">
-                        <span className="text-body-md">{row.label}</span>
-                        <span className="text-body-lg" style={{ fontWeight: 700 }}>
-                          {row.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <LocalizedLink href="/support" className="btn-primary premium-card-cta card-cta-spaced">
-                    {cms['about.impact.cardCta']}
-                  </LocalizedLink>
-                </article>
-              ) : null}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {showSection('cta') ? (
-        <PageCtaBand
-          heading={cms['about.cta.heading']}
-          body={cms['about.cta.body']}
-          primary={{ label: aboutCtaPrimary.label, href: aboutCtaPrimary.href }}
-          secondary={{ label: aboutCtaSecondary.label, href: aboutCtaSecondary.href, variant: 'outline-white' }}
-        />
-      ) : null}
+      <section id="eaglesonline" className="page-section section-reveal bg-white">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">EAGLESonline</span>
+          <h2 className="page-section-heading">Part of a larger leadership development vision</h2>
+          <p className="page-body-text">
+            ANANSE Center for Leadership Development is a subsidiary of EAGLESonline, an umbrella organization bringing together two centers of leadership development: the EAGLES Center and the ANANSE Center.
+          </p>
+          <p className="page-body-text">EAGLES stands for: Empowerment &amp; Advisory Group for Leadership, Excellence, &amp; Service.</p>
+          <p className="page-body-text">
+            Within this broader vision, ANANSE has a particular emphasis on training, mentorship, practical development, and empowering people to become agents of positive social change.
+          </p>
+          <p className="page-body-text">
+            The two centers share a commitment to leadership, excellence, service, and human development while providing distinct avenues through which that vision can be pursued.
+          </p>
+          <LocalizedLink href="/get-involved" className="btn-primary page-inline-cta">
+            Get involved
+          </LocalizedLink>
+        </div>
+      </section>
     </div>
   )
 }

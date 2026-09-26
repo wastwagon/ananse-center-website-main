@@ -34,6 +34,13 @@ export type AdminEvent = {
   timeLabel: string
   capacity: number | null
   registrationStatus: 'auto' | 'open' | 'closed' | 'waitlist' | 'completed' | string
+  eventStatus: 'scheduled' | 'postponed' | 'cancelled' | string
+  deliveryMode: 'in_person' | 'online' | 'hybrid' | string
+  meetingUrl: string
+  recordingUrl: string
+  galleryMediaIds: string[]
+  programId: string | null
+  program?: { id: string; slug: string; title: string } | null
   location: string
   venue: string
   type: string
@@ -207,6 +214,8 @@ export type SiteSettings = {
     instagram: string
     youtube: string
     twitter: string
+    linkedin?: string
+    whatsapp?: string
   }
 }
 
@@ -321,6 +330,8 @@ export type AdminSettingsPatch = {
   socialInstagram?: string
   socialYoutube?: string
   socialTwitter?: string
+  socialLinkedin?: string
+  socialWhatsapp?: string
   lmsPortalUrl?: string
   googleAnalyticsId?: string
   legacyRedirectHost?: string
@@ -407,12 +418,96 @@ export type AdminNewsPost = {
   dateLabel: string
   author: string
   category: string
+  contentType: string
+  topics: string[]
+  showInLibraryRead: boolean
   featured: boolean
   linkHref: string
   published: boolean
   sortOrder: number
   coverMediaId: string | null
   coverImageUrl?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type AdminPerson = {
+  id: string
+  name: string
+  slug: string
+  roleTitle: string
+  bio: string
+  groups: string[]
+  isOrganization: boolean
+  organizationName: string
+  websiteUrl: string
+  photoMediaId: string | null
+  logoMediaId: string | null
+  photoImageUrl: string | null
+  logoImageUrl: string | null
+  featured: boolean
+  published: boolean
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type AdminLibraryItem = {
+  id: string
+  title: string
+  slug: string
+  description: string
+  shelf: 'listen' | 'watch' | 'read' | string
+  collection: string
+  body: string
+  transcript: string
+  furtherStudy: string
+  wisdomNugget: string
+  scriptureTheme: string
+  episodeNumber: number | null
+  dateLabel: string
+  publishedAt: string | null
+  topics: string[]
+  programId: string | null
+  personId: string | null
+  newsPostId: string | null
+  coverMediaId: string | null
+  audioMediaId: string | null
+  videoMediaId: string | null
+  audioUrl: string
+  videoUrl: string
+  coverImageUrl: string | null
+  featured: boolean
+  published: boolean
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type AdminPhotoAlbumImage = {
+  id?: string
+  mediaId: string
+  caption: string
+  sortOrder: number
+  url?: string
+}
+
+export type AdminPhotoAlbum = {
+  id: string
+  title: string
+  slug: string
+  description: string
+  dateLabel: string
+  place: string
+  collection: string
+  programId: string | null
+  eventId: string | null
+  coverMediaId: string | null
+  coverImageUrl: string | null
+  images: AdminPhotoAlbumImage[]
+  featured: boolean
+  published: boolean
+  sortOrder: number
   createdAt: string
   updatedAt: string
 }
@@ -439,6 +534,78 @@ export async function updateAdminNews(id: string, body: Partial<AdminNewsPost>) 
 
 export async function deleteAdminNews(id: string) {
   return adminFetch<{ ok: boolean }>(`news/${id}`, { method: 'DELETE' })
+}
+
+export async function fetchAdminPeople() {
+  return adminFetch<{ data: AdminPerson[] }>('people')
+}
+
+export async function createAdminPerson(
+  body: Pick<AdminPerson, 'name'> & Partial<AdminPerson>,
+) {
+  return adminFetch<{ data: AdminPerson }>('people', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function updateAdminPerson(id: string, body: Partial<AdminPerson>) {
+  return adminFetch<{ data: AdminPerson }>(`people/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function deleteAdminPerson(id: string) {
+  return adminFetch<{ ok: boolean }>(`people/${id}`, { method: 'DELETE' })
+}
+
+export async function fetchAdminLibrary() {
+  return adminFetch<{ data: AdminLibraryItem[] }>('library')
+}
+
+export async function createAdminLibraryItem(
+  body: Pick<AdminLibraryItem, 'title' | 'shelf' | 'collection'> & Partial<AdminLibraryItem>,
+) {
+  return adminFetch<{ data: AdminLibraryItem }>('library', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function updateAdminLibraryItem(id: string, body: Partial<AdminLibraryItem>) {
+  return adminFetch<{ data: AdminLibraryItem }>(`library/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function deleteAdminLibraryItem(id: string) {
+  return adminFetch<{ ok: boolean }>(`library/${id}`, { method: 'DELETE' })
+}
+
+export async function fetchAdminPhotoAlbums() {
+  return adminFetch<{ data: AdminPhotoAlbum[] }>('photo-albums')
+}
+
+export async function createAdminPhotoAlbum(
+  body: Pick<AdminPhotoAlbum, 'title'> & Partial<AdminPhotoAlbum>,
+) {
+  return adminFetch<{ data: AdminPhotoAlbum }>('photo-albums', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function updateAdminPhotoAlbum(id: string, body: Partial<AdminPhotoAlbum>) {
+  return adminFetch<{ data: AdminPhotoAlbum }>(`photo-albums/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function deleteAdminPhotoAlbum(id: string) {
+  return adminFetch<{ ok: boolean }>(`photo-albums/${id}`, { method: 'DELETE' })
 }
 
 export async function fetchAdminArchives() {

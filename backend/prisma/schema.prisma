@@ -22,6 +22,13 @@ model MediaAsset {
   eventCovers  Event[]   @relation("EventCover")
   programCovers Program[] @relation("ProgramCover")
   newsCovers   NewsPost[] @relation("NewsCover")
+  personPhotos Person[]  @relation("PersonPhoto")
+  personLogos  Person[]  @relation("PersonLogo")
+  libraryCovers LibraryItem[] @relation("LibraryCover")
+  libraryAudio LibraryItem[]  @relation("LibraryAudio")
+  libraryVideo LibraryItem[]  @relation("LibraryVideo")
+  albumCovers  PhotoAlbum[]   @relation("AlbumCover")
+  albumImages  PhotoAlbumImage[]
 
   @@index([mimeType, createdAt(sort: Desc)])
   @@map("media_assets")
@@ -42,6 +49,9 @@ model Program {
   published    Boolean     @default(true)
   coverMediaId String?     @map("cover_media_id")
   coverMedia   MediaAsset? @relation("ProgramCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  events       Event[]
+  libraryItems LibraryItem[]
+  photoAlbums  PhotoAlbum[]
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
 
@@ -60,10 +70,20 @@ model Event {
   timeLabel          String      @default("") @map("time_label")
   capacity           Int?
   registrationStatus String      @default("auto") @map("registration_status")
+  /** scheduled | postponed | cancelled */
+  eventStatus        String      @default("scheduled") @map("event_status")
+  /** in_person | online | hybrid */
+  deliveryMode       String      @default("in_person") @map("delivery_mode")
+  meetingUrl         String      @default("") @map("meeting_url")
+  recordingUrl       String      @default("") @map("recording_url")
+  /** JSON string[] of media asset ids kept on the same page after the date */
+  galleryMediaIds    Json        @default("[]") @map("gallery_media_ids")
   location           String
   venue              String      @default("")
   type               String
-  imageEmoji         String      @default("🎭") @map("image_emoji")
+  programId          String?     @map("program_id")
+  program            Program?    @relation(fields: [programId], references: [id], onDelete: SetNull)
+  imageEmoji         String      @default("📅") @map("image_emoji")
   coverMediaId       String?     @map("cover_media_id")
   coverMedia         MediaAsset? @relation("EventCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
   storyTitle         String?     @map("story_title")
@@ -71,10 +91,130 @@ model Event {
   highlights         Json        @default("[]")
   featured           Boolean     @default(false)
   published          Boolean     @default(true)
+  photoAlbums        PhotoAlbum[]
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
 
+  @@index([published, startsAt])
+  @@index([programId])
   @@map("events")
+}
+
+/** Community profiles — no personal phone or email on the public record. */
+model Person {
+  id               String      @id @default(cuid())
+  name             String
+  slug             String      @unique
+  roleTitle        String      @default("") @map("role_title")
+  bio              String      @default("") @db.Text
+  /** JSON string[] from Leadership | Mentors | Speakers & Faculty | Fellows and Participants | Partners */
+  groups           Json        @default("[]")
+  isOrganization   Boolean     @default(false) @map("is_organization")
+  organizationName String      @default("") @map("organization_name")
+  websiteUrl       String      @default("") @map("website_url")
+  photoMediaId     String?     @map("photo_media_id")
+  photoMedia       MediaAsset? @relation("PersonPhoto", fields: [photoMediaId], references: [id], onDelete: SetNull)
+  logoMediaId      String?     @map("logo_media_id")
+  logoMedia        MediaAsset? @relation("PersonLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
+  featured         Boolean     @default(false)
+  published        Boolean     @default(false)
+  sortOrder        Int         @default(0) @map("sort_order")
+  libraryItems     LibraryItem[]
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  @@index([published, sortOrder])
+  @@index([featured, published])
+  @@map("people")
+}
+
+/**
+ * Library shelves are views — Listen, Watch, Read.
+ * Photo Gallery uses PhotoAlbum. One item may hold audio + video + transcript.
+ */
+model LibraryItem {
+  id              String      @id @default(cuid())
+  title           String
+  slug            String      @unique
+  description     String      @default("") @db.Text
+  /** listen | watch | read */
+  shelf           String
+  /** Collection name within the shelf (e.g. Midday Reflection, Articles) */
+  collection      String
+  body            String      @default("") @db.Text
+  transcript      String      @default("") @db.Text
+  furtherStudy    String      @default("") @map("further_study") @db.Text
+  wisdomNugget    String      @default("") @map("wisdom_nugget") @db.Text
+  scriptureTheme  String      @default("") @map("scripture_theme")
+  episodeNumber   Int?        @map("episode_number")
+  dateLabel       String      @default("") @map("date_label")
+  publishedAt     DateTime?   @map("published_at")
+  /** JSON string[] of insight topics */
+  topics          Json        @default("[]")
+  programId       String?     @map("program_id")
+  program         Program?    @relation(fields: [programId], references: [id], onDelete: SetNull)
+  personId        String?     @map("person_id")
+  person          Person?     @relation(fields: [personId], references: [id], onDelete: SetNull)
+  newsPostId      String?     @map("news_post_id")
+  newsPost        NewsPost?   @relation(fields: [newsPostId], references: [id], onDelete: SetNull)
+  coverMediaId    String?     @map("cover_media_id")
+  coverMedia      MediaAsset? @relation("LibraryCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  audioMediaId    String?     @map("audio_media_id")
+  audioMedia      MediaAsset? @relation("LibraryAudio", fields: [audioMediaId], references: [id], onDelete: SetNull)
+  videoMediaId    String?     @map("video_media_id")
+  videoMedia      MediaAsset? @relation("LibraryVideo", fields: [videoMediaId], references: [id], onDelete: SetNull)
+  audioUrl        String      @default("") @map("audio_url")
+  videoUrl        String      @default("") @map("video_url")
+  featured        Boolean     @default(false)
+  published       Boolean     @default(false)
+  sortOrder       Int         @default(0) @map("sort_order")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  @@index([shelf, published, sortOrder])
+  @@index([collection, published])
+  @@index([episodeNumber])
+  @@map("library_items")
+}
+
+model PhotoAlbum {
+  id           String      @id @default(cuid())
+  title        String
+  slug         String      @unique
+  description  String      @default("") @db.Text
+  dateLabel    String      @default("") @map("date_label")
+  place        String      @default("")
+  /** Events | Lectures | Conferences | Mentorship | People | Community Engagement | Special Programs | Historical Archive */
+  collection   String      @default("Events")
+  programId    String?     @map("program_id")
+  program      Program?    @relation(fields: [programId], references: [id], onDelete: SetNull)
+  eventId      String?     @map("event_id")
+  event        Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  coverMediaId String?     @map("cover_media_id")
+  coverMedia   MediaAsset? @relation("AlbumCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  featured     Boolean     @default(false)
+  published    Boolean     @default(false)
+  sortOrder    Int         @default(0) @map("sort_order")
+  images       PhotoAlbumImage[]
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@index([collection, published, sortOrder])
+  @@map("photo_albums")
+}
+
+model PhotoAlbumImage {
+  id        String     @id @default(cuid())
+  albumId   String     @map("album_id")
+  album     PhotoAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  mediaId   String     @map("media_id")
+  media     MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  caption   String     @default("")
+  sortOrder Int        @default(0) @map("sort_order")
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@index([albumId, sortOrder])
+  @@map("photo_album_images")
 }
 
 model ContactMessage {
@@ -113,11 +253,11 @@ model SiteSettings {
   id                  String   @id @default("default")
   maintenanceMode     Boolean  @default(false) @map("maintenance_mode")
   maintenanceTitle    String   @default("We'll be back soon") @map("maintenance_title")
-  maintenanceMessage  String   @default("The Ananse Center website is undergoing scheduled updates. Thank you for your patience.") @map("maintenance_message") @db.Text
-  siteName            String   @default("The Ananse Center for Arts and Culture") @map("site_name")
-  siteShortName       String   @default("Ananse Center") @map("site_short_name")
-  siteTagline         String   @default("Weaving wisdom into solutions") @map("site_tagline")
-  siteLocation        String   @default("Akatakyiwa, Central Region, Ghana") @map("site_location")
+  maintenanceMessage  String   @default("The ANANSE Center website is undergoing scheduled updates. Thank you for your patience.") @map("maintenance_message") @db.Text
+  siteName            String   @default("ANANSE Center for Leadership Development") @map("site_name")
+  siteShortName       String   @default("ANANSE") @map("site_short_name")
+  siteTagline         String   @default("Leadership. Character. Excellence. Service.") @map("site_tagline")
+  siteLocation        String   @default("Ghana") @map("site_location")
   lmsPortalUrl        String   @default("") @map("lms_portal_url")
   googleAnalyticsId   String   @default("") @map("google_analytics_id")
   legacyRedirectHost  String   @default("anansecenter.oceancyber.site") @map("legacy_redirect_host")
@@ -126,12 +266,14 @@ model SiteSettings {
   contactEmail        String   @default("info@anansecenter.org") @map("contact_email")
   programsEmail       String   @default("programs@anansecenter.org") @map("programs_email")
   contactHours        String   @default("Sun–Fri 9:00–17:00") @map("contact_hours")
-  contactAddress      String   @default("The Ananse Center for Arts and Culture\nAkatakyiwa, Central Region\nGhana") @map("contact_address") @db.Text
+  contactAddress      String   @default("ANANSE Center for Leadership Development\nGhana") @map("contact_address") @db.Text
   impactStats         Json     @default("[{\"value\":\"500+\",\"label\":\"Lives Impacted\"},{\"value\":\"50+\",\"label\":\"Programs Delivered\"},{\"value\":\"15+\",\"label\":\"Communities Reached\"},{\"value\":\"6\",\"label\":\"Mission Pillars\"}]") @map("impact_stats")
   socialFacebook      String   @default("https://www.facebook.com/anansecenter") @map("social_facebook")
   socialInstagram     String   @default("https://www.instagram.com/anansecenter") @map("social_instagram")
   socialYoutube       String   @default("https://www.youtube.com/@anansecenter") @map("social_youtube")
   socialTwitter       String   @default("https://twitter.com/anansecenter") @map("social_twitter")
+  socialLinkedin      String   @default("") @map("social_linkedin")
+  socialWhatsapp      String   @default("") @map("social_whatsapp")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")
@@ -197,22 +339,30 @@ model ArchiveRecord {
 }
 
 model NewsPost {
-  id           String      @id @default(cuid())
-  title        String
-  slug         String      @unique
-  excerpt      String      @db.Text
-  body         String      @default("") @db.Text
-  dateLabel    String      @default("") @map("date_label")
-  author       String      @default("") 
-  category     String      @default("News")
-  featured     Boolean     @default(false)
-  linkHref     String      @default("") @map("link_href")
-  coverMediaId String?     @map("cover_media_id")
-  coverMedia   MediaAsset? @relation("NewsCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
-  published    Boolean     @default(true)
-  sortOrder    Int         @default(0) @map("sort_order")
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
+  id                String      @id @default(cuid())
+  title             String
+  slug              String      @unique
+  excerpt           String      @db.Text
+  body              String      @default("") @db.Text
+  dateLabel         String      @default("") @map("date_label")
+  author            String      @default("")
+  /** Legacy category; Insights listing prefers contentType + topics */
+  category          String      @default("Articles")
+  /** Articles | Essays | Leadership Reflections | Perspectives | Conversations | Special Reflections */
+  contentType       String      @default("Articles") @map("content_type")
+  /** JSON string[] from the 13 insight topics */
+  topics            Json        @default("[]")
+  /** Also list under Library → Read when true */
+  showInLibraryRead Boolean     @default(false) @map("show_in_library_read")
+  featured          Boolean     @default(false)
+  linkHref          String      @default("") @map("link_href")
+  coverMediaId      String?     @map("cover_media_id")
+  coverMedia        MediaAsset? @relation("NewsCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  libraryItems      LibraryItem[]
+  published         Boolean     @default(true)
+  sortOrder         Int         @default(0) @map("sort_order")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
 
   @@index([published, sortOrder])
   @@index([featured, published])

@@ -25,6 +25,8 @@ export type PublicSiteProfile = {
     instagram: string
     youtube: string
     twitter: string
+    linkedin: string
+    whatsapp: string
   }
 }
 
@@ -43,6 +45,39 @@ const STATIC_PROFILE: PublicSiteProfile = {
   social: { ...staticSocial },
 }
 
+function preferLeadershipIdentity(profile: PublicSiteProfile): PublicSiteProfile {
+  const artsName = /arts and culture/i.test(profile.site.name)
+  const artsPlace = /akatakyiwa/i.test(profile.site.location) || /akatakyiwa/i.test(profile.contact.address)
+  if (!artsName && !artsPlace) {
+    return {
+      ...profile,
+      social: {
+        linkedin: '',
+        whatsapp: '',
+        ...profile.social,
+      },
+    }
+  }
+  return {
+    ...profile,
+    site: {
+      name: artsName ? staticSite.name : profile.site.name,
+      shortName: artsName ? staticSite.shortName : profile.site.shortName,
+      tagline: artsName || /weaving wisdom/i.test(profile.site.tagline) ? staticSite.tagline : profile.site.tagline,
+      location: artsPlace ? staticSite.location : profile.site.location,
+    },
+    contact: {
+      ...profile.contact,
+      address: artsPlace || artsName ? staticSite.address : profile.contact.address,
+    },
+    social: {
+      linkedin: '',
+      whatsapp: '',
+      ...profile.social,
+    },
+  }
+}
+
 export async function getPublicSiteProfile(): Promise<PublicSiteProfile> {
   try {
     const response = await fetch(`${getServerApiUrl()}/api/v1/site/profile`, {
@@ -50,7 +85,7 @@ export async function getPublicSiteProfile(): Promise<PublicSiteProfile> {
     })
     if (!response.ok) return STATIC_PROFILE
     const payload = (await response.json()) as { data: PublicSiteProfile }
-    return payload.data ?? STATIC_PROFILE
+    return preferLeadershipIdentity(payload.data ?? STATIC_PROFILE)
   } catch {
     return STATIC_PROFILE
   }

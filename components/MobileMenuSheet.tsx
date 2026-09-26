@@ -4,13 +4,13 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useI18n } from './I18nProvider'
-import { localizedPath, stripLocalePrefix } from '../lib/locale-path'
+import { stripLocalePrefix } from '../lib/locale-path'
 import { X } from 'lucide-react'
 
 export type MobileMenuLink = {
   name: string
   href: string
+  child?: boolean
 }
 
 type MobileMenuSheetProps = {
@@ -19,17 +19,20 @@ type MobileMenuSheetProps = {
   links: readonly MobileMenuLink[]
   title?: string
   donateLabel?: string
+  footerHref?: string
+  footerLabel?: string
 }
 
 export default function MobileMenuSheet({
   isOpen,
   onClose,
   links,
-  title = 'More',
-  donateLabel = 'Donate Now',
+  title = 'Menu',
+  donateLabel = 'Get Involved',
+  footerHref,
+  footerLabel,
 }: MobileMenuSheetProps) {
   const pathname = usePathname()
-  const { locale } = useI18n()
   const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -88,7 +91,7 @@ export default function MobileMenuSheet({
               <Link
                 key={link.name}
                 href={link.href}
-                className={`mobile-menu-sheet-link${active ? ' mobile-menu-sheet-link--active' : ''}`}
+                className={`mobile-menu-sheet-link${link.child ? ' mobile-menu-sheet-link--child' : ''}${active ? ' mobile-menu-sheet-link--active' : ''}`}
                 aria-current={active ? 'page' : undefined}
                 onClick={onClose}
               >
@@ -97,15 +100,13 @@ export default function MobileMenuSheet({
             )
           })}
         </nav>
-        <div className="mobile-menu-sheet-footer">
-          <Link
-            href={localizedPath('/support', locale)}
-            className="btn-primary mobile-menu-sheet-donate"
-            onClick={onClose}
-          >
-            {donateLabel}
-          </Link>
-        </div>
+        {footerHref ? (
+          <div className="mobile-menu-sheet-footer">
+            <Link href={footerHref} className="btn-primary mobile-menu-sheet-donate" onClick={onClose}>
+              {footerLabel || donateLabel}
+            </Link>
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,

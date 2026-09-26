@@ -18,6 +18,8 @@ type HeroPremiumProps = {
   trustLine?: string
   imageSrc?: string
   imageAlt?: string
+  scrollHref?: string
+  scrollLabel?: string
 }
 
 export default function HeroPremium({
@@ -28,7 +30,9 @@ export default function HeroPremium({
   secondaryCta,
   trustLine,
   imageSrc = images.hero.home,
-  imageAlt = 'Community gathering at The Ananse Center for Arts and Culture',
+  imageAlt = 'ANANSE Center for Leadership Development',
+  scrollHref = '#welcome',
+  scrollLabel = 'Scroll to welcome',
 }: HeroPremiumProps) {
   return (
     <section className="hero-premium" aria-labelledby="hero-heading">
@@ -76,8 +80,8 @@ export default function HeroPremium({
         <AnimatedHeroStats stats={stats} />
       </div>
 
-      <a href="#our-story" className="hero-premium-scroll">
-        <span className="sr-only">Scroll to our story</span>
+      <a href={scrollHref} className="hero-premium-scroll">
+        <span className="sr-only">{scrollLabel}</span>
         <ChevronDown size={22} strokeWidth={1.75} aria-hidden />
       </a>
     </section>

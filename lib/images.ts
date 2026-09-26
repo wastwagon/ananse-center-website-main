@@ -83,6 +83,29 @@ export function resolveNewsCoverImage(
   return catalog[fallbackIndex % catalog.length]
 }
 
+export function resolveLibraryCoverImage(
+  item: { coverImageUrl?: string | null; slug?: string },
+  fallbackIndex = 0,
+): string {
+  return resolveNewsCoverImage(item, fallbackIndex)
+}
+
+export function resolvePersonImage(
+  person: { photoImageUrl?: string | null; logoImageUrl?: string | null; slug?: string },
+  fallbackIndex = 0,
+): string | null {
+  if (person.photoImageUrl) return person.photoImageUrl
+  if (person.logoImageUrl) return person.logoImageUrl
+  return null
+}
+
+export function resolvePhotoAlbumCover(
+  album: { coverImageUrl?: string | null; slug?: string },
+  fallbackIndex = 0,
+): string {
+  return resolveNewsCoverImage(album, fallbackIndex)
+}
+
 export function eventImageForSlug(slug: string): string {
   if (slug.includes('storytelling') || slug.includes('festival') || slug.includes('drumming')) {
     return images.events.festival
