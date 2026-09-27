@@ -2,7 +2,15 @@
 
 For **ANANSE Center for Leadership Development** staff. Login: **`/admin/login`**. Change the default password on first use; add editors under **Users**.
 
-**Full inventory:** [DAY-1-INVENTORY.md](./DAY-1-INVENTORY.md) · **Deploy:** [COOLIFY.md](../COOLIFY.md)
+**Full inventory:** [DAY-1-INVENTORY.md](./DAY-1-INVENTORY.md) · **Replace demo samples:** [HANDOVER-DEMO.md](./HANDOVER-DEMO.md) · **Deploy:** [COOLIFY.md](../COOLIFY.md)
+
+---
+
+## 0. First review (demo pack)
+
+The site ships with `demo-*` sample people, events, Midday episodes, library items, and photo albums so every template is visible. Each invented item says *Preview sample — for layout only…*
+
+**Before go-live:** unpublish or delete all `demo-*` records and enter real ANANSE materials using the same fields. Step-by-step: [HANDOVER-DEMO.md](./HANDOVER-DEMO.md).
 
 ---
 

@@ -27,8 +27,7 @@ export function organizationJsonLd(siteUrl: string) {
     description: site.tagline,
     address: {
       '@type': 'PostalAddress',
-      addressLocality: 'Akatakyiwa',
-      addressRegion: 'Central Region',
+      addressLocality: 'Accra',
       addressCountry: 'GH',
     },
     contactPoint: {
@@ -38,7 +37,14 @@ export function organizationJsonLd(siteUrl: string) {
       contactType: 'customer service',
       areaServed: 'Worldwide',
     },
-    sameAs: [social.facebook, social.instagram, social.youtube, social.twitter].filter(Boolean),
+    sameAs: [
+      social.facebook,
+      social.instagram,
+      social.youtube,
+      social.twitter,
+      social.linkedin,
+      social.whatsapp,
+    ].filter(Boolean),
   }
 }
 

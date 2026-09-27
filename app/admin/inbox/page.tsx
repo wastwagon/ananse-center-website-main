@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
-import Link from 'next/link'
+import AdminRowActions from '../../../components/admin/AdminRowActions'
+import { AdminStatus, formatAdminWhen } from '../../../components/admin/AdminStatus'
 import {
   fetchAdminInboxCommunity,
   fetchAdminInboxRegistrations,
@@ -77,19 +78,19 @@ export default function AdminInboxPage() {
 
   return (
     <AdminShell title="Inbox">
-      {loading ? <p>Loading inbox…</p> : null}
+      <div className="admin-page-tools">
+        <p className="admin-help">Messages, registrations, and stories waiting for a response.</p>
+      </div>
+      {loading ? <p className="admin-empty">Loading inbox…</p> : null}
       {error ? <p className="admin-error">{error}</p> : null}
       {notice ? <p className="admin-notice">{notice}</p> : null}
 
       {!loading && !error ? (
         <>
           <div className="admin-card admin-card--spaced">
-            <h2 className="admin-card-title">CRM timeline</h2>
-            <p className="admin-help">
-              Recent contact, donations, registrations, community stories, and newsletter signups.
-            </p>
+            <h2 className="admin-card-title">Recent activity</h2>
             {timeline.length === 0 ? (
-              <p className="admin-help">No activity yet.</p>
+              <p className="admin-empty">No activity yet.</p>
             ) : (
               <div className="admin-table-wrap">
                 <table className="admin-table">
@@ -106,22 +107,22 @@ export default function AdminInboxPage() {
                   <tbody>
                     {timeline.map((row) => (
                       <tr key={`${row.kind}-${row.id}`}>
-                        <td>{new Date(row.at).toLocaleString()}</td>
-                        <td>{TIMELINE_LABELS[row.kind]}</td>
+                        <td>{formatAdminWhen(row.at)}</td>
+                        <td>
+                          <span className="admin-badge admin-badge--neutral">{TIMELINE_LABELS[row.kind]}</span>
+                        </td>
                         <td>
                           <strong>{row.title}</strong>
-                          <p className="admin-help" style={{ marginTop: '0.25rem' }}>
-                            {row.summary}
-                          </p>
+                          {row.summary ? <span className="admin-meta">{row.summary}</span> : null}
                         </td>
                         <td>
                           <a href={`mailto:${row.email}`}>{row.email}</a>
                         </td>
-                        <td>{row.status}</td>
                         <td>
-                          <Link href={row.adminPath} className="admin-btn admin-btn--ghost admin-btn--sm">
-                            Open
-                          </Link>
+                          <AdminStatus value={row.status} />
+                        </td>
+                        <td>
+                          <AdminRowActions items={[{ label: 'Open', href: row.adminPath }]} />
                         </td>
                       </tr>
                     ))}
@@ -135,7 +136,7 @@ export default function AdminInboxPage() {
             <h2 className="admin-card-title">Event registrations</h2>
             <p className="admin-help">RSVPs submitted from public event pages.</p>
             {registrations.length === 0 ? (
-              <p className="admin-help">No registrations yet.</p>
+              <p className="admin-empty">No registrations yet.</p>
             ) : (
               <div className="admin-table-wrap">
                 <table className="admin-table">
@@ -152,22 +153,28 @@ export default function AdminInboxPage() {
                   <tbody>
                     {registrations.map((row) => (
                       <tr key={row.id}>
-                        <td>{row.eventSlug}</td>
+                        <td>
+                          <strong>{row.eventTitle || row.eventSlug}</strong>
+                          {row.eventTitle ? <span className="admin-meta">{row.eventSlug}</span> : null}
+                        </td>
                         <td>{row.name}</td>
                         <td>
                           <a href={`mailto:${row.email}`}>{row.email}</a>
                         </td>
-                        <td>{row.status}</td>
-                        <td>{new Date(row.createdAt).toLocaleString()}</td>
+                        <td>
+                          <AdminStatus value={row.status} />
+                        </td>
+                        <td>{formatAdminWhen(row.createdAt)}</td>
                         <td>
                           {row.status !== 'reviewed' ? (
-                            <button
-                              type="button"
-                              className="admin-btn admin-btn--ghost admin-btn--sm"
-                              onClick={() => void setRegistrationStatus(row.id, 'reviewed')}
-                            >
-                              Mark reviewed
-                            </button>
+                            <AdminRowActions
+                              items={[
+                                {
+                                  label: 'Mark reviewed',
+                                  onClick: () => void setRegistrationStatus(row.id, 'reviewed'),
+                                },
+                              ]}
+                            />
                           ) : null}
                         </td>
                       </tr>
@@ -184,7 +191,7 @@ export default function AdminInboxPage() {
               Approve submissions to show on the public Community Spotlight page.
             </p>
             {stories.length === 0 ? (
-              <p className="admin-help">No community submissions yet.</p>
+              <p className="admin-empty">No community submissions yet.</p>
             ) : (
               <div className="admin-table-wrap">
                 <table className="admin-table">
@@ -193,7 +200,7 @@ export default function AdminInboxPage() {
                       <th>Title</th>
                       <th>Name</th>
                       <th>Status</th>
-                      <th>Actions</th>
+                      <th />
                     </tr>
                   </thead>
                   <tbody>
@@ -201,52 +208,38 @@ export default function AdminInboxPage() {
                       <tr key={row.id}>
                         <td>
                           <strong>{row.title}</strong>
-                          {row.org ? (
-                            <p className="admin-help" style={{ marginTop: '0.25rem' }}>
-                              {row.org}
-                            </p>
-                          ) : null}
-                          <p className="admin-help" style={{ marginTop: '0.35rem' }}>
-                            {row.body.slice(0, 160)}
-                            {row.body.length > 160 ? '…' : ''}
-                          </p>
+                          {row.org ? <span className="admin-meta">{row.org}</span> : null}
+                          <span className="admin-meta admin-clamp">{row.body}</span>
                         </td>
                         <td>
                           {row.name}
-                          <br />
-                          <a href={`mailto:${row.email}`}>{row.email}</a>
+                          <a className="admin-meta" href={`mailto:${row.email}`}>
+                            {row.email}
+                          </a>
                         </td>
-                        <td>{row.status}</td>
                         <td>
-                          <div className="admin-actions" style={{ flexWrap: 'wrap' }}>
-                            {row.status !== 'published' ? (
-                              <button
-                                type="button"
-                                className="admin-btn admin-btn--primary admin-btn--sm"
-                                onClick={() => void setStoryStatus(row.id, 'published')}
-                              >
-                                Publish
-                              </button>
-                            ) : null}
-                            {row.status !== 'rejected' ? (
-                              <button
-                                type="button"
-                                className="admin-btn admin-btn--ghost admin-btn--sm"
-                                onClick={() => void setStoryStatus(row.id, 'rejected')}
-                              >
-                                Reject
-                              </button>
-                            ) : null}
-                            {row.status !== 'pending' ? (
-                              <button
-                                type="button"
-                                className="admin-btn admin-btn--ghost admin-btn--sm"
-                                onClick={() => void setStoryStatus(row.id, 'pending')}
-                              >
-                                Pending
-                              </button>
-                            ) : null}
-                          </div>
+                          <AdminStatus value={row.status} />
+                        </td>
+                        <td>
+                          <AdminRowActions
+                            items={[
+                              ...(row.status !== 'published'
+                                ? [{ label: 'Publish', onClick: () => void setStoryStatus(row.id, 'published') }]
+                                : []),
+                              ...(row.status !== 'rejected'
+                                ? [
+                                    {
+                                      label: 'Reject',
+                                      tone: 'danger' as const,
+                                      onClick: () => void setStoryStatus(row.id, 'rejected'),
+                                    },
+                                  ]
+                                : []),
+                              ...(row.status !== 'pending'
+                                ? [{ label: 'Mark pending', onClick: () => void setStoryStatus(row.id, 'pending') }]
+                                : []),
+                            ]}
+                          />
                         </td>
                       </tr>
                     ))}

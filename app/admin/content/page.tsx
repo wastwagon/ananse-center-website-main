@@ -3,6 +3,8 @@
 import { FormEvent, Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import AdminShell from '../../../components/admin/AdminShell'
+import AdminRowActions from '../../../components/admin/AdminRowActions'
+import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
 import CmsImagePathField from '../../../components/admin/CmsImagePathField'
 import CmsJsonEditor from '../../../components/admin/CmsJsonEditor'
@@ -18,7 +20,7 @@ import { isImagePathContentKey, isJsonContentKey, isRichTextContentKey } from '.
 
 export default function AdminContentPage() {
   return (
-    <Suspense fallback={<AdminShell title="Site content"><p style={{ color: '#64748b' }}>Loading…</p></AdminShell>}>
+    <Suspense fallback={<AdminShell title="Site content"><p className="admin-empty">Loading content…</p></AdminShell>}>
       <AdminContentPageInner />
     </Suspense>
   )
@@ -161,16 +163,10 @@ function AdminContentPageInner() {
 
   return (
     <AdminShell title="Site content">
-      <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        Manage page copy, CTAs, stats, menus, hero images, and rich text. Contact details and social
-        links live under Settings. Use <strong>Sync registry</strong> after deployments to add new
-        keys.
-      </p>
-
-      {error ? <p className="admin-error">{error}</p> : null}
-      {notice ? <p className="admin-notice">{notice}</p> : null}
-
-      <div className="admin-actions" style={{ marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div className="admin-page-tools">
+        <p className="admin-help">
+          Page copy, menus, and images. Phone, email, and social links are in Settings.
+        </p>
         <button
           type="button"
           className="admin-btn admin-btn--primary"
@@ -179,46 +175,44 @@ function AdminContentPageInner() {
         >
           {syncing ? 'Syncing…' : 'Sync registry'}
         </button>
+      </div>
+
+      {error ? <p className="admin-error">{error}</p> : null}
+      {notice ? <p className="admin-notice">{notice}</p> : null}
+
+      <div className="admin-toolbar">
         <select
-          className="admin-input"
           value={sectionFilter}
           onChange={(e) => setSectionFilter(e.target.value)}
           aria-label="Filter by section"
-          style={{ minWidth: 160 }}
         >
           {sections.map((section) => (
             <option key={section} value={section}>
-              {section === 'all' ? 'All sections' : section}
+              {section === 'all' ? 'All sections' : sectionLabel(section)}
             </option>
           ))}
         </select>
         <input
-          className="admin-input"
           type="search"
-          placeholder="Search key or label…"
+          placeholder="Search key or label"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          style={{ minWidth: 220, flex: 1 }}
+          aria-label="Search content"
         />
       </div>
 
       {missingKeys.length > 0 ? (
-        <p className="admin-help admin-help--warn" style={{ marginBottom: '1rem' }}>
+        <p className="admin-notice">
           {missingKeys.length} registry block{missingKeys.length === 1 ? '' : 's'} not in the
-          database yet. Run sync before editing the public site.
+          database yet. Sync before editing the public site.
         </p>
       ) : null}
 
       {editingBlock ? (
         <div className="admin-card admin-card--spaced">
           <h2 className="admin-card-title">{editingBlock.label}</h2>
-          <p className="admin-help">
-            <code>{editingBlock.key}</code>
-            {editingMeta?.hint ? <> — {editingMeta.hint}</> : null}
-            {useRichText ? <> — <strong>Rich text editor</strong></> : null}
-            {useImageField ? <> — <strong>Image path + Media picker</strong></> : null}
-            {useJsonEditor ? <> — <strong>JSON</strong> (structured editor)</> : null}
-          </p>
+          <p className="admin-meta">{editingBlock.key}</p>
+          {editingMeta?.hint ? <p className="admin-help">{editingMeta.hint}</p> : null}
           <form className="admin-form" onSubmit={onSubmit}>
             <div className="admin-field">
               <label htmlFor="body">Content</label>
@@ -273,12 +267,14 @@ function AdminContentPageInner() {
 
       <div className="admin-card">
         {loading ? (
-          <p>Loading content…</p>
+          <p className="admin-empty">Loading content…</p>
+        ) : filteredBlocks.length === 0 ? (
+          <p className="admin-empty">No content blocks match this filter.</p>
         ) : (
+          <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Key</th>
                 <th>Label</th>
                 <th>Section</th>
                 <th>Editor</th>
@@ -300,36 +296,40 @@ function AdminContentPageInner() {
                 return (
                   <tr key={block.id}>
                     <td>
-                      <code>{block.key}</code>
+                      <strong>{block.label}</strong>
+                      <span className="admin-meta">{block.key}</span>
                       {!registryKeys.has(block.key) ? (
-                        <span className="admin-badge admin-badge--warn">Unregistered</span>
+                        <span className="admin-badge admin-badge--draft">Unregistered</span>
                       ) : null}
                     </td>
-                    <td>{block.label}</td>
-                    <td>{block.section}</td>
-                    <td>{editorType}</td>
-                    <td>{block.published ? 'Published' : 'Draft'}</td>
                     <td>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--ghost admin-btn--sm"
-                        onClick={() => startEdit(block)}
-                      >
-                        Edit
-                      </button>
+                      <span className="admin-badge admin-badge--neutral">{sectionLabel(block.section)}</span>
+                    </td>
+                    <td>{editorType}</td>
+                    <td>
+                      <AdminStatus value={block.published ? 'published' : 'draft'} />
+                    </td>
+                    <td>
+                      <AdminRowActions items={[{ label: 'Edit', onClick: () => startEdit(block) }]} />
                     </td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
+          </div>
         )}
-        {!loading && filteredBlocks.length === 0 ? (
-          <p className="admin-help">No content blocks match this filter.</p>
-        ) : null}
       </div>
     </AdminShell>
   )
+}
+
+function sectionLabel(section: string) {
+  return section
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 }
 
 function previewHrefForKey(key: string): string {
@@ -340,13 +340,21 @@ function previewHrefForKey(key: string): string {
     programs: '/programs',
     events: '/events',
     support: '/support',
-    contact: '/contact',
-    videos: '/videos',
-    trustees: '/trustees',
+    contact: '/get-involved#contact',
+    videos: '/library',
+    trustees: '/people',
     privacy: '/privacy',
     terms: '/terms',
-    visit: '/visit',
-    news: '/news',
+    visit: '/get-involved',
+    news: '/insights',
+    insights: '/insights',
+    library: '/library',
+    people: '/people',
+    repatriation: '/about',
+    admissions: '/programs',
+    archives: '/library',
+    partnerships: '/get-involved',
+    resources: '/library',
     site: '/',
   }
   return map[section] || '/'

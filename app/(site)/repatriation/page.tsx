@@ -25,11 +25,11 @@ export default async function RepatriationPage() {
       badge={cms['repatriation.badge']}
       title={cms['repatriation.heading']}
       lead={cms['repatriation.lead']}
-      primaryCta={{ label: 'Apply to programs', href: '/admissions' }}
-      secondaryCta={{ label: 'Contact our team', href: '/contact#form' }}
+      primaryCta={{ label: 'Explore programs', href: '/programs' }}
+      secondaryCta={{ label: 'Contact ANANSE', href: '/get-involved#contact' }}
     >
       <CmsRichText body={cms['repatriation.body']} className="content-prose-body" />
-      <h2 className="content-block-title content-block-title--plain">Sankofa Journey stories</h2>
+      <h2 className="content-block-title content-block-title--plain">Stories</h2>
       <div className="grid-cards grid-cards--stack-narrow">
         {stories.map((story) => (
           <article key={story.name} className="premium-card">

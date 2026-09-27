@@ -38,6 +38,10 @@ export type AdminEvent = {
   deliveryMode: 'in_person' | 'online' | 'hybrid' | string
   meetingUrl: string
   recordingUrl: string
+  audioUrl?: string
+  transcript?: string
+  subtitle?: string
+  speakers?: { personId: string; role: string; name?: string }[]
   galleryMediaIds: string[]
   programId: string | null
   program?: { id: string; slug: string; title: string } | null
@@ -227,6 +231,14 @@ export type AdminDashboardData = {
   newsletter: { subscribers: number }
   news?: { published: number; placeholderTitles: number }
   analytics?: { viewsToday: number }
+  demoPreview?: {
+    events: number
+    people: number
+    library: number
+    insights: number
+    photoAlbums: number
+    total: number
+  }
   launchReadiness?: {
     ready: boolean
     opsChecks?: Array<{
@@ -416,7 +428,10 @@ export type AdminNewsPost = {
   excerpt: string
   body: string
   dateLabel: string
+  subtitle?: string
   author: string
+  authorPersonId?: string | null
+  programId?: string | null
   category: string
   contentType: string
   topics: string[]
@@ -441,6 +456,9 @@ export type AdminPerson = {
   isOrganization: boolean
   organizationName: string
   websiteUrl: string
+  expertise?: string
+  cohortLabel?: string
+  programIds?: string[]
   photoMediaId: string | null
   logoMediaId: string | null
   photoImageUrl: string | null
@@ -468,7 +486,9 @@ export type AdminLibraryItem = {
   dateLabel: string
   publishedAt: string | null
   topics: string[]
+  keywords?: string
   programId: string | null
+  eventId?: string | null
   personId: string | null
   newsPostId: string | null
   coverMediaId: string | null
@@ -759,11 +779,20 @@ export async function fetchContentRegistry() {
 export type NewsletterSubscriber = {
   id: string
   email: string
+  status: string
   createdAt: string
+  unsubscribedAt: string | null
 }
 
 export async function fetchNewsletterSubscribers() {
-  return adminFetch<{ data: NewsletterSubscriber[] }>('newsletter/subscribers')
+  return adminFetch<{ smtpConfigured: boolean; data: NewsletterSubscriber[] }>('newsletter/subscribers')
+}
+
+export async function sendNewsletter(body: { subject: string; body: string }) {
+  return adminFetch<{ ok: boolean; sent: number; failed: number; recipients: number }>(
+    'newsletter/send',
+    { method: 'POST', body: JSON.stringify(body) },
+  )
 }
 
 export async function fetchAdminMedia(params?: {
@@ -785,6 +814,33 @@ export async function uploadAdminMedia(file: File) {
   const body = new FormData()
   body.append('file', file)
   return adminFetch<{ data: AdminMedia }>('media', {
+    method: 'POST',
+    body,
+  })
+}
+
+export type AdminMediaUsageRef = {
+  kind: string
+  id: string
+  title: string
+  href: string
+  field: string
+}
+
+export type AdminMediaUsage = {
+  total: number
+  refs: AdminMediaUsageRef[]
+}
+
+export async function fetchAdminMediaUsage(id: string) {
+  return adminFetch<{ data: AdminMediaUsage }>(`media/${id}/usage`)
+}
+
+/** Replace file bytes while keeping the same media id (attachments keep working). */
+export async function replaceAdminMediaFile(id: string, file: File) {
+  const body = new FormData()
+  body.append('file', file)
+  return adminFetch<{ data: AdminMedia }>(`media/${id}/replace`, {
     method: 'POST',
     body,
   })

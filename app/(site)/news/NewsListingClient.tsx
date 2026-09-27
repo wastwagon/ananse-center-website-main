@@ -1,9 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Image from 'next/image'
 import LocalizedLink from '../../../components/LocalizedLink'
-import { cardImageSizes } from '../../../lib/images'
+import CardCover from '../../../components/CardCover'
+import PremiumFilterBar from '../../../components/PremiumFilterBar'
+import { cmsPlainExcerpt } from '../../../lib/cms/richtext'
 
 export type NewsListItem = {
   key: string
@@ -35,22 +36,20 @@ export default function NewsListingClient({ readMore, empty, items }: NewsListin
 
   return (
     <>
-      <div className="filter-scroll" style={{ marginBottom: '1.5rem' }}>
-        <div className="segmented-control" role="tablist" aria-label="News and blog filter">
-          {FILTERS.map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="tab"
-              aria-selected={filter === option}
-              onClick={() => setFilter(option)}
-              className={`filter-btn ${filter === option ? 'filter-btn-active' : ''}`}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PremiumFilterBar
+        groups={[
+          {
+            label: 'Kind',
+            ariaLabel: 'News and blog filter',
+            value: filter,
+            onChange: (value) => setFilter(value as (typeof FILTERS)[number]),
+            options: FILTERS.map((option) => ({
+              value: option,
+              label: option,
+            })),
+          },
+        ]}
+      />
 
       {filtered.length === 0 ? (
         <p className="page-body-text">{empty}</p>
@@ -62,14 +61,7 @@ export default function NewsListingClient({ readMore, empty, items }: NewsListin
               className={`premium-card${item.featured ? ' premium-card--featured' : ''}`}
             >
               <div className="premium-card-image-wrapper">
-                <Image
-                  src={item.cover}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                  sizes={cardImageSizes}
-                  unoptimized={item.cover.startsWith('/api/')}
-                />
+                <CardCover src={item.cover} alt={item.title} />
               </div>
               <div className="premium-card-header">
                 <span className="premium-card-featured-label">{item.category}</span>
@@ -82,7 +74,7 @@ export default function NewsListingClient({ readMore, empty, items }: NewsListin
                   {item.author}
                 </p>
               ) : null}
-              <p className="premium-card-description">{item.excerpt}</p>
+              <p className="premium-card-description">{cmsPlainExcerpt(item.excerpt)}</p>
               {item.href ? (
                 item.external ? (
                   <a

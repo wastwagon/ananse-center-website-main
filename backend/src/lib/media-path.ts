@@ -28,6 +28,16 @@ export function extensionForMime(mimeType: string) {
     'image/webp': '.webp',
     'image/svg+xml': '.svg',
     'application/pdf': '.pdf',
+    'audio/mpeg': '.mp3',
+    'audio/mp3': '.mp3',
+    'audio/wav': '.wav',
+    'audio/x-wav': '.wav',
+    'audio/mp4': '.m4a',
+    'audio/aac': '.aac',
+    'audio/ogg': '.ogg',
+    'video/mp4': '.mp4',
+    'video/webm': '.webm',
+    'video/quicktime': '.mov',
   }
   return map[mimeType] ?? ''
 }
@@ -39,9 +49,19 @@ export const ALLOWED_MEDIA_MIME_TYPES = new Set([
   'image/webp',
   'image/svg+xml',
   'application/pdf',
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/mp4',
+  'audio/aac',
+  'audio/ogg',
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
 ])
 
 export function maxUploadBytes() {
-  const raw = Number(process.env.MEDIA_MAX_BYTES || 10 * 1024 * 1024)
-  return Number.isFinite(raw) && raw > 0 ? raw : 10 * 1024 * 1024
+  const raw = Number(process.env.MEDIA_MAX_BYTES || 50 * 1024 * 1024)
+  return Number.isFinite(raw) && raw > 0 ? raw : 50 * 1024 * 1024
 }

@@ -49,15 +49,17 @@ Local `docker-compose.dev.yml` (`ananse-*-dev` on ports 3035 / 4035) is **previe
 
 | Check | Action |
 |-------|--------|
-| Home | `/` |
+| Home | `/` — leadership copy, no arts campus framing |
 | Primary nav | About, Programs, Library, Events, Insights, People, Get Involved |
 | Insights | `/insights` |
-| Library | `/library` |
+| Library | `/library` (Listen / Watch / Read + Photo Gallery) |
 | Events | `/events` |
-| Search | `/search?q=leadership` |
-| Contact | Test message → Admin inbox |
+| Search | `/search?q=leadership` (no News/Archives hits) |
+| Get Involved | `/get-involved#contact` — form + address/map panel |
+| Contact redirect | `/contact` → `/get-involved#contact` |
 | Donate | Only if Paystack already live |
 | Mobile | Bottom nav + sheet scroll |
+| Admin | News path redirects to Insights; Archives marked legacy |
 
 ---
 

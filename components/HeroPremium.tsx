@@ -55,7 +55,7 @@ export default function HeroPremium({
         <div className="hero-premium-copy">
           <p className="hero-premium-eyebrow">
             <span className="hero-premium-eyebrow-mark" aria-hidden />
-            {site.shortName} · {site.location}
+            {site.name}
           </p>
 
           <h1 id="hero-heading" className="hero-premium-title">

@@ -1,8 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { FileText, Upload } from 'lucide-react'
 import {
   type AdminMedia,
   fetchAdminMedia,
@@ -25,19 +26,28 @@ export default function MediaPicker({
   imagesOnly = true,
   selectedId,
 }: MediaPickerProps) {
+  const titleId = useId()
   const [items, setItems] = useState<AdminMedia[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 200)
+    return () => window.clearTimeout(timer)
+  }, [query])
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const { data } = await fetchAdminMedia({
-        q: query.trim() || undefined,
+        q: debouncedQuery || undefined,
         type: imagesOnly ? 'image' : undefined,
         limit: 60,
       })
@@ -47,12 +57,25 @@ export default function MediaPicker({
     } finally {
       setLoading(false)
     }
-  }, [query, imagesOnly])
+  }, [debouncedQuery, imagesOnly])
 
   useEffect(() => {
     if (!open) return
     void load()
   }, [open, load])
+
+  useEffect(() => {
+    if (!open) return
+    searchRef.current?.focus()
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
 
   async function onUpload(files: FileList | null) {
     const file = files?.[0]
@@ -80,11 +103,11 @@ export default function MediaPicker({
         className="admin-media-modal"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="media-picker-title"
+        aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="admin-media-modal-header">
-          <h2 id="media-picker-title">Media library</h2>
+          <h2 id={titleId}>Choose media</h2>
           <button type="button" className="admin-btn admin-btn--ghost" onClick={onClose}>
             Close
           </button>
@@ -92,11 +115,13 @@ export default function MediaPicker({
 
         <div className="admin-media-toolbar">
           <input
+            ref={searchRef}
             type="search"
             placeholder="Search files…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="admin-media-search"
+            aria-label="Search media library"
           />
           <input
             ref={fileInputRef}
@@ -111,15 +136,36 @@ export default function MediaPicker({
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
           >
+            <Upload size={14} strokeWidth={2} aria-hidden />
             {uploading ? 'Uploading…' : 'Upload'}
           </button>
+        </div>
+
+        <div
+          className={`admin-media-dropzone${dragOver ? ' admin-media-dropzone--active' : ''}`}
+          onDragEnter={(event) => {
+            event.preventDefault()
+            setDragOver(true)
+          }}
+          onDragOver={(event) => {
+            event.preventDefault()
+            setDragOver(true)
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(event) => {
+            event.preventDefault()
+            setDragOver(false)
+            void onUpload(event.dataTransfer.files)
+          }}
+        >
+          Drop an image here to upload, or use Upload.
         </div>
 
         {error ? <p className="admin-error">{error}</p> : null}
 
         <div className="admin-media-grid-wrap">
           {loading ? (
-            <p>Loading…</p>
+            <p className="admin-media-empty">Loading…</p>
           ) : items.length === 0 ? (
             <p className="admin-media-empty">No files yet. Upload an image to get started.</p>
           ) : (
@@ -145,7 +191,7 @@ export default function MediaPicker({
                       />
                     ) : (
                       <span className="admin-media-file-icon" aria-hidden>
-                        📄
+                        <FileText size={28} strokeWidth={1.5} />
                       </span>
                     )}
                     <span className="admin-media-item-name">{item.originalName}</span>

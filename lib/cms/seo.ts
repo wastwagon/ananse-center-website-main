@@ -107,18 +107,18 @@ export const SEO_PAGE_DEFAULTS: Record<SeoPageId, SeoPageDefaults> = {
   videos: {
     title: 'Videos',
     description:
-      'Stories, performances, and teachings from The Ananse Center community.',
+      'Video from the ANANSE Library and programs—lectures, conversations, and leadership content.',
     path: '/videos',
   },
   visit: {
     title: 'Visit',
-    description: 'Plan a visit to The Ananse Center campus in Akatakyiwa, Central Region, Ghana.',
+    description: 'Plan a visit or connect with ANANSE Center for Leadership Development in Accra, Ghana.',
     path: '/visit',
   },
   repatriation: {
     title: 'Repatriation',
     description:
-      'Sankofa healing journeys and cultural repatriation programs at The Ananse Center.',
+      'Information on ANANSE pathways for diaspora engagement, learning, and community connection in Ghana.',
     path: '/repatriation',
   },
   admissions: {
@@ -129,12 +129,12 @@ export const SEO_PAGE_DEFAULTS: Record<SeoPageId, SeoPageDefaults> = {
   archives: {
     title: 'Archives',
     description:
-      'Digitized cultural heritage with community-centered metadata at The Ananse Center.',
+      'Historical and community archives from the ANANSE Library and special collections.',
     path: '/archives',
   },
   community: {
     title: 'Community',
-    description: 'Community stories, spotlights, and submissions from The Ananse Center network.',
+    description: 'Community stories and spotlights from the ANANSE leadership network.',
     path: '/community',
   },
   news: {
@@ -145,17 +145,17 @@ export const SEO_PAGE_DEFAULTS: Record<SeoPageId, SeoPageDefaults> = {
   },
   partnerships: {
     title: 'Partnerships',
-    description: 'Partner with The Ananse Center to advance cultural education and leadership.',
+    description: 'Partner with ANANSE to develop people and strengthen communities through leadership programs.',
     path: '/partnerships',
   },
   resources: {
     title: 'Resources',
-    description: 'Learning resources and materials from The Ananse Center.',
+    description: 'Learning resources and materials from ANANSE Center for Leadership Development.',
     path: '/resources',
   },
   transparency: {
     title: 'Transparency',
-    description: 'Financial transparency and stewardship reports from The Ananse Center.',
+    description: 'Financial transparency and stewardship reports from ANANSE Center for Leadership Development.',
     path: '/transparency',
   },
   trustees: {

@@ -12,11 +12,47 @@ import {
   Heart,
 } from 'lucide-react'
 import { contact as defaultContact, site as defaultSite, social as defaultSocial } from '../lib/site'
+import NewsletterSignup from './NewsletterSignup'
 import { type ImpactStat } from '../lib/site-impact'
 import type { PublicSiteProfile } from '../lib/site-profile'
-import LocaleSwitcher from './LocaleSwitcher'
-
 type FooterLink = { label: string; href: string }
+
+const FOOTER_GROUPS: { heading: string; label: string; links: FooterLink[] }[] = [
+  {
+    heading: 'ANANSE',
+    label: 'About ANANSE',
+    links: [
+      { label: 'About', href: '/about' },
+      { label: 'Vision & Mission', href: '/about#vision-mission' },
+      { label: 'Core Values', href: '/about#core-values' },
+      { label: 'ANANSE & EAGLESonline', href: '/about#eaglesonline' },
+      { label: 'ANANSE & Africa', href: '/about#ananse-africa' },
+    ],
+  },
+  {
+    heading: 'Explore',
+    label: 'Explore ANANSE',
+    links: [
+      { label: 'Programs', href: '/programs' },
+      { label: 'Library', href: '/library' },
+      { label: 'Events', href: '/events' },
+      { label: 'Insights', href: '/insights' },
+      { label: 'People', href: '/people' },
+    ],
+  },
+  {
+    heading: 'Get Involved',
+    label: 'Ways to take part',
+    links: [
+      { label: 'Learn', href: '/get-involved#learn' },
+      { label: 'Attend', href: '/get-involved#attend' },
+      { label: 'Mentor', href: '/get-involved#mentor' },
+      { label: 'Partner', href: '/get-involved#partner' },
+      { label: 'Support', href: '/get-involved#support' },
+      { label: 'Share', href: '/get-involved#share' },
+    ],
+  },
+]
 
 type FooterProps = {
   site?: PublicSiteProfile['site']
@@ -27,8 +63,6 @@ type FooterProps = {
   footerPrimaryCta?: { label: string; href: string }
   footerSecondaryCta?: { label: string; href: string }
   logoSrc?: string
-  quickLinks?: FooterLink[]
-  programLinks?: FooterLink[]
 }
 
 function FacebookIcon() {
@@ -79,33 +113,14 @@ function TwitterIcon() {
   )
 }
 
-const DEFAULT_QUICK_LINKS: FooterLink[] = [
-  { label: 'Home', href: '/' },
-  { label: 'About', href: '/about' },
-  { label: 'Programs', href: '/programs' },
-  { label: 'Library', href: '/library' },
-  { label: 'Events', href: '/events' },
-  { label: 'Insights', href: '/insights' },
-  { label: 'People', href: '/people' },
-  { label: 'Get Involved', href: '/get-involved' },
-]
-
-const DEFAULT_PROGRAM_LINKS: FooterLink[] = [
-  { label: 'EAGLESonline', href: '/about#eaglesonline' },
-  { label: 'EAGLES Center', href: '/about#eaglesonline' },
-  { label: 'ANANSE Center', href: '/about' },
-]
-
 export default async function Footer({
   site = defaultSite,
   contact = { ...defaultContact, address: defaultSite.address },
   social = defaultSocial,
   footerMission = defaultSite.footerMission,
   footerPrimaryCta = { label: 'Support Our Mission', href: '/support' },
-  footerSecondaryCta = { label: 'Get In Touch', href: '/contact#form' },
+  footerSecondaryCta = { label: 'Get In Touch', href: '/get-involved#contact' },
   logoSrc = '/ananse-logo.png',
-  quickLinks = DEFAULT_QUICK_LINKS,
-  programLinks = DEFAULT_PROGRAM_LINKS,
 }: FooterProps) {
   const cookieStore = await cookies()
   const locale = parseLocale(cookieStore.get(LOCALE_COOKIE)?.value)
@@ -127,19 +142,20 @@ export default async function Footer({
       <div className="footer-inner">
         <div className="footer-grid">
           <div className="footer-brand-col">
-            <div className="footer-brand">
+            <Link
+              href={localizedPath('/', locale)}
+              className="footer-brand"
+              aria-label={`${site.name} home`}
+            >
               <Image
                 src={logoSrc}
-                alt="ANANSE Center for Leadership Development"
-                width={52}
-                height={52}
+                alt=""
+                width={200}
+                height={60}
                 className="footer-logo-img"
+                priority={false}
               />
-              <div>
-                <p className="footer-brand-name">{site.shortName}</p>
-                <p className="footer-brand-sub">Leadership Development</p>
-              </div>
-            </div>
+            </Link>
 
             <p className="footer-tagline">{site.tagline}</p>
             <p className="footer-desc">{footerMission}</p>
@@ -177,42 +193,36 @@ export default async function Footer({
             </div>
           </div>
 
-          <div className="footer-col">
-            <p className="footer-col-heading">{t('footer.explore', locale)}</p>
-            <nav className="footer-links" aria-label="Quick links">
-              {quickLinks.map((link) => {
-                const base = link.href.split('#')[0]
-                const hash = link.href.includes('#') ? `#${link.href.split('#')[1]}` : ''
-                return (
-                  <Link
-                    key={`${link.label}-${link.href}`}
-                    href={localizedPath(base, locale) + hash}
-                    className="footer-link"
-                  >
-                    {link.label}
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
+          {FOOTER_GROUPS.map((group) => (
+            <div className="footer-col" key={group.heading}>
+              <p className="footer-col-heading">{group.heading}</p>
+              <nav className="footer-links" aria-label={group.label}>
+                {group.links.map((link) => {
+                  const base = link.href.split('#')[0]
+                  const hash = link.href.includes('#') ? `#${link.href.split('#')[1]}` : ''
+                  return (
+                    <Link
+                      key={`${link.label}-${link.href}`}
+                      href={localizedPath(base, locale) + hash}
+                      className="footer-link"
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                })}
+              </nav>
+            </div>
+          ))}
 
-          <div className="footer-col">
-            <p className="footer-col-heading">EAGLESonline</p>
-            <nav className="footer-links" aria-label="EAGLESonline">
-              {programLinks.map((link) => {
-                const base = link.href.split('#')[0]
-                const hash = link.href.includes('#') ? `#${link.href.split('#')[1]}` : ''
-                return (
-                  <Link
-                    key={`${link.label}-${link.href}`}
-                    href={localizedPath(base, locale) + hash}
-                    className="footer-link"
-                  >
-                    {link.label}
-                  </Link>
-                )
-              })}
-            </nav>
+          <div className="footer-col footer-col--updates">
+            <NewsletterSignup
+              id="footer-newsletter"
+              compact
+              heading="Updates"
+              lead="Gatherings, programs, and reflections. Unsubscribe from any message."
+              placeholder="Email address"
+              buttonLabel="Subscribe"
+            />
           </div>
 
           <div className="footer-col">
@@ -243,7 +253,6 @@ export default async function Footer({
         </div>
 
         <div className="footer-bottom">
-          <LocaleSwitcher />
           <p className="footer-copy">
             © {year} {site.name}. All rights reserved.
           </p>

@@ -26,37 +26,38 @@ export default function AdminAnalyticsPage() {
 
   return (
     <AdminShell title="Analytics">
-      <p className="admin-help">
-        First-party, self-hosted website analytics — pageviews stay on your server. No Google Analytics or
-        third-party trackers.
-      </p>
+      <div className="admin-page-tools">
+        <p className="admin-help">
+          Pageviews stay on this server. Nothing is sent to a third-party tracker.
+        </p>
+      </div>
 
       {error ? <p className="admin-error">{error}</p> : null}
 
-      {!data && !error ? <p style={{ color: '#64748b' }}>Loading analytics…</p> : null}
+      {!data && !error ? <p className="admin-empty">Loading analytics…</p> : null}
 
       {data ? (
         <>
           <div className="admin-kpi-grid">
-            <article className="admin-kpi-card admin-kpi-card--amber">
+            <article className="admin-kpi-card admin-kpi-card--amber admin-kpi-card--static">
               <span className="admin-kpi-label">Views today</span>
               <strong className="admin-kpi-value">{data.totals.viewsToday}</strong>
               <span className="admin-kpi-meta">{data.totals.uniquesToday} unique visitors</span>
             </article>
-            <article className="admin-kpi-card admin-kpi-card--slate">
+            <article className="admin-kpi-card admin-kpi-card--slate admin-kpi-card--static">
               <span className="admin-kpi-label">Last 7 days</span>
               <strong className="admin-kpi-value">{data.totals.views7d}</strong>
               <span className="admin-kpi-meta">{data.totals.uniques7d} unique visitors</span>
             </article>
-            <article className="admin-kpi-card admin-kpi-card--emerald">
+            <article className="admin-kpi-card admin-kpi-card--emerald admin-kpi-card--static">
               <span className="admin-kpi-label">Last 30 days</span>
               <strong className="admin-kpi-value">{data.totals.views30d}</strong>
-              <span className="admin-kpi-meta">Self-hosted · privacy-friendly</span>
+              <span className="admin-kpi-meta">Counted on this server</span>
             </article>
           </div>
 
           <div className="admin-card admin-card--spaced">
-            <h2 className="admin-card-title">Pageviews · 14 days</h2>
+            <h2 className="admin-card-title">Pageviews, last 14 days</h2>
             <div className="admin-chart" role="img" aria-label="Pageviews over the last 14 days">
               {data.series14d.map((point) => (
                 <div key={point.date} className="admin-chart-col">
@@ -73,25 +74,25 @@ export default function AdminAnalyticsPage() {
 
           <div className="admin-analytics-split">
             <div className="admin-card">
-              <h2 className="admin-card-title">Top pages · 30 days</h2>
+              <h2 className="admin-card-title">Top pages, 30 days</h2>
               {data.topPages.length === 0 ? (
-                <p className="admin-help">No pageviews yet — browse the public site to start collecting data.</p>
+                <p className="admin-empty">No pageviews yet. Open the public site to start the count.</p>
               ) : (
                 <div className="admin-table-wrap">
                   <table className="admin-table">
                     <thead>
                       <tr>
                         <th>Path</th>
-                        <th>Views</th>
+                        <th className="admin-num">Views</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.topPages.map((row) => (
                         <tr key={row.path}>
                           <td>
-                            <code>{row.path}</code>
+                            <span className="admin-meta">{row.path}</span>
                           </td>
-                          <td>{row.views}</td>
+                          <td className="admin-num">{row.views}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -101,23 +102,23 @@ export default function AdminAnalyticsPage() {
             </div>
 
             <div className="admin-card">
-              <h2 className="admin-card-title">Top referrers · 30 days</h2>
+              <h2 className="admin-card-title">Top referrers, 30 days</h2>
               {data.topReferrers.length === 0 ? (
-                <p className="admin-help">No external referrers recorded yet.</p>
+                <p className="admin-empty">No outside referrers yet.</p>
               ) : (
                 <div className="admin-table-wrap">
                   <table className="admin-table">
                     <thead>
                       <tr>
                         <th>Source</th>
-                        <th>Views</th>
+                        <th className="admin-num">Views</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.topReferrers.map((row) => (
                         <tr key={row.referrer}>
                           <td>{row.referrer}</td>
-                          <td>{row.views}</td>
+                          <td className="admin-num">{row.views}</td>
                         </tr>
                       ))}
                     </tbody>

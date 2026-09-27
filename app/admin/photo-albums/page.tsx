@@ -3,7 +3,10 @@
 import { FormEvent, useEffect, useState } from 'react'
 import Image from 'next/image'
 import AdminShell from '../../../components/admin/AdminShell'
+import AdminRowActions from '../../../components/admin/AdminRowActions'
+import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
+import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
 import MediaPicker from '../../../components/admin/MediaPicker'
 import { PHOTO_COLLECTIONS } from '../../../lib/leadership/taxonomy'
 import {
@@ -188,24 +191,22 @@ export default function AdminPhotoAlbumsPage() {
 
   return (
     <AdminShell title="Photo albums">
-      <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        Curate photo galleries for <code>/library/photos</code>. Add images from the media library and optional
-        captions.
-      </p>
-
       {error ? <p className="admin-error">{error}</p> : null}
       {notice ? <p className="admin-notice">{notice}</p> : null}
 
-      <div className="admin-actions" style={{ marginBottom: '1rem' }}>
+      <div className="admin-page-tools">
+        <p className="admin-help">
+          Photo galleries for the library. Add images from the media library, with an optional caption.
+        </p>
         <button type="button" className="admin-btn admin-btn--primary" onClick={startCreate}>
           New album
         </button>
       </div>
 
       {editingId ? (
-        <div className="admin-card" style={{ marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>
-            {editingId === 'new' ? 'Create album' : 'Edit album'}
+        <div className="admin-card admin-card--spaced">
+          <h2 className="admin-card-title">
+            {editingId === 'new' ? 'New album' : 'Edit album'}
           </h2>
           <form className="admin-form" onSubmit={onSubmit}>
             <div className="admin-field">
@@ -217,41 +218,43 @@ export default function AdminPhotoAlbumsPage() {
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               />
             </div>
-            <div className="admin-field">
-              <label htmlFor="album-slug">Slug (optional)</label>
-              <input
-                id="album-slug"
-                value={form.slug}
-                onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-              />
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="album-slug">Slug</label>
+                <input
+                  id="album-slug"
+                  value={form.slug}
+                  onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                />
+                <p className="admin-meta">Optional. Leave blank to generate from the title.</p>
+              </div>
+              <div className="admin-field">
+                <label htmlFor="album-collection">Collection</label>
+                <select
+                  id="album-collection"
+                  value={form.collection}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      collection: e.target.value as (typeof PHOTO_COLLECTIONS)[number],
+                    }))
+                  }
+                >
+                  {PHOTO_COLLECTIONS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="admin-field">
-              <label htmlFor="album-collection">Collection</label>
-              <select
-                id="album-collection"
-                className="admin-input"
-                value={form.collection}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    collection: e.target.value as (typeof PHOTO_COLLECTIONS)[number],
-                  }))
-                }
-              >
-                {PHOTO_COLLECTIONS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="admin-field">
-              <label htmlFor="album-desc">Description</label>
-              <textarea
-                id="album-desc"
-                rows={3}
+              <label>Description</label>
+              <CmsRichTextEditor
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(description) => setForm((f) => ({ ...f, description }))}
+                placeholder="Album overview…"
+                compact
               />
             </div>
             <div className="admin-field">
@@ -309,9 +312,9 @@ export default function AdminPhotoAlbumsPage() {
             <div className="admin-field">
               <label>Album images</label>
               {form.images.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                <div className="admin-album-list">
                   {form.images.map((img, index) => (
-                    <div key={img.mediaId} className="admin-actions" style={{ alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <div key={img.mediaId} className="admin-album-row">
                       <Image
                         src={mediaFileUrl(img.mediaId)}
                         alt=""
@@ -321,10 +324,9 @@ export default function AdminPhotoAlbumsPage() {
                         className="admin-cover-preview-image"
                       />
                       <input
-                        className="admin-input"
-                        style={{ flex: 1 }}
                         value={img.caption}
-                        placeholder="Caption (optional)"
+                        placeholder="Caption"
+                        aria-label={`Caption for image ${index + 1}`}
                         onChange={(e) => updateImageCaption(index, e.target.value)}
                       />
                       <button
@@ -338,7 +340,7 @@ export default function AdminPhotoAlbumsPage() {
                   ))}
                 </div>
               ) : (
-                <p className="admin-help">No images yet.</p>
+                <p className="admin-empty">No images yet.</p>
               )}
               <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setPickerOpen(true)}>
                 Add image
@@ -400,9 +402,9 @@ export default function AdminPhotoAlbumsPage() {
 
       <div className="admin-card">
         {loading ? (
-          <p>Loading albums…</p>
+          <p className="admin-empty">Loading albums…</p>
         ) : records.length === 0 ? (
-          <p className="admin-help">No photo albums yet.</p>
+          <p className="admin-empty">No photo albums yet.</p>
         ) : (
           <table className="admin-table">
             <thead>
@@ -418,37 +420,21 @@ export default function AdminPhotoAlbumsPage() {
               {records.map((record) => (
                 <tr key={record.id}>
                   <td>
-                    {record.title}
-                    <div style={{ color: '#64748b', fontSize: '0.75rem' }}>/{record.slug}</div>
+                    <strong>{record.title}</strong>
+                    <span className="admin-meta">/{record.slug}</span>
                   </td>
                   <td>{record.collection}</td>
                   <td>{record.images?.length ?? 0}</td>
                   <td>
-                    <span
-                      className={`admin-badge ${
-                        record.published ? 'admin-badge--published' : 'admin-badge--draft'
-                      }`}
-                    >
-                      {record.published ? 'Published' : 'Draft'}
-                    </span>
+                    <AdminStatus value={record.published ? 'published' : 'draft'} />
                   </td>
                   <td>
-                    <div className="admin-actions">
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--ghost"
-                        onClick={() => startEdit(record)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--danger"
-                        onClick={() => void onDelete(record.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <AdminRowActions
+                      items={[
+                        { label: 'Edit', onClick: () => startEdit(record) },
+                        { label: 'Delete', tone: 'danger', onClick: () => void onDelete(record.id) },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

@@ -47,6 +47,20 @@ function legacyRedirectHost(): string {
   )
 }
 
+/** Old arts-and-culture paths → leadership destinations (permanent). */
+const LEGACY_ARTS_PATH_REDIRECTS: Record<string, string> = {
+  '/repatriation': '/about',
+  '/visit': '/get-involved',
+  '/admissions': '/programs',
+  '/trustees': '/people',
+  '/archives': '/library',
+  '/transparency': '/about',
+  '/videos': '/library',
+  '/community': '/people',
+  '/resources': '/library',
+  '/partnerships': '/get-involved',
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const host = request.headers.get('host')?.split(':')[0] ?? ''
@@ -58,6 +72,17 @@ export async function middleware(request: NextRequest) {
       const redirectUrl = new URL(pathname + request.nextUrl.search, target)
       return NextResponse.redirect(redirectUrl, 301)
     }
+  }
+
+  const logicalPath = stripLocalePrefix(pathname)
+  const artsTarget = LEGACY_ARTS_PATH_REDIRECTS[logicalPath]
+  if (artsTarget) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = isFrenchPath(pathname)
+      ? localizedPath(artsTarget, 'fr')
+      : artsTarget
+    redirectUrl.hash = ''
+    return NextResponse.redirect(redirectUrl, 308)
   }
 
   if (stripLocalePrefix(pathname).startsWith('/admin')) {

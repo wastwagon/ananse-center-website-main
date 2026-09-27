@@ -1,10 +1,10 @@
 /* Mobile-first polish tokens — P0–P3 */
 :root {
   --tap-min: 44px;
-  --chrome-topbar: 40px;
+  --chrome-topbar: 0px;
   --chrome-navbar: 64px;
   --chrome-top: calc(
-    var(--chrome-topbar) + var(--chrome-navbar) + env(safe-area-inset-top, 0px)
+    var(--chrome-navbar) + env(safe-area-inset-top, 0px)
   );
   --chrome-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
@@ -15,12 +15,6 @@
   --blur-nav: 16px;
   --shadow-sheet: 0 -8px 40px rgba(15, 23, 42, 0.12);
   --section-pad-y: clamp(2.75rem, 6vw, 5rem);
-}
-
-@media (max-width: 767px) {
-  :root {
-    --chrome-topbar: 36px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

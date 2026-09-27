@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import CmsRichText from '../../../components/CmsRichText'
 import { getCmsText } from '../../../lib/cms/content'
 import { getServerApiUrl } from '../../../lib/server-api-url'
 import { t } from '../../../lib/i18n'
@@ -31,10 +32,13 @@ export default async function MaintenancePage() {
         <h1 className="content-page-hero-title">
           {copy?.maintenanceTitle || "We'll be back soon"}
         </h1>
-        <p className="content-page-hero-lead">
-          {copy?.maintenanceMessage ||
-            'The ANANSE Center for Leadership Development website is undergoing scheduled updates. Thank you for your patience.'}
-        </p>
+        <CmsRichText
+          body={
+            copy?.maintenanceMessage ||
+            'The ANANSE Center for Leadership Development website is undergoing scheduled updates. Thank you for your patience.'
+          }
+          className="content-page-hero-lead"
+        />
         <Link href="/admin/login" className="btn-primary maintenance-page-btn">
           {t('maintenance.admin', locale)}
         </Link>

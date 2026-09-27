@@ -2,7 +2,10 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
+import AdminRowActions from '../../../components/admin/AdminRowActions'
+import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
+import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
 import {
   type AdminProgram,
   createAdminProgram,
@@ -10,6 +13,7 @@ import {
   fetchAdminPrograms,
   updateAdminProgram,
 } from '../../../lib/admin-api'
+import { linesToListHtml, listHtmlToLines } from '../../../lib/cms/richtext'
 
 const ICON_OPTIONS = [
   'Palette',
@@ -78,7 +82,7 @@ export default function AdminProgramsPage() {
       duration: program.duration,
       level: program.level,
       iconKey: program.iconKey,
-      featuresText: program.features.join('\n'),
+      featuresText: linesToListHtml(program.features),
       sortOrder: program.sortOrder,
       published: program.published,
       coverMediaId: program.coverMediaId,
@@ -87,6 +91,10 @@ export default function AdminProgramsPage() {
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
+    if (!form.description.replace(/<[^>]+>/g, '').trim()) {
+      setError('Description is required.')
+      return
+    }
     setSaving(true)
     setError(null)
     try {
@@ -98,10 +106,7 @@ export default function AdminProgramsPage() {
         duration: form.duration,
         level: form.level,
         iconKey: form.iconKey,
-        features: form.featuresText
-          .split('\n')
-          .map((line) => line.trim())
-          .filter(Boolean),
+        features: listHtmlToLines(form.featuresText),
         sortOrder: form.sortOrder,
         published: form.published,
         coverMediaId: form.coverMediaId,
@@ -134,13 +139,12 @@ export default function AdminProgramsPage() {
 
   return (
     <AdminShell title="Programs">
-      <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        Catalog programs appear on the Programs page; Sankofa tracks appear on the home page teaser.
-      </p>
-
       {error ? <p className="admin-error">{error}</p> : null}
 
-      <div className="admin-actions" style={{ marginBottom: '1rem' }}>
+      <div className="admin-page-tools">
+        <p className="admin-help">
+          Catalog programs appear on the Programs page. Sankofa tracks appear on the home page teaser.
+        </p>
         <button type="button" className="admin-btn admin-btn--primary" onClick={startCreate}>
           New program
         </button>
@@ -186,62 +190,64 @@ export default function AdminProgramsPage() {
               />
             </div>
             <div className="admin-field">
-              <label htmlFor="description">Description</label>
-              <textarea
-                id="description"
-                required
-                rows={4}
+              <label>Description</label>
+              <CmsRichTextEditor
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onChange={(description) => setForm({ ...form, description })}
+                placeholder="Program overview and story…"
               />
             </div>
-            <div className="admin-field">
-              <label htmlFor="duration">Duration</label>
-              <input
-                id="duration"
-                value={form.duration}
-                onChange={(e) => setForm({ ...form, duration: e.target.value })}
-              />
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="duration">Duration</label>
+                <input
+                  id="duration"
+                  value={form.duration}
+                  onChange={(e) => setForm({ ...form, duration: e.target.value })}
+                />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="level">Level</label>
+                <input
+                  id="level"
+                  value={form.level}
+                  onChange={(e) => setForm({ ...form, level: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="iconKey">Icon</label>
+                <select
+                  id="iconKey"
+                  value={form.iconKey}
+                  onChange={(e) => setForm({ ...form, iconKey: e.target.value })}
+                >
+                  {ICON_OPTIONS.map((key) => (
+                    <option key={key} value={key}>
+                      {key}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="admin-field">
+                <label htmlFor="sortOrder">Sort order</label>
+                <input
+                  id="sortOrder"
+                  type="number"
+                  min={0}
+                  value={form.sortOrder}
+                  onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
+                />
+              </div>
             </div>
             <div className="admin-field">
-              <label htmlFor="level">Level</label>
-              <input
-                id="level"
-                value={form.level}
-                onChange={(e) => setForm({ ...form, level: e.target.value })}
-              />
-            </div>
-            <div className="admin-field">
-              <label htmlFor="iconKey">Icon</label>
-              <select
-                id="iconKey"
-                value={form.iconKey}
-                onChange={(e) => setForm({ ...form, iconKey: e.target.value })}
-              >
-                {ICON_OPTIONS.map((key) => (
-                  <option key={key} value={key}>
-                    {key}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="admin-field">
-              <label htmlFor="sortOrder">Sort order</label>
-              <input
-                id="sortOrder"
-                type="number"
-                min={0}
-                value={form.sortOrder}
-                onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
-              />
-            </div>
-            <div className="admin-field">
-              <label htmlFor="featuresText">Features (one per line)</label>
-              <textarea
-                id="featuresText"
-                rows={4}
+              <label>Features</label>
+              <CmsRichTextEditor
                 value={form.featuresText}
-                onChange={(e) => setForm({ ...form, featuresText: e.target.value })}
+                onChange={(featuresText) => setForm({ ...form, featuresText })}
+                placeholder="Add a bullet for each theme this program develops…"
+                compact
               />
             </div>
             <label className="admin-toggle-row">
@@ -270,7 +276,9 @@ export default function AdminProgramsPage() {
 
       <div className="admin-card">
         {loading ? (
-          <p>Loading programs…</p>
+          <p className="admin-empty">Loading programs…</p>
+        ) : programs.length === 0 ? (
+          <p className="admin-empty">No programs yet.</p>
         ) : (
           <table className="admin-table">
             <thead>
@@ -285,35 +293,23 @@ export default function AdminProgramsPage() {
             <tbody>
               {programs.map((program) => (
                 <tr key={program.id}>
-                  <td>{program.title}</td>
-                  <td>{program.section}</td>
-                  <td>{program.category}</td>
                   <td>
-                    <span
-                      className={`admin-badge ${
-                        program.published ? 'admin-badge--published' : 'admin-badge--draft'
-                      }`}
-                    >
-                      {program.published ? 'Published' : 'Draft'}
-                    </span>
+                    <strong>{program.title}</strong>
                   </td>
                   <td>
-                    <div className="admin-actions">
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--ghost admin-btn--sm"
-                        onClick={() => startEdit(program)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--danger admin-btn--sm"
-                        onClick={() => void onDelete(program.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <span className="admin-badge admin-badge--neutral">{program.section}</span>
+                  </td>
+                  <td>{program.category}</td>
+                  <td>
+                    <AdminStatus value={program.published ? 'published' : 'draft'} />
+                  </td>
+                  <td>
+                    <AdminRowActions
+                      items={[
+                        { label: 'Edit', onClick: () => startEdit(program) },
+                        { label: 'Delete', tone: 'danger', onClick: () => void onDelete(program.id) },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

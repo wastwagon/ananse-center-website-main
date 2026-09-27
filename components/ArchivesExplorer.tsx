@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import type { ApiArchiveRecord } from '../lib/api'
+import CmsRichText from './CmsRichText'
+import PremiumFilterBar from './PremiumFilterBar'
+import { stripHtmlToPlain } from '../lib/cms/richtext'
 
 function uniqueSorted(values: string[]) {
   return [...new Set(values.map((v) => v.trim()).filter(Boolean))].sort((a, b) =>
@@ -38,10 +41,10 @@ export default function ArchivesExplorer({ items }: { items: ApiArchiveRecord[] 
       if (!q) return true
       const haystack = [
         item.title,
-        item.description,
+        stripHtmlToPlain(item.description),
         item.culture,
         item.era,
-        item.rightsNote,
+        stripHtmlToPlain(item.rightsNote),
         ...(item.tags ?? []),
       ]
         .join(' ')
@@ -56,7 +59,7 @@ export default function ArchivesExplorer({ items }: { items: ApiArchiveRecord[] 
     <div>
       <div
         className="newsletter-inline-form"
-        style={{ marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}
+        style={{ marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.75rem' }}
         role="search"
       >
         <label htmlFor="archive-search" className="sr-only">
@@ -71,50 +74,6 @@ export default function ArchivesExplorer({ items }: { items: ApiArchiveRecord[] 
           onChange={(e) => setQuery(e.target.value)}
           style={{ minWidth: '12rem', flex: '1 1 200px' }}
         />
-        <select
-          className="form-input form-select"
-          value={culture}
-          onChange={(e) => setCulture(e.target.value)}
-          aria-label="Filter by culture"
-          style={{ flex: '0 1 auto' }}
-        >
-          <option value="">All cultures</option>
-          {cultures.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </select>
-        <select
-          className="form-input form-select"
-          value={era}
-          onChange={(e) => setEra(e.target.value)}
-          aria-label="Filter by era"
-          style={{ flex: '0 1 auto' }}
-        >
-          <option value="">All eras</option>
-          {eras.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </select>
-        {tags.length > 0 ? (
-          <select
-            className="form-input form-select"
-            value={tag}
-            onChange={(e) => setTag(e.target.value)}
-            aria-label="Filter by tag"
-            style={{ flex: '0 1 auto' }}
-          >
-            <option value="">All tags</option>
-            {tags.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        ) : null}
         {hasFilters ? (
           <button
             type="button"
@@ -130,6 +89,53 @@ export default function ArchivesExplorer({ items }: { items: ApiArchiveRecord[] 
           </button>
         ) : null}
       </div>
+      <PremiumFilterBar
+        groups={[
+          ...(cultures.length > 0
+            ? [
+                {
+                  label: 'Culture',
+                  ariaLabel: 'Filter by culture',
+                  value: culture,
+                  onChange: setCulture,
+                  options: [
+                    { value: '', label: 'All cultures' },
+                    ...cultures.map((value) => ({ value, label: value })),
+                  ],
+                },
+              ]
+            : []),
+          ...(eras.length > 0
+            ? [
+                {
+                  label: 'Era',
+                  ariaLabel: 'Filter by era',
+                  value: era,
+                  onChange: setEra,
+                  options: [
+                    { value: '', label: 'All eras' },
+                    ...eras.map((value) => ({ value, label: value })),
+                  ],
+                },
+              ]
+            : []),
+          ...(tags.length > 0
+            ? [
+                {
+                  label: 'Tags',
+                  ariaLabel: 'Filter by tag',
+                  value: tag,
+                  variant: 'tabs' as const,
+                  onChange: setTag,
+                  options: [
+                    { value: '', label: 'All tags' },
+                    ...tags.map((value) => ({ value, label: value })),
+                  ],
+                },
+              ]
+            : []),
+        ]}
+      />
 
       <p className="page-body-text text-body-sm" style={{ marginBottom: '1rem' }}>
         {filtered.length} of {items.length} records
@@ -169,10 +175,11 @@ export default function ArchivesExplorer({ items }: { items: ApiArchiveRecord[] 
                 </p>
               ) : null}
               <h3 className="premium-card-title">{item.title}</h3>
-              <p className="premium-card-description">{item.description}</p>
-              <p className="page-body-text text-body-sm">
-                <strong>Rights:</strong> {item.rightsNote}
-              </p>
+              <CmsRichText body={item.description} className="premium-card-description" />
+              <div className="page-body-text text-body-sm">
+                <strong>Rights:</strong>{' '}
+                <CmsRichText body={item.rightsNote} className="cms-richtext" />
+              </div>
             </article>
           ))}
         </div>

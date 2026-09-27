@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { CONTENT_KEYS, CONTENT_REGISTRY } from '../src/cms/registry.js'
-import { LEGACY_ARTS_PROGRAM_SLUGS, LEADERSHIP_PROGRAMS } from '../../lib/leadership/programs.ts'
-import { LEGACY_ARTS_EVENT_SLUGS } from '../../lib/leadership/legacy-events.ts'
+import { LEGACY_ARTS_PROGRAM_SLUGS, LEADERSHIP_PROGRAMS } from '../src/leadership/programs.ts'
+import { LEGACY_ARTS_EVENT_SLUGS } from '../src/leadership/legacy-events.ts'
 import { DEFAULT_IMPACT_STATS, DEFAULT_SITE_PROFILE } from '../src/cms/site-defaults.js'
 import { DEFAULT_NEWS } from '../src/cms/static-pages.js'
 import { slugify } from '../src/lib/slug.js'
@@ -76,6 +76,17 @@ async function seedSiteSettings() {
       siteTagline: DEFAULT_SITE_PROFILE.siteTagline,
       siteLocation: DEFAULT_SITE_PROFILE.siteLocation,
       contactAddress: DEFAULT_SITE_PROFILE.contactAddress,
+      contactPhone: DEFAULT_SITE_PROFILE.contactPhone,
+      contactPhoneHref: DEFAULT_SITE_PROFILE.contactPhoneHref,
+      contactEmail: DEFAULT_SITE_PROFILE.contactEmail,
+      programsEmail: DEFAULT_SITE_PROFILE.programsEmail,
+      contactHours: DEFAULT_SITE_PROFILE.contactHours,
+      socialFacebook: DEFAULT_SITE_PROFILE.socialFacebook,
+      socialInstagram: DEFAULT_SITE_PROFILE.socialInstagram,
+      socialYoutube: DEFAULT_SITE_PROFILE.socialYoutube,
+      socialTwitter: DEFAULT_SITE_PROFILE.socialTwitter,
+      socialLinkedin: DEFAULT_SITE_PROFILE.socialLinkedin,
+      socialWhatsapp: DEFAULT_SITE_PROFILE.socialWhatsapp,
       maintenanceMessage:
         'The ANANSE Center website is undergoing scheduled updates. Thank you for your patience.',
     },
@@ -252,6 +263,7 @@ async function seedNews() {
 }
 
 import { seedStageCContent } from './seed-stage-c.js'
+import { seedDemoPreviewContent } from './seed-demo-preview.js'
 
 async function main() {
   await seedSiteSettings()
@@ -264,6 +276,10 @@ async function main() {
   })
   console.log(`Unpublished ${hiddenNews.count} arts-and-culture news posts`)
   await seedStageCContent(prisma)
+  // Local/layout preview samples (slugs start with demo-). Set SEED_DEMO_PREVIEW=false to skip.
+  if (process.env.SEED_DEMO_PREVIEW !== 'false') {
+    await seedDemoPreviewContent(prisma)
+  }
   await seedAdmin()
 }
 

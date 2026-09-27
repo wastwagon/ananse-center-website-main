@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
+import { formatAdminWhen } from '../../../components/admin/AdminStatus'
 import {
   contactsExportUrl,
   type AdminContactMessage,
@@ -28,17 +29,18 @@ export default function AdminContactPage() {
 
   return (
     <AdminShell title="Contact messages">
-      <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        <a href={contactsExportUrl()} className="content-cta-link">
-          Download contacts CSV
+      <div className="admin-page-tools">
+        <p className="admin-help">Messages sent from the public contact form.</p>
+        <a href={contactsExportUrl()} className="admin-btn admin-btn--ghost">
+          Download CSV
         </a>
-      </p>
-      {error ? <p className="admin-error" style={{ marginBottom: '1rem' }}>{error}</p> : null}
+      </div>
+      {error ? <p className="admin-error">{error}</p> : null}
       <div className="admin-card">
         {loading ? (
-          <p>Loading messages…</p>
+          <p className="admin-empty">Loading messages…</p>
         ) : messages.length === 0 ? (
-          <p>No messages yet.</p>
+          <p className="admin-empty">No messages yet.</p>
         ) : (
           <table className="admin-table">
             <thead>
@@ -54,11 +56,15 @@ export default function AdminContactPage() {
                 <tr key={message.id}>
                   <td>
                     <strong>{message.name}</strong>
-                    <div style={{ color: '#64748b', fontSize: '0.8125rem' }}>{message.email}</div>
+                    <a className="admin-meta" href={`mailto:${message.email}`}>
+                      {message.email}
+                    </a>
                   </td>
                   <td>{message.subject}</td>
-                  <td style={{ maxWidth: '20rem' }}>{message.message}</td>
-                  <td>{new Date(message.createdAt).toLocaleString()}</td>
+                  <td className="admin-clamp" title={message.message}>
+                    {message.message}
+                  </td>
+                  <td>{formatAdminWhen(message.createdAt)}</td>
                 </tr>
               ))}
             </tbody>

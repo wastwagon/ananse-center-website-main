@@ -1,22 +1,34 @@
 import ContentPageHero from '../../../components/ContentPageHero'
 import SiteSearch from '../../../components/SiteSearch'
-import { buildCmsMetadata } from '../../../lib/cms/seo'
+import { buildPageMetadata } from '../../../lib/page-meta'
 
 export async function generateMetadata() {
-  return buildCmsMetadata('search')
+  return buildPageMetadata({
+    title: 'Search',
+    description:
+      'Search ANANSE programs, events, library resources, people, insights, and photo albums.',
+    path: '/search',
+  })
 }
 
-export default function SearchPage() {
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
+  const initialQuery = typeof q === 'string' ? q : ''
+
   return (
     <article className="content-page">
       <ContentPageHero
         badge="Search"
-        title="Find programs, events & resources"
-        lead="Search across our catalog, calendar, and mission pages."
+        title="Find programs, events, library & people"
+        lead="Search across the ANANSE ecosystem — programs, gatherings, library resources, insights, people, and photo albums."
       />
       <section className="page-section page-section--muted section-reveal">
         <div className="page-section-container content-prose">
-          <SiteSearch />
+          <SiteSearch initialQuery={initialQuery} />
         </div>
       </section>
     </article>

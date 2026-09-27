@@ -36,6 +36,11 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
         placeholderNews,
         contentBlocks,
         viewsToday,
+        demoEvents,
+        demoPeople,
+        demoLibrary,
+        demoInsights,
+        demoAlbums,
       ] = await Promise.all([
         prisma.event.count(),
         prisma.event.count({ where: { published: true } }),
@@ -45,7 +50,7 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
         prisma.donation.count({ where: { status: 'success' } }),
         prisma.communitySubmission.count({ where: { status: 'pending' } }),
         prisma.eventRegistration.count({ where: { status: 'new' } }),
-        prisma.newsletterSubscriber.count(),
+        prisma.newsletterSubscriber.count({ where: { status: 'subscribed' } }),
         getSiteSettings(),
         prisma.newsPost.count({ where: { published: true } }),
         prisma.newsPost.count({
@@ -68,12 +73,26 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
             },
           },
         }),
+        prisma.event.count({ where: { slug: { startsWith: 'demo-' } } }),
+        prisma.person.count({ where: { slug: { startsWith: 'demo-' } } }),
+        prisma.libraryItem.count({ where: { slug: { startsWith: 'demo-' } } }),
+        prisma.newsPost.count({ where: { slug: { startsWith: 'demo-' } } }),
+        prisma.photoAlbum.count({ where: { slug: { startsWith: 'demo-' } } }),
       ])
 
       const placeholderKeys = contentBlocks
         .filter((block) => PLACEHOLDER_RE.test(block.body))
         .map((block) => ({ key: block.key, label: block.label }))
         .sort((a, b) => a.key.localeCompare(b.key))
+
+      const demoPreview = {
+        events: demoEvents,
+        people: demoPeople,
+        library: demoLibrary,
+        insights: demoInsights,
+        photoAlbums: demoAlbums,
+        total: demoEvents + demoPeople + demoLibrary + demoInsights + demoAlbums,
+      }
 
       const paystackConfigured = isPaystackConfigured()
       const contactEmailOk = Boolean(settings.contactEmail?.trim())
@@ -104,13 +123,23 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
           href: '/admin/events',
         },
         {
-          id: 'news',
+          id: 'insights',
           ok: publishedNews > 0,
           label:
             publishedNews > 0
-              ? `${publishedNews} published news/blog post(s)`
-              : 'Publish at least one news or blog post',
-          href: '/admin/news',
+              ? `${publishedNews} published insight(s)`
+              : 'Publish at least one Insight',
+          href: '/admin/insights',
+        },
+        {
+          id: 'demo-preview',
+          ok: demoPreview.total === 0,
+          required: false,
+          label:
+            demoPreview.total === 0
+              ? 'No demo-* preview records left'
+              : `${demoPreview.total} demo-* preview record(s) still published — replace before go-live`,
+          href: '/admin/events',
         },
         {
           id: 'paystack',
@@ -139,6 +168,7 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
           newsletter: { subscribers: newsletterSubscribers },
           news: { published: publishedNews, placeholderTitles: placeholderNews },
           analytics: { viewsToday },
+          demoPreview,
           launchReadiness: {
             ready,
             opsChecks,

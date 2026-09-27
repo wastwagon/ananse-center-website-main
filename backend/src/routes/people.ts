@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
-import { mapPublicPerson, personIncludeMedia } from '../lib/person-map.js'
+import { mapPublicPerson, personIncludeDetail, personIncludeMedia } from '../lib/person-map.js'
 
 type PeopleQuery = {
   group?: string
@@ -30,7 +30,7 @@ export async function peopleRoutes(app: FastifyInstance) {
   app.get<{ Params: { slug: string } }>('/api/v1/people/:slug', async (request, reply) => {
     const row = await prisma.person.findFirst({
       where: { slug: request.params.slug, published: true },
-      include: personIncludeMedia,
+      include: personIncludeDetail,
     })
     if (!row) {
       return reply.status(404).send({ error: 'Person not found' })

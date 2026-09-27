@@ -29,7 +29,7 @@ export default async function PartnershipsPage() {
       badge={cms['partnerships.badge']}
       title={cms['partnerships.heading']}
       lead={cms['partnerships.lead']}
-      primaryCta={{ label: 'Start a conversation', href: '/contact#form' }}
+      primaryCta={{ label: 'Start a conversation', href: '/get-involved#contact' }}
       secondaryCta={{ label: 'Support our work', href: '/support' }}
     >
       <CmsRichText body={cms['partnerships.body']} className="content-prose-body" />

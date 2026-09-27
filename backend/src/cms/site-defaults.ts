@@ -25,6 +25,6 @@ export const DEFAULT_SITE_PROFILE = {
   socialInstagram: 'https://www.instagram.com/anansecenter',
   socialYoutube: 'https://www.youtube.com/@anansecenter',
   socialTwitter: 'https://twitter.com/anansecenter',
-  socialLinkedin: '',
-  socialWhatsapp: '',
+  socialLinkedin: 'https://www.linkedin.com/company/anansecenter',
+  socialWhatsapp: 'https://wa.me/233257127205',
 } as const

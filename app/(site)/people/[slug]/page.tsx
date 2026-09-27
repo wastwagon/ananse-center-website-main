@@ -1,10 +1,12 @@
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import LocalizedLink from '../../../../components/LocalizedLink'
+import ShareBar from '../../../../components/ShareBar'
 import CmsRichText from '../../../../components/CmsRichText'
-import { fetchPersonBySlug } from '../../../../lib/api'
+import CardCover from '../../../../components/CardCover'
+import { fetchLibraryItems, fetchPersonBySlug } from '../../../../lib/api'
 import { buildPageMetadata } from '../../../../lib/page-meta'
 import { images, resolvePersonImage } from '../../../../lib/images'
+import { cmsPlainExcerpt } from '../../../../lib/cms/richtext'
 
 export async function generateMetadata({
   params,
@@ -18,7 +20,7 @@ export async function generateMetadata({
   }
   return buildPageMetadata({
     title: person.name,
-    description: person.roleTitle || person.bio.slice(0, 160),
+    description: person.roleTitle || cmsPlainExcerpt(person.bio, 160),
     path: `/people/${slug}`,
     ogImage: resolvePersonImage(person) ?? images.hero.about,
   })
@@ -34,40 +36,64 @@ export default async function PersonDetailPage({
   if (!person) notFound()
 
   const image = resolvePersonImage(person)
+  const relatedLibrary = await fetchLibraryItems({ person: slug }).catch(() => [])
+  const relatedEvents = person.events ?? []
+  const relatedInsights = person.insights ?? []
+
+  const initials = person.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
 
   return (
-    <article className="content-page">
+    <article className="content-page people-detail-page">
       <section className="page-section section-reveal">
         <div className="page-section-container content-prose">
           <LocalizedLink href="/people" className="program-card-link">
             ← ANANSE people
           </LocalizedLink>
 
-          <div className="two-col-section" style={{ marginTop: '1.5rem', alignItems: 'start' }}>
+          <div className="people-detail-hero">
             {image ? (
               <div
-                className="premium-card-image-wrapper"
-                style={{ position: 'relative', minHeight: '280px', borderRadius: '12px' }}
+                className={`people-detail-media${person.isOrganization ? ' people-detail-media--org' : ''}`}
               >
-                <Image
+                <CardCover
                   src={image}
                   alt={person.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 899px) 100vw, 360px"
-                  unoptimized={image.startsWith('/api/')}
-                  priority
+                  sizes="(max-width: 767px) 100vw, 288px"
+                  fit={person.isOrganization ? 'contain' : 'cover'}
                 />
               </div>
-            ) : null}
+            ) : (
+              <div className="people-detail-media" aria-hidden>
+                <span className="people-detail-initials">{initials}</span>
+              </div>
+            )}
             <div>
               {person.groups.length ? (
-                <p className="insight-card-tag">{person.groups.join(' · ')}</p>
+                <div className="people-detail-groups">
+                  {person.groups.map((group) => (
+                    <LocalizedLink
+                      key={group}
+                      href={`/people?group=${encodeURIComponent(group)}`}
+                      className="people-detail-group-chip"
+                    >
+                      {group}
+                    </LocalizedLink>
+                  ))}
+                </div>
               ) : null}
               <h1 className="content-page-title">{person.name}</h1>
               {person.roleTitle ? (
                 <p className="page-body-text text-body-md">{person.roleTitle}</p>
               ) : null}
+              {person.cohortLabel ? (
+                <p className="page-body-text text-body-sm">{person.cohortLabel}</p>
+              ) : null}
+              {person.expertise ? <p className="page-body-text">{person.expertise}</p> : null}
               {person.isOrganization && person.organizationName ? (
                 <p className="page-body-text text-body-sm">{person.organizationName}</p>
               ) : null}
@@ -84,8 +110,69 @@ export default async function PersonDetailPage({
           {person.bio ? (
             <CmsRichText body={person.bio} className="content-prose-body" />
           ) : null}
+          <ShareBar title={person.name} path={`/people/${person.slug}`} />
+          {person.programs && person.programs.length > 0 ? (
+            <div className="people-detail-panel">
+              <h2 className="page-section-heading">Programs</h2>
+              <ul className="about-focus-list">
+                {person.programs.map((program) => (
+                  <li key={program.id}>
+                    <LocalizedLink href={`/programs/${program.slug}`}>{program.title}</LocalizedLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {relatedInsights.length > 0 ? (
+            <div className="people-detail-panel">
+              <h2 className="page-section-heading">Insights</h2>
+              <ul className="about-focus-list">
+                {relatedInsights.map((item) => (
+                  <li key={item.id}>
+                    <LocalizedLink href={`/insights/${item.slug}`}>{item.title}</LocalizedLink>
+                    {item.date ? ` · ${item.date}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </section>
+
+      {relatedLibrary.length > 0 ? (
+        <section className="page-section page-section--muted section-reveal">
+          <div className="page-section-container">
+            <h2 className="page-section-heading">Talks and writings</h2>
+            <p className="page-body-text">Library items linked to this person.</p>
+            <ul className="about-focus-list">
+              {relatedLibrary.map((item) => (
+                <li key={item.id}>
+                  <LocalizedLink href={item.href || `/library/${item.slug}`}>{item.title}</LocalizedLink>
+                  {item.collection ? ` · ${item.collection}` : ''}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
+      {relatedEvents.length > 0 ? (
+        <section className="page-section section-reveal bg-white">
+          <div className="page-section-container">
+            <h2 className="page-section-heading">Related gatherings</h2>
+            <p className="page-body-text">Events where this person is listed as a contributor.</p>
+            <ul className="about-focus-list">
+              {relatedEvents.map((event) => (
+                <li key={event.id}>
+                  <LocalizedLink href={`/events/${event.slug}`}>{event.title}</LocalizedLink>
+                  {' · '}
+                  {[event.role, event.date].filter(Boolean).join(' · ')}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
     </article>
   )
 }

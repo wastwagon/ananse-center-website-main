@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import Image from 'next/image'
 import LocalizedLink from '../../../components/LocalizedLink'
 import PageCtaBand from '../../../components/PageCtaBand'
+import CmsRichText from '../../../components/CmsRichText'
+import CardCover from '../../../components/CardCover'
 import { buildCmsMetadata } from '../../../lib/cms/seo'
 import HeroSplit from '../../../components/HeroSplit'
 import { cmsIconForKey } from '../../../lib/cms-icons'
@@ -29,7 +31,7 @@ import {
 import FeatureIcon from '../../../components/FeatureIcon'
 import DonateSection from '../../../components/DonateSection'
 import DonationStatusBanner from '../../../components/DonationStatusBanner'
-import { cardImageSizes, images, resolveCmsImage } from '../../../lib/images'
+import { images, resolveCmsImage } from '../../../lib/images'
 import {
   DEFAULT_SUPPORT_SECTIONS,
   isSectionVisible,
@@ -106,7 +108,7 @@ export default async function SupportPage() {
   })
   const bottomSecondary = parseCmsJson<CmsHeroCta>(cms['support.cta.secondary'], {
     label: 'Partner With Us',
-    href: '/contact#form',
+    href: '/get-involved#contact',
   })
   const sectionVisibility = parseSectionVisibility(
     cms['support.sections.visible'],
@@ -170,21 +172,25 @@ export default async function SupportPage() {
         <DonationStatusBanner />
       </Suspense>
       {show('donate') ? (
-      <>
-      <p className="page-body-text page-section-container">{SUPPORT_GIVING_NOTE}</p>
-      <DonateSection
-        heading="Give"
-        leadReady={SUPPORT_GIVING_NOTE}
-        leadOffline="Online giving is unavailable just now. You can still write to us through Get Involved."
-        presets={[
-          { amount: 50, label: 'GH₵ 50' },
-          { amount: 100, label: 'GH₵ 100' },
-          { amount: 250, label: 'GH₵ 250' },
-          { amount: 500, label: 'GH₵ 500' },
-          { amount: 1000, label: 'GH₵ 1,000' },
-        ]}
-      />
-      </>
+      <section id="donate" className="page-section section-reveal bg-white">
+        <div className="page-section-container page-section-narrow">
+          <span className="section-badge">Give</span>
+          <h2 className="page-section-heading">Financial support</h2>
+          <p className="page-body-text">{SUPPORT_GIVING_NOTE}</p>
+        </div>
+        <DonateSection
+          heading="Choose an amount"
+          leadReady="Your gift helps create opportunities for leadership development, learning, and service."
+          leadOffline="Online giving is unavailable just now. You can still write to us through Get Involved."
+          presets={[
+            { amount: 50, label: 'GH₵ 50' },
+            { amount: 100, label: 'GH₵ 100' },
+            { amount: 250, label: 'GH₵ 250' },
+            { amount: 500, label: 'GH₵ 500' },
+            { amount: 1000, label: 'GH₵ 1,000' },
+          ]}
+        />
+      </section>
       ) : null}
 
       {show('otherWays') ? (
@@ -201,12 +207,9 @@ export default async function SupportPage() {
               return (
                 <div key={way.title} className="insight-card p-0">
                   <div className="premium-card-image-wrapper premium-card-image-wrapper--card-top">
-                    <Image
+                    <CardCover
                       src={resolveCmsImage(way.imageUrl, `/images/image (${idx + 12}).jpeg`)}
                       alt={way.title}
-                      fill
-                      className="object-cover"
-                      sizes={cardImageSizes}
                     />
                   </div>
                   <div className="insight-card-bar" />
@@ -216,7 +219,7 @@ export default async function SupportPage() {
                     <p className="page-body-text text-body-sm" style={{ marginBottom: '1.5rem', flex: 1 }}>
                       {way.description}
                     </p>
-                    <LocalizedLink href={way.href || '/contact#form'} className="program-card-link">
+                    <LocalizedLink href={way.href || '/get-involved#contact'} className="program-card-link">
                       {way.linkText} →
                     </LocalizedLink>
                   </div>
@@ -235,11 +238,9 @@ export default async function SupportPage() {
             {show('transparency') ? (
             <div className="insight-card p-0">
               <div className="premium-card-image-wrapper premium-card-image-wrapper--insight-top">
-                <Image
+                <CardCover
                   src={resolveCmsImage(cms['support.transparency.image'], images.hero.support)}
                   alt="Transparency"
-                  fill
-                  className="object-cover"
                 />
               </div>
               <div className="insight-card-bar" />
@@ -247,9 +248,10 @@ export default async function SupportPage() {
                 <h2 className="page-section-heading section-heading-sm">
                   {cms['support.transparency.heading']}
                 </h2>
-                <p className="page-body-text text-body-md mb-section">
-                  {cms['support.transparency.body']}
-                </p>
+                <CmsRichText
+                  body={cms['support.transparency.body']}
+                  className="page-body-text text-body-md mb-section"
+                />
                 <div className="flex-column flex-column--snug">
                   {transparencyAllocation.map((r) => (
                     <div key={r.label} className="transparency-row">
@@ -268,9 +270,7 @@ export default async function SupportPage() {
             <div className="flex flex-col justify-center">
               <span className="section-badge">{cms['support.standards.badge']}</span>
               <h2 className="page-section-heading">{cms['support.standards.heading']}</h2>
-              <p className="page-body-text mb-section">
-                {cms['support.standards.lead']}
-              </p>
+              <CmsRichText body={cms['support.standards.lead']} className="page-body-text mb-section" />
               <ul className="flex-column standards-list flex-column--tight">
                 {standardsItems.map((li) => (
                   <li key={li} className="standards-list-item">

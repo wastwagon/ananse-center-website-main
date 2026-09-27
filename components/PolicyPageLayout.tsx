@@ -42,7 +42,7 @@ export default async function PolicyPageLayout({
           <CmsRichText body={displayBody} className="content-prose-body" />
 
           <div className="content-actions">
-            <LocalizedLink href="/contact#form" className="btn-primary">
+            <LocalizedLink href="/get-involved#contact" className="btn-primary">
               {contactLabel}
             </LocalizedLink>
             <LocalizedLink href="/" className="btn-outline">

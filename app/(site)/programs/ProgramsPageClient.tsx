@@ -7,10 +7,12 @@ import LocalizedLink from '../../../components/LocalizedLink'
 import { renderSplitHeroTitle } from '../../../lib/cms/hero'
 import type { CmsHeroCta, CmsHeroStat, CmsHeroTitle } from '../../../lib/cms/registry'
 import FeatureIcon from '../../../components/FeatureIcon'
-import { cardImageSizes, resolveCmsImage, resolveProgramCoverImage } from '../../../lib/images'
+import CardCover from '../../../components/CardCover'
+import PremiumFilterBar from '../../../components/PremiumFilterBar'
+import { resolveCmsImage, resolveProgramCoverImage } from '../../../lib/images'
 import { programIconForKey } from '../../../lib/program-icons'
 import type { ApiProgram } from '../../../lib/api'
-import { programSummary } from '../../../lib/leadership/programs'
+import { programNarrative, programSummary } from '../../../lib/leadership/programs'
 export type ProgramBenefit = {
   title: string
   description: string
@@ -70,7 +72,7 @@ export default function ProgramsPageClient({
   benefitsCardLabel,
   testimonialsBadge,
   testimonialsHeading,
-  cardCtaPrimary,
+  cardCtaPrimary: _cardCtaPrimary,
   cardCtaSecondary,
   ctaPrimary,
   ctaSecondary,
@@ -83,7 +85,8 @@ export default function ProgramsPageClient({
   sectionVisibility = {},
 }: ProgramsPageClientProps) {
   const categories = useMemo(() => {
-    const cats = [...new Set(programs.map((p) => p.category))].sort()
+    const cats = [...new Set(programs.map((p) => p.category).filter(Boolean))].sort()
+    if (cats.length <= 1) return [] as string[]
     return ['All Programs', ...cats]
   }, [programs])
 
@@ -91,7 +94,9 @@ export default function ProgramsPageClient({
   const show = (key: string) => sectionVisibility[key] !== false
 
   const filteredPrograms =
-    activeTab === 'All Programs' ? programs : programs.filter((p) => p.category === activeTab)
+    categories.length === 0 || activeTab === 'All Programs'
+      ? programs
+      : programs.filter((p) => p.category === activeTab)
 
   return (
     <div className="programs-page">
@@ -107,29 +112,30 @@ export default function ProgramsPageClient({
       />
 
       {show('catalog') ? (
-      <section id="catalog" className="page-section section-reveal bg-white py-16">
+      <section id="catalog" className="page-section section-reveal bg-white">
         <div className="page-section-container">
-          <div className="page-section-center-header" style={{ marginBottom: '3rem' }}>
+          <div className="page-section-center-header">
             <h2 className="page-section-heading">{catalogHeading}</h2>
             <p className="page-body-text">{catalogLead}</p>
           </div>
 
-          <div className="filter-scroll">
-            <div className="filter-row-center" role="tablist" aria-label="Program category filter">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === cat}
-                  onClick={() => setActiveTab(cat)}
-                  className={`filter-btn ${activeTab === cat ? 'filter-btn-active' : ''}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
+          {categories.length > 0 ? (
+            <PremiumFilterBar
+              groups={[
+                {
+                  label: 'Category',
+                  ariaLabel: 'Program category filter',
+                  value: activeTab,
+                  variant: 'tabs',
+                  onChange: setActiveTab,
+                  options: categories.map((cat) => ({
+                    value: cat,
+                    label: cat,
+                  })),
+                },
+              ]}
+            />
+          ) : null}
 
           <div className="grid-cards">
             {filteredPrograms.map((program) => {
@@ -137,19 +143,15 @@ export default function ProgramsPageClient({
               return (
                 <article key={program.id} className="premium-card">
                   <div className="premium-card-image-wrapper">
-                    <Image
-                      src={resolveProgramCoverImage(program)}
-                      alt={program.title}
-                      fill
-                      className="object-cover"
-                      sizes={cardImageSizes}
-                    />
+                    <CardCover src={resolveProgramCoverImage(program)} alt={program.title} />
                   </div>
                   <div className="premium-card-header">
                     <div className="premium-card-icon-box">
                       <Icon size={22} strokeWidth={1.75} />
                     </div>
-                    <span className="premium-card-featured-label">{program.category}</span>
+                    {program.category ? (
+                      <span className="premium-card-featured-label">{program.category}</span>
+                    ) : null}
                   </div>
                   <h3 className="premium-card-title">{program.title}</h3>
                   {program.duration || program.level ? (
@@ -172,15 +174,15 @@ export default function ProgramsPageClient({
                       ) : null}
                     </div>
                   ) : null}
-                  <p className="premium-card-description">{programSummary(program.description)}</p>
-                  <div className="program-card-actions">
-                    <LocalizedLink href={`/programs/${program.slug}`} className="btn-outline-dark">
-                      {cardCtaSecondary || 'Learn More'}
-                    </LocalizedLink>
-                    <LocalizedLink href="/get-involved" className="btn-primary premium-card-cta">
-                      {cardCtaPrimary || 'Get involved'}
-                    </LocalizedLink>
-                  </div>
+                  <p className="premium-card-description">
+                    {programNarrative(program.description).tagline || programSummary(program.description)}
+                  </p>
+                  <LocalizedLink
+                    href={`/programs/${program.slug}`}
+                    className="btn-primary premium-card-cta"
+                  >
+                    {cardCtaSecondary || `Explore ${program.title}`}
+                  </LocalizedLink>
                 </article>
               )
             })}
@@ -190,7 +192,7 @@ export default function ProgramsPageClient({
       ) : null}
 
       {show('benefits') ? (
-      <section className="page-section section-reveal bg-slate-50 py-16">
+      <section className="page-section section-reveal bg-slate-50">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{benefitsBadge}</span>
@@ -203,12 +205,9 @@ export default function ProgramsPageClient({
               return (
               <article key={benefit.title} className="premium-card">
                 <div className="premium-card-image-wrapper premium-card-image-wrapper--short">
-                  <Image
+                  <CardCover
                     src={resolveCmsImage(benefit.imageUrl, `/images/image (${idx + 7}).jpeg`)}
                     alt={benefit.title}
-                    fill
-                    className="object-cover"
-                    sizes={cardImageSizes}
                   />
                 </div>
                 <div className="premium-card-header">
@@ -230,7 +229,7 @@ export default function ProgramsPageClient({
       ) : null}
 
       {show('testimonials') ? (
-      <section className="page-section section-reveal bg-white py-16">
+      <section className="page-section section-reveal bg-white">
         <div className="page-section-container">
           <div className="page-section-center-header">
             <span className="section-badge">{testimonialsBadge}</span>

@@ -46,8 +46,15 @@ export default async function PhotoAlbumsPage() {
         secondaryCta={{ label: 'Events', href: '/events' }}
         stats={[]}
       />
-      <section className="page-section section-reveal bg-slate-50 py-16">
+      <section className="page-section section-reveal bg-slate-50">
         <div className="page-section-container">
+          <div className="library-section-intro">
+            <span className="section-badge">Photos</span>
+            <h2 className="page-section-heading">Galleries</h2>
+            <p className="page-body-text">
+              Browse albums from events, lectures, mentorship, and community life at ANANSE.
+            </p>
+          </div>
           <PhotoAlbumsListingClient
             viewAlbum="View gallery"
             empty={PHOTO_ALBUMS_EMPTY}

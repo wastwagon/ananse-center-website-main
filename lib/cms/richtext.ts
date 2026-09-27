@@ -18,9 +18,28 @@ const ALLOWED_TAGS = [
   'h4',
   'blockquote',
   'span',
+  'img',
+  'table',
+  'thead',
+  'tbody',
+  'tr',
+  'th',
+  'td',
 ]
 
-const ALLOWED_ATTR = ['href', 'target', 'rel', 'class']
+const ALLOWED_ATTR = [
+  'href',
+  'target',
+  'rel',
+  'class',
+  'src',
+  'alt',
+  'title',
+  'width',
+  'height',
+  'colspan',
+  'rowspan',
+]
 
 /** True when the body already contains HTML tags from the rich editor. */
 export function looksLikeHtml(value: string): boolean {
@@ -37,12 +56,60 @@ export function plainTextToHtml(value: string): string {
     .join('')
 }
 
+/** Turn stored feature/highlight lines into an editor bullet list. */
+export function linesToListHtml(lines: string[]): string {
+  const items = lines.map((line) => line.trim()).filter(Boolean)
+  if (!items.length) return ''
+  return `<ul>${items
+    .map((line) => `<li>${looksLikeHtml(line) ? line : escapeHtml(line)}</li>`)
+    .join('')}</ul>`
+}
+
+/** Read bullet items back out of editor HTML, keeping inline formatting. */
+export function listHtmlToLines(html: string): string[] {
+  const items = [...html.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi)].map((match) => {
+    const inner = match[1].trim().replace(/^<p>([\s\S]*)<\/p>$/i, '$1').trim()
+    return inner
+  })
+  const fromList = items.filter((item) => item.replace(/<[^>]+>/g, '').trim())
+  if (fromList.length) return fromList
+  return stripHtmlToPlain(html)
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+}
+
+/** Strip tags for listing cards, meta descriptions, and search snippets. */
+export function stripHtmlToPlain(value: string): string {
+  return value
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, '\n\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .trim()
+}
+
+/** First paragraph of plain or HTML CMS copy, optionally truncated. */
+export function cmsPlainExcerpt(value: string, maxLen = 220): string {
+  const plain = looksLikeHtml(value) ? stripHtmlToPlain(value) : value.trim()
+  const first = plain.split(/\n\s*\n/)[0]?.trim() || plain
+  if (!maxLen || first.length <= maxLen) return first
+  return `${first.slice(0, maxLen - 1).trimEnd()}…`
 }
 
 /** Sanitize CMS HTML for safe public rendering. */
@@ -60,6 +127,17 @@ export function cmsBodyToSafeHtml(body: string): string {
   if (!trimmed) return ''
   const html = looksLikeHtml(trimmed) ? trimmed : plainTextToHtml(trimmed)
   return sanitizeCmsHtml(html)
+}
+
+/**
+ * Drop the first top-level block so hero can show a plain summary
+ * without duplicating the opener in the rich body.
+ */
+export function cmsHtmlAfterFirstBlock(body: string): string {
+  const html = cmsBodyToSafeHtml(body)
+  if (!html) return ''
+  const withoutFirst = html.replace(/^<(p|h2|h3|h4|blockquote)(\s[^>]*)?>[\s\S]*?<\/\1>/i, '').trim()
+  return withoutFirst || html
 }
 
 export const RICHTEXT_CONTENT_KEYS = new Set([
@@ -133,7 +211,7 @@ export function isJsonContentKey(key: string, hint?: string): boolean {
   if (hint?.toLowerCase().includes('json')) return true
   return (
     key.endsWith('.stats') ||
-    key.endsWith('.title') && (key.includes('.hero') || key.includes('home.hero')) ||
+    (key.endsWith('.title') && (key.includes('.hero') || key.includes('home.hero'))) ||
     key.endsWith('.buttons') ||
     key.endsWith('.highlights') ||
     key === 'home.pillars' ||

@@ -3,11 +3,13 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, Search } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import LocalizedLink from './LocalizedLink'
 import MobileMenuSheet, { type MobileMenuLink } from './MobileMenuSheet'
+import NavbarSearch from './NavbarSearch'
 import { useI18n } from './I18nProvider'
 import { localizedPath, stripLocalePrefix } from '../lib/locale-path'
+import type { Locale } from '../lib/i18n'
 import {
   DEFAULT_PRIMARY_NAV,
   DEFAULT_SHEET_NAV,
@@ -35,6 +37,44 @@ function compactTitleForPath(pathname: string, allLinks: CmsNavLink[]): string |
   return null
 }
 
+function isInvolveLink(link: CmsNavLink) {
+  return splitHref(link.href).path.startsWith('/get-involved')
+}
+
+function NavSubmenu({
+  link,
+  locale,
+  alignEnd = false,
+}: {
+  link: CmsNavLink
+  locale: Locale
+  alignEnd?: boolean
+}) {
+  const children = link.children ?? []
+  if (!children.length) return null
+
+  return (
+    <div
+      className={`nav-submenu${alignEnd ? ' nav-submenu--end' : ''}`}
+      role="navigation"
+      aria-label={`${link.label} sections`}
+    >
+      {children.map((child) => {
+        const childParts = splitHref(child.href)
+        return (
+          <Link
+            key={`${child.label}-${child.href}`}
+            href={localizedPath(childParts.path, locale) + childParts.hash}
+            className="nav-submenu-link"
+          >
+            {child.label}
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
+
 type NavbarProps = {
   logoSrc?: string
   primaryLinks?: CmsNavLink[]
@@ -48,7 +88,7 @@ export default function Navbar({
 }: NavbarProps) {
   const pathname = usePathname()
   const logicalPath = stripLocalePrefix(pathname)
-  const { locale, translate } = useI18n()
+  const { locale } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const closeMenu = useCallback(() => setMenuOpen(false), [])
@@ -68,9 +108,14 @@ export default function Navbar({
 
   const allNavLinks = useMemo(() => [...primaryLinks, ...sheetLinksCms], [primaryLinks, sheetLinksCms])
   const compactTitle = useMemo(() => compactTitleForPath(pathname, allNavLinks), [pathname, allNavLinks])
-  const involveLink = primaryLinks.find((link) => link.href.startsWith('/get-involved'))
+  const involveLink = primaryLinks.find(isInvolveLink)
+  const textLinks = primaryLinks.filter((link) => !isInvolveLink(link))
   const involveHref = involveLink?.href || '/get-involved'
   const involveLabel = involveLink?.label || 'Get Involved'
+  const involveParts = splitHref(involveHref)
+  const involveActive =
+    logicalPath === involveParts.path ||
+    (involveParts.path !== '/' && logicalPath.startsWith(involveParts.path))
 
   useEffect(() => {
     const handle = () => setIsScrolled(window.scrollY > 12)
@@ -85,9 +130,17 @@ export default function Navbar({
       aria-label="Main navigation"
     >
       <div className="navbar-container">
-        <Link href={localizedPath('/', locale)} className="navbar-logo tap-target">
-          <img src={logoSrc} alt="Ananse Center Logo" className="navbar-logo-img" />
+        <Link
+          href={localizedPath('/', locale)}
+          className="navbar-logo tap-target"
+          aria-label="ANANSE Center home"
+        >
+          <img src={logoSrc} alt="" className="navbar-logo-img" />
         </Link>
+
+        <div className="navbar-search-slot">
+          <NavbarSearch variant="field" />
+        </div>
 
         {compactTitle && isScrolled ? (
           <p className="navbar-compact-title" aria-hidden>
@@ -96,7 +149,7 @@ export default function Navbar({
         ) : null}
 
         <div className="nav-desktop">
-          {primaryLinks.map((link) => {
+          {textLinks.map((link) => {
             const { path, hash } = splitHref(link.href)
             const active =
               logicalPath === path ||
@@ -105,49 +158,41 @@ export default function Navbar({
               <div key={`${link.label}-${link.href}`} className="nav-item">
                 <Link
                   href={localizedPath(path, locale) + hash}
-                  className={`navbar-link${active ? ' navbar-link-active' : ''}`}
+                  className={`navbar-link${active ? ' navbar-link-active' : ''}${link.children?.length ? ' navbar-link--has-submenu' : ''}`}
                   aria-current={active ? 'page' : undefined}
+                  aria-haspopup={link.children?.length ? 'true' : undefined}
                 >
                   {link.label}
                 </Link>
-                {link.children && link.children.length > 0 ? (
-                  <div className="nav-submenu" role="navigation" aria-label={`${link.label} sections`}>
-                    {link.children.map((child) => {
-                      const childParts = splitHref(child.href)
-                      return (
-                        <Link
-                          key={`${child.label}-${child.href}`}
-                          href={localizedPath(childParts.path, locale) + childParts.hash}
-                          className="nav-submenu-link"
-                        >
-                          {child.label}
-                        </Link>
-                      )
-                    })}
-                  </div>
-                ) : null}
+                <NavSubmenu link={link} locale={locale} />
               </div>
             )
           })}
-          <LocalizedLink
-            href="/search"
-            className="navbar-link navbar-search-link tap-target"
-            aria-label={translate('nav.search')}
-            title={translate('nav.search')}
-          >
-            <Search size={18} strokeWidth={2} aria-hidden />
-          </LocalizedLink>
+          <div className="nav-item nav-item--cta">
+            <LocalizedLink
+              href={involveParts.path + involveParts.hash}
+              className={`btn-primary navbar-cta${involveActive ? ' navbar-cta--active' : ''}${involveLink?.children?.length ? ' navbar-cta--has-submenu' : ''}`}
+              aria-current={involveActive ? 'page' : undefined}
+              aria-haspopup={involveLink?.children?.length ? 'true' : undefined}
+            >
+              {involveLabel}
+            </LocalizedLink>
+            {involveLink ? <NavSubmenu link={involveLink} locale={locale} alignEnd /> : null}
+          </div>
         </div>
 
-        <button
-          type="button"
-          aria-label="Open menu"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(true)}
-          className="nav-mobile-btn navbar-hamburger tap-target"
-        >
-          <Menu size={22} strokeWidth={2} aria-hidden />
-        </button>
+        <div className="nav-mobile-actions">
+          <NavbarSearch variant="icon" />
+          <button
+            type="button"
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(true)}
+            className="nav-mobile-btn navbar-hamburger tap-target"
+          >
+            <Menu size={22} strokeWidth={2} aria-hidden />
+          </button>
+        </div>
       </div>
 
       <MobileMenuSheet
@@ -155,7 +200,7 @@ export default function Navbar({
         onClose={closeMenu}
         links={sheetLinks}
         title="Menu"
-        footerHref={localizedPath(splitHref(involveHref).path, locale)}
+        footerHref={localizedPath(involveParts.path, locale) + involveParts.hash}
         footerLabel={involveLabel}
       />
     </nav>

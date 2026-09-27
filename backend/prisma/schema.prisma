@@ -52,6 +52,8 @@ model Program {
   events       Event[]
   libraryItems LibraryItem[]
   photoAlbums  PhotoAlbum[]
+  people       PersonProgram[]
+  insights     NewsPost[]
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
 
@@ -76,6 +78,10 @@ model Event {
   deliveryMode       String      @default("in_person") @map("delivery_mode")
   meetingUrl         String      @default("") @map("meeting_url")
   recordingUrl       String      @default("") @map("recording_url")
+  /** Separate audio when the recording link is video. */
+  audioUrl           String      @default("") @map("audio_url")
+  transcript         String      @default("") @db.Text
+  subtitle           String      @default("")
   /** JSON string[] of media asset ids kept on the same page after the date */
   galleryMediaIds    Json        @default("[]") @map("gallery_media_ids")
   location           String
@@ -92,6 +98,8 @@ model Event {
   featured           Boolean     @default(false)
   published          Boolean     @default(true)
   photoAlbums        PhotoAlbum[]
+  speakers           EventSpeaker[]
+  libraryItems       LibraryItem[]
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
 
@@ -116,10 +124,17 @@ model Person {
   photoMedia       MediaAsset? @relation("PersonPhoto", fields: [photoMediaId], references: [id], onDelete: SetNull)
   logoMediaId      String?     @map("logo_media_id")
   logoMedia        MediaAsset? @relation("PersonLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
+  /** Areas of expertise, one line or a short list. */
+  expertise        String      @default("") @db.Text
+  /** Cohort or year for fellows and participants. */
+  cohortLabel      String      @default("") @map("cohort_label")
   featured         Boolean     @default(false)
   published        Boolean     @default(false)
   sortOrder        Int         @default(0) @map("sort_order")
   libraryItems     LibraryItem[]
+  programs         PersonProgram[]
+  eventRoles       EventSpeaker[]
+  insights         NewsPost[]
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime    @updatedAt @map("updated_at")
 
@@ -151,8 +166,11 @@ model LibraryItem {
   publishedAt     DateTime?   @map("published_at")
   /** JSON string[] of insight topics */
   topics          Json        @default("[]")
+  keywords        String      @default("")
   programId       String?     @map("program_id")
   program         Program?    @relation(fields: [programId], references: [id], onDelete: SetNull)
+  eventId         String?     @map("event_id")
+  event           Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)
   personId        String?     @map("person_id")
   person          Person?     @relation(fields: [personId], references: [id], onDelete: SetNull)
   newsPostId      String?     @map("news_post_id")
@@ -174,7 +192,33 @@ model LibraryItem {
   @@index([shelf, published, sortOrder])
   @@index([collection, published])
   @@index([episodeNumber])
+  @@index([eventId])
   @@map("library_items")
+}
+
+/** Speaker, moderator, facilitator, or panelist on an event. */
+model EventSpeaker {
+  eventId  String @map("event_id")
+  personId String @map("person_id")
+  role     String @default("Speaker")
+  event    Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  person   Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, personId])
+  @@index([personId])
+  @@map("event_speakers")
+}
+
+/** Programs a person teaches, mentors, or participates in. */
+model PersonProgram {
+  personId  String  @map("person_id")
+  programId String  @map("program_id")
+  person    Person  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@id([personId, programId])
+  @@index([programId])
+  @@map("person_programs")
 }
 
 model PhotoAlbum {
@@ -230,9 +274,12 @@ model ContactMessage {
 }
 
 model NewsletterSubscriber {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
+  id                String    @id @default(cuid())
+  email             String    @unique
+  status            String    @default("subscribed")
+  unsubscribeToken  String    @unique @map("unsubscribe_token")
+  unsubscribedAt    DateTime? @map("unsubscribed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
 
   @@map("newsletter_subscribers")
 }
@@ -342,10 +389,15 @@ model NewsPost {
   id                String      @id @default(cuid())
   title             String
   slug              String      @unique
+  subtitle          String      @default("")
   excerpt           String      @db.Text
   body              String      @default("") @db.Text
   dateLabel         String      @default("") @map("date_label")
   author            String      @default("")
+  authorPersonId    String?     @map("author_person_id")
+  authorPerson      Person?     @relation(fields: [authorPersonId], references: [id], onDelete: SetNull)
+  programId         String?     @map("program_id")
+  program           Program?    @relation(fields: [programId], references: [id], onDelete: SetNull)
   /** Legacy category; Insights listing prefers contentType + topics */
   category          String      @default("Articles")
   /** Articles | Essays | Leadership Reflections | Perspectives | Conversations | Special Reflections */
@@ -366,6 +418,8 @@ model NewsPost {
 
   @@index([published, sortOrder])
   @@index([featured, published])
+  @@index([programId])
+  @@index([authorPersonId])
   @@map("news_posts")
 }
 

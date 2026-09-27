@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import Image from 'next/image'
+import { useEffect, useMemo, useState } from 'react'
 import LocalizedLink from '../../../components/LocalizedLink'
-import { cardImageSizes } from '../../../lib/images'
+import CardCover from '../../../components/CardCover'
+import PremiumFilterBar from '../../../components/PremiumFilterBar'
+import { cmsPlainExcerpt } from '../../../lib/cms/richtext'
 import { LIBRARY_SHELVES } from '../../../lib/leadership/taxonomy'
 
 export type LibraryListItem = {
@@ -25,20 +26,47 @@ type LibraryListingClientProps = {
   readMore: string
   empty: string
   items: LibraryListItem[]
+  initialShelfKey?: string
 }
 
 const ALL_COLLECTIONS = 'All collections'
+
+function resolveShelfKey(
+  preferred: string | undefined,
+  items: LibraryListItem[],
+): (typeof LIBRARY_SHELVES)[number]['key'] {
+  if (preferred && LIBRARY_SHELVES.some((option) => option.key === preferred)) {
+    return preferred as (typeof LIBRARY_SHELVES)[number]['key']
+  }
+  const fromData = LIBRARY_SHELVES.find((option) => items.some((item) => item.shelf === option.key))
+  return fromData?.key ?? 'listen'
+}
 
 export default function LibraryListingClient({
   readMore,
   empty,
   items,
+  initialShelfKey,
 }: LibraryListingClientProps) {
-  const [shelf, setShelf] = useState<(typeof LIBRARY_SHELVES)[number]['key']>('listen')
+  const [shelf, setShelf] = useState<(typeof LIBRARY_SHELVES)[number]['key']>(() =>
+    resolveShelfKey(initialShelfKey, items),
+  )
   const [collectionFilter, setCollectionFilter] = useState<string>(ALL_COLLECTIONS)
 
+  useEffect(() => {
+    const next = resolveShelfKey(initialShelfKey, items)
+    setShelf(next)
+    setCollectionFilter(ALL_COLLECTIONS)
+  }, [initialShelfKey, items])
+
   const shelfDef = LIBRARY_SHELVES.find((s) => s.key === shelf)
-  const collectionOptions = shelfDef?.items ?? []
+  const collectionOptions = useMemo(() => {
+    const fromData = [
+      ...new Set(items.filter((item) => item.shelf === shelf).map((item) => item.collection).filter(Boolean)),
+    ]
+    if (fromData.length > 0) return fromData
+    return shelfDef?.items ?? []
+  }, [items, shelf, shelfDef])
 
   const shelfItems = useMemo(
     () => items.filter((item) => item.shelf === shelf),
@@ -50,44 +78,62 @@ export default function LibraryListingClient({
     return shelfItems.filter((item) => item.collection === collectionFilter)
   }, [collectionFilter, shelfItems])
 
+  const shelfCta =
+    shelf === 'listen' ? 'Listen' : shelf === 'watch' ? 'Watch' : shelf === 'read' ? 'Read' : readMore
+
+  if (items.length === 0) {
+    return (
+      <div className="empty-room">
+        <p className="page-body-text">{empty}</p>
+        <div className="page-cta-buttons library-listing-empty-actions">
+          <LocalizedLink href="/programs" className="btn-primary">
+            Explore programs
+          </LocalizedLink>
+          <LocalizedLink href="/library/photos" className="btn-outline">
+            Photo galleries
+          </LocalizedLink>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
-      <div className="filter-scroll" style={{ marginBottom: '1rem' }}>
-        <div className="segmented-control" role="tablist" aria-label="Library shelf">
-          {LIBRARY_SHELVES.map((option) => (
-            <button
-              key={option.key}
-              type="button"
-              role="tab"
-              aria-selected={shelf === option.key}
-              onClick={() => {
-                setShelf(option.key)
-                setCollectionFilter(ALL_COLLECTIONS)
-              }}
-              className={`filter-btn ${shelf === option.key ? 'filter-btn-active' : ''}`}
-            >
-              {option.title}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="filter-scroll" style={{ marginBottom: '1.5rem' }}>
-        <div className="segmented-control" role="tablist" aria-label="Library collection">
-          {[ALL_COLLECTIONS, ...collectionOptions].map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="tab"
-              aria-selected={collectionFilter === option}
-              onClick={() => setCollectionFilter(option)}
-              className={`filter-btn ${collectionFilter === option ? 'filter-btn-active' : ''}`}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PremiumFilterBar
+        groups={[
+          {
+            label: 'Shelf',
+            ariaLabel: 'Library shelf',
+            value: shelf,
+            onChange: (value) => {
+              setShelf(value as (typeof LIBRARY_SHELVES)[number]['key'])
+              setCollectionFilter(ALL_COLLECTIONS)
+            },
+            options: [
+              ...LIBRARY_SHELVES.map((option) => ({
+                value: option.key,
+                label: option.title,
+              })),
+              { value: 'photos', label: 'Photo Gallery', href: '/library/photos' },
+            ],
+          },
+          ...(collectionOptions.length > 0
+            ? [
+                {
+                  label: 'Collection',
+                  ariaLabel: 'Library collection',
+                  value: collectionFilter,
+                  variant: 'tabs' as const,
+                  onChange: setCollectionFilter,
+                  options: [ALL_COLLECTIONS, ...collectionOptions].map((option) => ({
+                    value: option,
+                    label: option,
+                  })),
+                },
+              ]
+            : []),
+        ]}
+      />
 
       {filtered.length === 0 ? (
         <p className="page-body-text">{empty}</p>
@@ -96,17 +142,10 @@ export default function LibraryListingClient({
           {filtered.map((item) => (
             <article
               key={item.key}
-              className={`premium-card${item.featured ? ' premium-card--featured' : ''}`}
+              className={`premium-card library-listing-card${item.featured ? ' premium-card--featured' : ''}`}
             >
               <div className="premium-card-image-wrapper">
-                <Image
-                  src={item.cover}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                  sizes={cardImageSizes}
-                  unoptimized={item.cover.startsWith('/api/')}
-                />
+                <CardCover src={item.cover} alt={item.title} />
               </div>
               <div className="premium-card-header">
                 <span className="premium-card-featured-label">{item.collection}</span>
@@ -116,14 +155,14 @@ export default function LibraryListingClient({
               </div>
               {item.dateLabel ? <p className="premium-card-date">{item.dateLabel}</p> : null}
               <h3 className="premium-card-title">{item.title}</h3>
-              <p className="premium-card-description">{item.description}</p>
+              <p className="premium-card-description">{cmsPlainExcerpt(item.description)}</p>
               {item.external && item.href ? (
                 <a href={item.href} className="btn-primary premium-card-cta" rel="noopener noreferrer">
-                  {readMore}
+                  {shelfCta}
                 </a>
               ) : (
                 <LocalizedLink href={item.href} className="btn-primary premium-card-cta">
-                  {readMore}
+                  {shelfCta}
                 </LocalizedLink>
               )}
             </article>

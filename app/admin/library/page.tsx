@@ -2,17 +2,21 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
+import AdminRowActions from '../../../components/admin/AdminRowActions'
+import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
 import { INSIGHT_TOPICS, LIBRARY_SHELVES } from '../../../lib/leadership/taxonomy'
 import {
   createAdminLibraryItem,
   deleteAdminLibraryItem,
+  fetchAdminEvents,
   fetchAdminLibrary,
   fetchAdminNews,
   fetchAdminPeople,
   fetchAdminPrograms,
   updateAdminLibraryItem,
+  type AdminEvent,
   type AdminLibraryItem,
   type AdminNewsPost,
   type AdminPerson,
@@ -32,6 +36,7 @@ const emptyForm = {
   furtherStudy: '',
   wisdomNugget: '',
   scriptureTheme: '',
+  keywords: '',
   episodeNumber: '' as string,
   dateLabel: '',
   publishedAtLocal: '',
@@ -39,6 +44,7 @@ const emptyForm = {
   programId: '' as string,
   personId: '' as string,
   newsPostId: '' as string,
+  eventId: '' as string,
   coverMediaId: null as string | null,
   audioMediaId: null as string | null,
   videoMediaId: null as string | null,
@@ -73,6 +79,7 @@ export default function AdminLibraryPage() {
   const [programs, setPrograms] = useState<AdminProgram[]>([])
   const [people, setPeople] = useState<AdminPerson[]>([])
   const [newsPosts, setNewsPosts] = useState<AdminNewsPost[]>([])
+  const [events, setEvents] = useState<AdminEvent[]>([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -89,16 +96,18 @@ export default function AdminLibraryPage() {
     setLoading(true)
     setError(null)
     try {
-      const [libraryRes, programsRes, peopleRes, newsRes] = await Promise.all([
+      const [libraryRes, programsRes, peopleRes, newsRes, eventsRes] = await Promise.all([
         fetchAdminLibrary(),
         fetchAdminPrograms(),
         fetchAdminPeople(),
         fetchAdminNews(),
+        fetchAdminEvents(),
       ])
       setRecords(libraryRes.data)
       setPrograms(programsRes.data)
       setPeople(peopleRes.data)
       setNewsPosts(newsRes.data)
+      setEvents(eventsRes.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load library')
     } finally {
@@ -128,6 +137,7 @@ export default function AdminLibraryPage() {
       furtherStudy: record.furtherStudy ?? '',
       wisdomNugget: record.wisdomNugget ?? '',
       scriptureTheme: record.scriptureTheme ?? '',
+      keywords: record.keywords ?? '',
       episodeNumber: record.episodeNumber != null ? String(record.episodeNumber) : '',
       dateLabel: record.dateLabel ?? '',
       publishedAtLocal: toDatetimeLocal(record.publishedAt),
@@ -135,6 +145,7 @@ export default function AdminLibraryPage() {
       programId: record.programId ?? '',
       personId: record.personId ?? '',
       newsPostId: record.newsPostId ?? '',
+      eventId: record.eventId ?? '',
       coverMediaId: record.coverMediaId,
       audioMediaId: record.audioMediaId,
       videoMediaId: record.videoMediaId,
@@ -169,6 +180,7 @@ export default function AdminLibraryPage() {
         furtherStudy: form.furtherStudy,
         wisdomNugget: form.wisdomNugget,
         scriptureTheme: form.scriptureTheme,
+        keywords: form.keywords.trim(),
         episodeNumber: Number.isFinite(episode) ? episode : null,
         dateLabel: form.dateLabel.trim(),
         publishedAt: fromDatetimeLocal(form.publishedAtLocal),
@@ -176,6 +188,7 @@ export default function AdminLibraryPage() {
         programId: form.programId || null,
         personId: form.personId || null,
         newsPostId: form.newsPostId || null,
+        eventId: form.eventId || null,
         coverMediaId: form.coverMediaId,
         audioMediaId: form.audioMediaId,
         videoMediaId: form.videoMediaId,
@@ -215,24 +228,22 @@ export default function AdminLibraryPage() {
 
   return (
     <AdminShell title="Library">
-      <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        Manage Listen, Watch, and Read content for <code>/library</code>. Photo galleries are managed under Photo
-        albums.
-      </p>
-
       {error ? <p className="admin-error">{error}</p> : null}
       {notice ? <p className="admin-notice">{notice}</p> : null}
 
-      <div className="admin-actions" style={{ marginBottom: '1rem' }}>
+      <div className="admin-page-tools">
+        <p className="admin-help">
+          Listen, Watch, and Read for the library. Photo galleries live under Photo albums.
+        </p>
         <button type="button" className="admin-btn admin-btn--primary" onClick={startCreate}>
           New item
         </button>
       </div>
 
       {editingId ? (
-        <div className="admin-card" style={{ marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>
-            {editingId === 'new' ? 'Create item' : 'Edit item'}
+        <div className="admin-card admin-card--spaced">
+          <h2 className="admin-card-title">
+            {editingId === 'new' ? 'New item' : 'Edit item'}
           </h2>
           <form className="admin-form" onSubmit={onSubmit}>
             <div className="admin-field">
@@ -252,48 +263,48 @@ export default function AdminLibraryPage() {
                 onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
               />
             </div>
-            <div className="admin-field">
-              <label htmlFor="lib-shelf">Shelf</label>
-              <select
-                id="lib-shelf"
-                className="admin-input"
-                value={form.shelf}
-                onChange={(e) => {
-                  const shelf = e.target.value as ShelfKey
-                  const first = LIBRARY_SHELVES.find((s) => s.key === shelf)?.items[0] ?? ''
-                  setForm((f) => ({ ...f, shelf, collection: first }))
-                }}
-              >
-                {LIBRARY_SHELVES.map((shelf) => (
-                  <option key={shelf.key} value={shelf.key}>
-                    {shelf.title}
-                  </option>
-                ))}
-              </select>
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="lib-shelf">Shelf</label>
+                <select
+                  id="lib-shelf"
+                  value={form.shelf}
+                  onChange={(e) => {
+                    const shelf = e.target.value as ShelfKey
+                    const first = LIBRARY_SHELVES.find((s) => s.key === shelf)?.items[0] ?? ''
+                    setForm((f) => ({ ...f, shelf, collection: first }))
+                  }}
+                >
+                  {LIBRARY_SHELVES.map((shelf) => (
+                    <option key={shelf.key} value={shelf.key}>
+                      {shelf.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="admin-field">
+                <label htmlFor="lib-collection">Collection</label>
+                <select
+                  id="lib-collection"
+                  required
+                  value={form.collection}
+                  onChange={(e) => setForm((f) => ({ ...f, collection: e.target.value }))}
+                >
+                  {collectionOptions.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="admin-field">
-              <label htmlFor="lib-collection">Collection</label>
-              <select
-                id="lib-collection"
-                className="admin-input"
-                required
-                value={form.collection}
-                onChange={(e) => setForm((f) => ({ ...f, collection: e.target.value }))}
-              >
-                {collectionOptions.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="admin-field">
-              <label htmlFor="lib-desc">Description</label>
-              <textarea
-                id="lib-desc"
-                rows={3}
+              <label>Description</label>
+              <CmsRichTextEditor
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(description) => setForm((f) => ({ ...f, description }))}
+                placeholder="Short overview for this library record…"
+                compact
               />
             </div>
             <div className="admin-field">
@@ -340,12 +351,11 @@ export default function AdminLibraryPage() {
                   />
                 </div>
                 <div className="admin-field">
-                  <label htmlFor="lib-transcript">Transcript</label>
-                  <textarea
-                    id="lib-transcript"
-                    rows={6}
+                  <label>Transcript</label>
+                  <CmsRichTextEditor
                     value={form.transcript}
-                    onChange={(e) => setForm((f) => ({ ...f, transcript: e.target.value }))}
+                    onChange={(transcript) => setForm((f) => ({ ...f, transcript }))}
+                    placeholder="Episode transcript…"
                   />
                 </div>
               </>
@@ -367,12 +377,12 @@ export default function AdminLibraryPage() {
                   />
                 </div>
                 <div className="admin-field">
-                  <label htmlFor="lib-transcript-v">Transcript (optional)</label>
-                  <textarea
-                    id="lib-transcript-v"
-                    rows={4}
+                  <label>Transcript (optional)</label>
+                  <CmsRichTextEditor
                     value={form.transcript}
-                    onChange={(e) => setForm((f) => ({ ...f, transcript: e.target.value }))}
+                    onChange={(transcript) => setForm((f) => ({ ...f, transcript }))}
+                    placeholder="Optional video transcript…"
+                    compact
                   />
                 </div>
               </>
@@ -387,21 +397,21 @@ export default function AdminLibraryPage() {
                   />
                 </div>
                 <div className="admin-field">
-                  <label htmlFor="lib-wisdom">Wisdom nugget</label>
-                  <textarea
-                    id="lib-wisdom"
-                    rows={3}
+                  <label>Wisdom nugget</label>
+                  <CmsRichTextEditor
                     value={form.wisdomNugget}
-                    onChange={(e) => setForm((f) => ({ ...f, wisdomNugget: e.target.value }))}
+                    onChange={(wisdomNugget) => setForm((f) => ({ ...f, wisdomNugget }))}
+                    placeholder="A short reflective takeaway…"
+                    compact
                   />
                 </div>
                 <div className="admin-field">
-                  <label htmlFor="lib-study">Further study</label>
-                  <textarea
-                    id="lib-study"
-                    rows={3}
+                  <label>Further study</label>
+                  <CmsRichTextEditor
                     value={form.furtherStudy}
-                    onChange={(e) => setForm((f) => ({ ...f, furtherStudy: e.target.value }))}
+                    onChange={(furtherStudy) => setForm((f) => ({ ...f, furtherStudy }))}
+                    placeholder="Suggested readings or next steps…"
+                    compact
                   />
                 </div>
                 <div className="admin-field">
@@ -414,15 +424,24 @@ export default function AdminLibraryPage() {
                 </div>
               </>
             ) : null}
+            <div className="admin-field">
+              <label htmlFor="lib-keywords">Keywords</label>
+              <input
+                id="lib-keywords"
+                value={form.keywords}
+                onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))}
+                placeholder="Comma-separated search terms"
+              />
+            </div>
             <CoverMediaField
               value={form.coverMediaId}
               onChange={(coverMediaId) => setForm((f) => ({ ...f, coverMediaId }))}
             />
             <div className="admin-field">
               <label>Topics (optional)</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1rem' }}>
+              <div className="admin-choice-row">
                 {INSIGHT_TOPICS.map((topic) => (
-                  <label key={topic} className="admin-toggle-row" style={{ margin: 0 }}>
+                  <label key={topic} className="admin-toggle-row">
                     <input
                       type="checkbox"
                       checked={form.topics.includes(topic)}
@@ -484,6 +503,22 @@ export default function AdminLibraryPage() {
               </select>
             </div>
             <div className="admin-field">
+              <label htmlFor="lib-event">Linked event (optional)</label>
+              <select
+                id="lib-event"
+                className="admin-input"
+                value={form.eventId}
+                onChange={(e) => setForm((f) => ({ ...f, eventId: e.target.value }))}
+              >
+                <option value="">— None —</option>
+                {events.map((event) => (
+                  <option key={event.id} value={event.id}>
+                    {event.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="admin-field">
               <label htmlFor="lib-sort">Sort order</label>
               <input
                 id="lib-sort"
@@ -533,9 +568,9 @@ export default function AdminLibraryPage() {
 
       <div className="admin-card">
         {loading ? (
-          <p>Loading library…</p>
+          <p className="admin-empty">Loading library…</p>
         ) : records.length === 0 ? (
-          <p className="admin-help">No library items yet.</p>
+          <p className="admin-empty">No library items yet.</p>
         ) : (
           <table className="admin-table">
             <thead>
@@ -551,37 +586,24 @@ export default function AdminLibraryPage() {
               {records.map((record) => (
                 <tr key={record.id}>
                   <td>
-                    {record.title}
-                    <div style={{ color: '#64748b', fontSize: '0.75rem' }}>/{record.slug}</div>
+                    <strong>{record.title}</strong>
+                    <span className="admin-meta">/{record.slug}</span>
                   </td>
-                  <td>{record.shelf}</td>
+                  <td>
+                    <span className="admin-badge admin-badge--neutral">{record.shelf}</span>
+                  </td>
                   <td>{record.collection}</td>
                   <td>
-                    <span
-                      className={`admin-badge ${
-                        record.published ? 'admin-badge--published' : 'admin-badge--draft'
-                      }`}
-                    >
-                      {record.published ? 'Published' : 'Draft'}
-                    </span>
+                    <AdminStatus value={record.published ? 'published' : 'draft'} />
                   </td>
                   <td>
-                    <div className="admin-actions">
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--ghost"
-                        onClick={() => startEdit(record)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--danger"
-                        onClick={() => void onDelete(record.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <AdminRowActions
+                      items={[
+                        { label: 'View', href: `/library/${record.slug}`, external: true },
+                        { label: 'Edit', onClick: () => startEdit(record) },
+                        { label: 'Delete', tone: 'danger', onClick: () => void onDelete(record.id) },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

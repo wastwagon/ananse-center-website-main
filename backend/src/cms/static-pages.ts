@@ -19,64 +19,64 @@ export const DEFAULT_TRUSTEES: CmsTrustee[] = [
   {
     name: 'Norma Harris, PhD',
     role: 'Board Chair',
-    bio: 'Chairs the Trustee Circle, guiding strategic oversight as the Center builds restorative arts programs and a permanent campus in Akatakyiwa.',
+    bio: 'Provides board leadership and strategic oversight as ANANSE grows leadership programs and partnerships across Ghana and the diaspora.',
     initials: 'NH',
   },
   {
     name: 'Kenyatta Andrews',
     role: 'Treasurer',
-    bio: 'Stewards financial accountability and transparent reporting so gifts for youth arts, residencies, and healing retreats are used with care.',
+    bio: 'Stewards financial accountability and transparent reporting so gifts for programs, mentorship, and community initiatives are used with care.',
     initials: 'KA',
   },
   {
     name: 'Renee Redding-Jones',
     role: 'Secretary',
-    bio: 'Supports governance records and Trustee Circle coordination as Ananse grows partnerships across Ghana and the African diaspora.',
+    bio: 'Supports governance records and board coordination as ANANSE engages partners across Ghana and the African diaspora.',
     initials: 'RR',
   },
   {
     name: 'Nefertiti Macaulay',
-    role: 'Trustee',
-    bio: 'Serves on the Trustee Circle with a focus on community connection, cultural integrity, and inclusive participation in Center programs.',
+    role: 'Board member',
+    bio: 'Contributes to governance with a focus on community connection, integrity, and inclusive participation in Center programs.',
     initials: 'NM',
   },
   {
     name: 'Nana H. Kojo Herukhuti Sharif Williams, PhD',
     role: 'Founder & CEO',
-    bio: 'Founder and Executive Director leading Ananse’s mission to spin social and cultural webs of connection through restorative and creative arts in Akatakyiwa, Ghana.',
+    bio: 'Founder and Executive Director leading ANANSE’s mission to develop character, wisdom, competence, and service in leaders across Ghana and the diaspora.',
     initials: 'SW',
   },
 ]
 
 export const DEFAULT_FINANCIAL_REPORTS: CmsFinancialReport[] = [
-  { year: '2024', title: 'Annual Impact & Financial Summary (PDF)', url: '/contact#form' },
-  { year: '2023', title: 'Audited Financial Overview (PDF)', url: '/contact#form' },
+  { year: '2024', title: 'Annual Impact & Financial Summary (PDF)', url: '/get-involved#contact' },
+  { year: '2023', title: 'Audited Financial Overview (PDF)', url: '/get-involved#contact' },
 ]
 
 export const DEFAULT_SPOTLIGHTS: CmsSpotlight[] = [
   {
-    name: 'Kente Collective',
-    org: 'Local artisan cooperative',
-    description: 'Partner weaving studio training youth alongside master craftspeople in Akatakyiwa.',
+    name: 'Community partner',
+    org: 'Civil society',
+    description: 'Collaborates with ANANSE on leadership development and service initiatives in Ghana.',
   },
   {
-    name: 'Central Region Youth Forum',
-    org: 'Community nonprofit',
-    description: 'Co-hosted dialogue series on heritage, entrepreneurship, and civic participation.',
+    name: 'Youth leadership cohort',
+    org: 'Community program',
+    description: 'Emerging leaders building character, responsibility, and practical skills through mentorship and workshops.',
   },
 ]
 
 export const DEFAULT_CSO_DIRECTORY: CmsCsoEntry[] = [
   {
-    name: 'Ananse Center for Arts and Culture',
-    focus: 'Arts education, restorative practice, diaspora connection',
-    region: 'Akatakyiwa, Central Region',
+    name: 'ANANSE Center for Leadership Development',
+    focus: 'Leadership development, education, mentorship',
+    region: 'Ghana',
     website: 'https://www.anansecenter.org',
   },
   {
-    name: 'Coastal Heritage Network',
-    focus: 'Preservation, research, community archives',
-    region: 'Central Region',
+    name: 'Regional partner (placeholder)',
+    focus: 'Community development, education',
+    region: 'Ghana',
   },
 ]
 
@@ -99,137 +99,134 @@ export const DEFAULT_ARCHIVE_ITEMS: CmsArchiveItem[] = [
 
 export const DEFAULT_FACULTY: CmsFaculty[] = [
   {
-    name: 'Nana Yaa Adwoa',
-    title: 'Master Storyteller',
-    expertise: 'Oral tradition, Ananse narratives, youth mentorship',
+    name: 'Faculty name (placeholder)',
+    title: 'Program facilitator',
+    expertise: 'Leadership development, mentorship, group learning',
   },
   {
-    name: 'Kofi Asante',
-    title: 'Lead Drumming Faculty',
-    expertise: 'Traditional rhythm, ensemble performance, restorative circles',
+    name: 'Faculty name (placeholder)',
+    title: 'Program facilitator',
+    expertise: 'Character formation, community leadership, practical skills',
   },
 ]
 
 export const DEFAULT_NEWS: CmsNewsItem[] = [
   {
-    title: 'Ananse Storytelling Circle Welcomes Elders and Youth',
-    date: 'August 2026',
-    excerpt:
-      'A monthly storytelling circle brings elders and young learners together under the trees at our Akatakyiwa campus.',
+    title: 'Program updates',
+    date: 'TBD',
+    excerpt: 'Announcements about ANANSE programs and gatherings will appear here when published.',
   },
   {
-    title: 'Kente Weaving Intensive Opens for Youth Apprentices',
-    date: 'August 2026',
-    excerpt:
-      'Master artisans and youth apprentices work side by side in a hands-on intensive rooted in skill, discipline, and cultural pride.',
+    title: 'Leadership conversations',
+    date: 'TBD',
+    excerpt: 'Highlights from lectures, mentorship, and community learning will be shared when available.',
   },
   {
-    title: 'Walking the Sankofa Path: A Diaspora Reflection',
-    date: 'August 2026',
-    excerpt:
-      'A diaspora guest reflects on returning to Ghana as a practice of listening, repair, and belonging—not tourism alone.',
+    title: 'Partner news',
+    date: 'TBD',
+    excerpt: 'Collaborations and impact stories from Ghana and the diaspora will be posted as they are ready.',
   },
 ]
 
 export const DEFAULT_JOURNEY_STORIES: CmsJourneyStory[] = [
   {
-    name: 'Marcus T.',
-    origin: 'Diaspora — United States',
+    name: 'Participant',
+    origin: 'Diaspora',
     quote:
-      'Standing near the forts, then learning beside elders at Ananse, I began to understand repair as a daily practice—not a single trip.',
+      'Learning alongside ANANSE helped me grow in responsibility, listening, and service—not as a one-time visit, but as ongoing relationship.',
   },
   {
-    name: 'Abena K.',
-    origin: 'Ghana — Central Region',
+    name: 'Participant',
+    origin: 'Ghana',
     quote:
-      'We are learning to be cousins again: local youth and returning family weaving the same stories in the same room.',
+      'We are strengthening community by developing leaders who act with character and care for others.',
   },
 ]
 
 /** CMS keys for roadmap pages — merged into CONTENT_REGISTRY (sync with backend). */
 export const STATIC_PAGE_REGISTRY = {
   'home.journey.badge': {
-    label: 'Home — Study/Heal/Give badge',
+    label: 'Home — Get Involved band badge (legacy key)',
     section: 'home',
-    defaultBody: 'Find your path',
+    defaultBody: 'How to take part',
   },
   'home.journey.heading': {
-    label: 'Home — Study/Heal/Give heading',
+    label: 'Home — Get Involved band heading (legacy key)',
     section: 'home',
-    defaultBody: 'Study. Heal. Give.',
+    defaultBody: 'Learn. Engage. Give.',
   },
   'home.journey.lead': {
-    label: 'Home — Study/Heal/Give intro',
+    label: 'Home — Get Involved band intro (legacy key)',
     section: 'home',
     defaultBody:
-      'Whether you seek skills, restorative connection, or a way to support our work—there is a place for you at our table.',
+      'Explore programs, join gatherings, and support ANANSE Center for Leadership Development.',
   },
   'home.journey.study.title': {
-    label: 'Home — Study card title',
+    label: 'Home — Learn card title (legacy key)',
     section: 'home',
-    defaultBody: 'Study',
+    defaultBody: 'Learn',
   },
   'home.journey.study.body': {
-    label: 'Home — Study card body',
+    label: 'Home — Learn card body (legacy key)',
     section: 'home',
-    defaultBody: 'Sankofa programs, admissions, faculty, and student resources in Ghana.',
+    defaultBody: 'Leadership programs, Midday Reflection, and library resources.',
   },
   'home.journey.study.cta': {
-    label: 'Home — Study CTA (JSON)',
+    label: 'Home — Learn CTA (JSON, legacy key)',
     section: 'home',
     hint: 'JSON: { "label", "href" }',
-    defaultBody: JSON.stringify({ label: 'Explore Programs', href: '/programs' }, null, 2),
+    defaultBody: JSON.stringify({ label: 'Explore programs', href: '/programs' }, null, 2),
   },
   'home.journey.heal.title': {
-    label: 'Home — Heal card title',
+    label: 'Home — Engage card title (legacy key)',
     section: 'home',
-    defaultBody: 'Heal',
+    defaultBody: 'Engage',
   },
   'home.journey.heal.body': {
-    label: 'Home — Heal card body',
+    label: 'Home — Engage card body (legacy key)',
     section: 'home',
     defaultBody:
-      'Restorative arts, repatriation resources, and stories from the Central Region and the diaspora.',
+      'Attend events, meet people in the ANANSE community, and get involved.',
   },
   'home.journey.heal.cta': {
-    label: 'Home — Heal CTA (JSON)',
+    label: 'Home — Engage CTA (JSON, legacy key)',
     section: 'home',
-    defaultBody: JSON.stringify({ label: 'Plan Your Sankofa Journey', href: '/repatriation' }, null, 2),
+    defaultBody: JSON.stringify({ label: 'Get involved', href: '/get-involved' }, null, 2),
   },
   'home.journey.give.title': {
-    label: 'Home — Give card title',
+    label: 'Home — Give card title (legacy key)',
     section: 'home',
     defaultBody: 'Give',
   },
   'home.journey.give.body': {
-    label: 'Home — Give card body',
+    label: 'Home — Give card body (legacy key)',
     section: 'home',
-    defaultBody: 'Donate, partner with us, and review how we steward resources transparently.',
+    defaultBody: 'Financial gifts help create opportunities for leadership development and service.',
   },
   'home.journey.give.cta': {
-    label: 'Home — Give CTA (JSON)',
+    label: 'Home — Give CTA (JSON, legacy key)',
     section: 'home',
-    defaultBody: JSON.stringify({ label: 'Donate Today', href: '/support#donate' }, null, 2),
+    defaultBody: JSON.stringify({ label: 'Give', href: '/support#donate' }, null, 2),
   },
-  'visit.badge': { label: 'Visit — badge', section: 'visit', defaultBody: 'Visit Ghana' },
+  'visit.badge': { label: 'Visit — badge', section: 'visit', defaultBody: 'Connect' },
   'visit.heading': {
     label: 'Visit — heading',
     section: 'visit',
-    defaultBody: 'Visit the Central Region',
+    defaultBody: 'Visit & connect in Ghana',
   },
   'visit.lead': {
     label: 'Visit — intro',
     section: 'visit',
     format: 'html',
     defaultBody:
-      'The Ananse Center is rooted in Akatakyiwa, Central Region—near heritage sites of the diaspora journey, including colonial slaving forts and the River of the Last Bath.',
+      'ANANSE Center for Leadership Development is based in Ghana. We welcome partners, learners, and guests by appointment—start on our Get Involved page to coordinate time with the team.',
   },
   'visit.body': {
     label: 'Visit — body',
     section: 'visit',
     format: 'html',
     defaultBody:
-      'We welcome students, diaspora travelers, researchers, and partners by appointment. Plan adequate time for travel from Accra and respect local customs at sacred sites.\n\nDirections and group visit scheduling are coordinated through our contact team.',
+      'Plan travel to Accra and allow time for local logistics. For meetings, programs, or group visits, contact us through Get Involved so we can respond with schedules and practical guidance.',
   },
   'visit.directions': {
     label: 'Visit — directions (JSON)',
@@ -237,33 +234,33 @@ export const STATIC_PAGE_REGISTRY = {
     hint: 'JSON array: [{ "label", "value" }]',
     defaultBody: JSON.stringify(
       [
-        { label: 'Region', value: 'Central Region, Ghana' },
-        { label: 'Community', value: 'Akatakyiwa' },
-        { label: 'Nearest hub', value: 'Cape Coast / Accra corridor' },
+        { label: 'Country', value: 'Ghana' },
+        { label: 'Hub', value: 'Accra' },
+        { label: 'Connect', value: 'Get Involved — /get-involved' },
       ],
       null,
       2,
     ),
   },
-  'repatriation.badge': { label: 'Repatriation — badge', section: 'repatriation', defaultBody: 'Sankofa Journey' },
+  'repatriation.badge': { label: 'Repatriation — badge', section: 'repatriation', defaultBody: 'Connection' },
   'repatriation.heading': {
     label: 'Repatriation — heading',
     section: 'repatriation',
-    defaultBody: 'Healing & Repatriation Resources',
+    defaultBody: 'Repatriation & healing resources',
   },
   'repatriation.lead': {
     label: 'Repatriation — intro',
     section: 'repatriation',
     format: 'html',
     defaultBody:
-      'We support descendants of the enslaved and Africans colonized in West Africa to heal intergenerational trauma and learn, in community, how to be cousins again.',
+      'We support descendants of the enslaved and Africans across the diaspora to heal intergenerational trauma and build lasting relationships in community.',
   },
   'repatriation.body': {
     label: 'Repatriation — body',
     section: 'repatriation',
     format: 'html',
     defaultBody:
-      'Programs combine restorative arts, guided reflection near heritage sites, and long-term relationship-building—not tourism alone. Each journey is paced with pastoral care and cultural protocol.',
+      'Resources combine guided reflection, pastoral care, and long-term relationship-building—not tourism alone. Each journey is paced with cultural respect and care for participants.',
   },
   'repatriation.stories': {
     label: 'Repatriation — journey stories (JSON)',
@@ -275,14 +272,14 @@ export const STATIC_PAGE_REGISTRY = {
   'trustees.heading': {
     label: 'Trustees — heading',
     section: 'trustees',
-    defaultBody: 'Trustee Circle',
+    defaultBody: 'People & leadership',
   },
   'trustees.lead': {
     label: 'Trustees — intro',
     section: 'trustees',
     format: 'html',
     defaultBody:
-      'Our Trustee Circle provides oversight, accountability, and strategic guidance for programs, partnerships, and financial stewardship.',
+      'Our board and leadership community provide oversight, accountability, and strategic guidance for programs, partnerships, and financial stewardship.',
   },
   'trustees.members': {
     label: 'Trustees — members (JSON)',
@@ -307,7 +304,7 @@ export const STATIC_PAGE_REGISTRY = {
     section: 'transparency',
     format: 'html',
     defaultBody:
-      'Program delivery, community outreach, operations, and reserves are reviewed annually by leadership and the Trustee Circle.',
+      'Program delivery, community outreach, operations, and reserves are reviewed annually by leadership and the board.',
   },
   'transparency.reports': {
     label: 'Transparency — reports (JSON)',
@@ -325,14 +322,14 @@ export const STATIC_PAGE_REGISTRY = {
     section: 'admissions',
     format: 'html',
     defaultBody:
-      'Apply to Sankofa arts and leadership programs. Fees vary by program length; scholarships may be available for Ghana-based youth.',
+      'Apply to ANANSE leadership programs. Fees vary by program length; scholarships may be available for Ghana-based participants.',
   },
   'admissions.body': {
     label: 'Admissions — body',
     section: 'admissions',
     format: 'html',
     defaultBody:
-      'Submit the inquiry form with your program of interest. Our team will share schedules, fees in GHS, and LMS access after enrollment.',
+      'Submit the inquiry form with your program of interest. Our team will share schedules, fees in GHS, and learning access after enrollment.',
   },
   'admissions.fees': {
     label: 'Admissions — fee table (JSON)',
@@ -341,7 +338,7 @@ export const STATIC_PAGE_REGISTRY = {
       [
         { label: 'Workshop series', value: 'From GH₵350' },
         { label: 'Term program', value: 'From GH₵1,200' },
-        { label: 'Diaspora intensive', value: 'Custom quote' },
+        { label: 'Custom cohort', value: 'Contact for quote' },
       ],
       null,
       2,
@@ -363,7 +360,7 @@ export const STATIC_PAGE_REGISTRY = {
     section: 'community',
     format: 'html',
     defaultBody:
-      'We highlight partners, artisans, and nonprofits strengthening culture and entrepreneurship across the Central Region.',
+      'We highlight partners and initiatives strengthening leadership, service, and entrepreneurship across Ghana.',
   },
   'community.spotlights': {
     label: 'Community — spotlights (JSON)',
@@ -381,7 +378,7 @@ export const STATIC_PAGE_REGISTRY = {
     section: 'resources',
     format: 'html',
     defaultBody:
-      'A growing reference of civil society and development partners in Ghana’s Central Region—for researchers, funders, and collaborators.',
+      'A growing reference of civil society and development partners in Ghana—for researchers, funders, and collaborators.',
   },
   'resources.entries': {
     label: 'CSO directory — entries (JSON)',
@@ -419,7 +416,7 @@ export const STATIC_PAGE_REGISTRY = {
     label: 'News — intro',
     section: 'news',
     format: 'html',
-    defaultBody: 'Announcements, partnerships, and community news from the Center.',
+    defaultBody: 'Announcements, partnerships, and community news from ANANSE.',
   },
   'news.readMore': {
     label: 'News — read more link label',
@@ -446,23 +443,23 @@ export const STATIC_PAGE_REGISTRY = {
     label: 'News — secondary CTA (JSON)',
     section: 'news',
     hint: 'JSON: { "label", "href" }',
-    defaultBody: JSON.stringify({ label: 'Community spotlight', href: '/community' }, null, 2),
+    defaultBody: JSON.stringify({ label: 'Read Insights', href: '/insights' }, null, 2),
   },
   'news.items': {
     label: 'News — fallback items (JSON)',
     section: 'news',
-    hint: 'Only used if no posts exist in Admin → News. Prefer managing posts under /admin/news.',
+    hint: 'Only used if no Insights exist yet. Prefer managing posts under Admin → Insights.',
     defaultBody: JSON.stringify(DEFAULT_NEWS, null, 2),
   },
   'programs.lms.label': {
     label: 'Programs — LMS portal label',
     section: 'programs',
-    defaultBody: 'Student LMS Portal',
+    defaultBody: 'Learning portal',
   },
   'programs.lms.hint': {
     label: 'Programs — LMS portal hint',
     section: 'programs',
-    defaultBody: 'Enrolled students: sign in to access coursework, schedules, and resources.',
+    defaultBody: 'Enrolled participants: sign in when the learning portal is enabled for your cohort.',
   },
   'partnerships.badge': {
     label: 'Partnerships — badge',
@@ -479,14 +476,14 @@ export const STATIC_PAGE_REGISTRY = {
     section: 'partnerships',
     format: 'html',
     defaultBody:
-      'We co-design programs with schools, NGOs, and corporate partners who share our commitment to restorative arts and youth leadership in Ghana and the diaspora.',
+      'We co-design programs with schools, NGOs, and corporate partners who share our commitment to leadership development and youth service in Ghana and the diaspora.',
   },
   'partnerships.body': {
     label: 'Partnerships — body',
     section: 'partnerships',
     format: 'html',
     defaultBody:
-      'Partnerships may include program sponsorship, in-kind resources, artist residencies, and diaspora engagement campaigns. All collaborations are guided by community ownership and transparent stewardship.',
+      'Partnerships may include program sponsorship, in-kind resources, mentorship, and diaspora engagement campaigns. All collaborations are guided by community ownership and transparent stewardship.',
   },
   'partnerships.tiers': {
     label: 'Partnerships — tiers (JSON)',
@@ -496,15 +493,15 @@ export const STATIC_PAGE_REGISTRY = {
       [
         {
           title: 'Program sponsor',
-          description: 'Fund a cohort workshop or Sankofa mentorship series with named recognition.',
+          description: 'Fund a leadership cohort or mentorship series with named recognition.',
         },
         {
           title: 'Corporate CSR partner',
-          description: 'Multi-year support for arts education, archives digitization, or community festivals.',
+          description: 'Multi-year support for leadership education, library resources, or community initiatives.',
         },
         {
           title: 'Institutional collaborator',
-          description: 'Research, exchange, and co-hosted events with universities and cultural institutions.',
+          description: 'Research, exchange, and co-hosted events with universities and development partners.',
         },
       ],
       null,

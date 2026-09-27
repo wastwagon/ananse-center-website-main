@@ -1,9 +1,11 @@
-import Image from 'next/image'
 import LocalizedLink from '../../../../components/LocalizedLink'
+import HeroSplit from '../../../../components/HeroSplit'
 import { fetchMiddayReflectionEpisodes } from '../../../../lib/api'
 import { buildPageMetadata } from '../../../../lib/page-meta'
-import { cardImageSizes, resolveLibraryCoverImage } from '../../../../lib/images'
+import { images, resolveLibraryCoverImage } from '../../../../lib/images'
 import { HOME_MIDDAY } from '../../../../lib/leadership/copy'
+import { cmsPlainExcerpt } from '../../../../lib/cms/richtext'
+import MiddayArchiveClient from './MiddayArchiveClient'
 
 export async function generateMetadata() {
   return buildPageMetadata({
@@ -11,6 +13,7 @@ export async function generateMetadata() {
     description:
       'Episodes of Midday Reflection — Scripture, wisdom, and everyday living. Audio, video, and transcripts in the Library.',
     path: '/library/midday-reflection',
+    ogImage: images.hero.programs,
   })
 }
 
@@ -18,70 +21,76 @@ export default async function MiddayReflectionArchivePage() {
   const episodes = await fetchMiddayReflectionEpisodes()
 
   return (
-    <article className="content-page">
-      <section className="content-page-hero section-reveal">
-        <div className="page-section-container content-page-hero-inner">
-          <span className="section-badge">Library · Listen</span>
-          <h1 className="content-page-hero-title">Midday Reflection</h1>
-          <p className="content-page-hero-lead">{HOME_MIDDAY.kicker}</p>
-        </div>
-      </section>
+    <div className="library-page">
+      <HeroSplit
+        compact
+        priority
+        imageSrc={images.hero.programs}
+        imageAlt="Midday Reflection archive"
+        title={
+          <>
+            Midday <span className="text-accent">Reflection</span>
+          </>
+        }
+        description={HOME_MIDDAY.kicker}
+        primaryCta={{ label: 'Midday program', href: '/programs/midday-reflection' }}
+        secondaryCta={{ label: 'The Library', href: '/library' }}
+        stats={[]}
+      />
 
-      <section className="page-section page-section--muted section-reveal py-16">
+      <section className="page-section section-reveal bg-white">
         <div className="page-section-container">
-          <LocalizedLink href="/library" className="program-card-link">
-            ← The Library
-          </LocalizedLink>
-
-          {episodes.length === 0 ? (
-            <p className="page-body-text" style={{ marginTop: '1.5rem' }}>
-              {HOME_MIDDAY.empty}
+          <div className="library-section-intro">
+            <span className="section-badge">Library · Listen</span>
+            <h2 className="page-section-heading">Episode archive</h2>
+            <p className="page-body-text">
+              Scripture, wisdom, character, relationships, leadership, faith, and everyday living —
+              gathered as episodes you can open, hear, and revisit.
             </p>
-          ) : (
-            <div className="grid-cards grid-cards--stack-narrow" style={{ marginTop: '1.5rem' }}>
-              {episodes.map((episode, index) => {
-                const cover = resolveLibraryCoverImage(episode, index)
-                const meta = [
-                  episode.episodeNumber != null ? `Episode ${episode.episodeNumber}` : '',
-                  episode.dateLabel,
-                  episode.scriptureTheme,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')
-                return (
-                  <article key={episode.id} className="premium-card">
-                    <div className="premium-card-image-wrapper">
-                      <Image
-                        src={cover}
-                        alt={episode.title}
-                        fill
-                        className="object-cover"
-                        sizes={cardImageSizes}
-                        unoptimized={cover.startsWith('/api/')}
-                      />
-                    </div>
-                    {meta ? <p className="premium-card-date">{meta}</p> : null}
-                    <h2 className="premium-card-title">{episode.title}</h2>
-                    <p className="premium-card-description">{episode.description}</p>
-                    <LocalizedLink href={`/library/${episode.slug}`} className="btn-primary premium-card-cta">
-                      Open episode
-                    </LocalizedLink>
-                  </article>
-                )
-              })}
-            </div>
-          )}
+          </div>
 
-          <div className="content-actions" style={{ marginTop: '2rem' }}>
-            <LocalizedLink href="/programs/midday-reflection" className="btn-primary">
+          {(() => {
+            const cards = episodes.map((episode, index) => ({
+              id: episode.id,
+              slug: episode.slug,
+              title: episode.title,
+              excerpt: cmsPlainExcerpt(episode.description),
+              meta: [
+                episode.dateLabel?.toLowerCase().includes('episode')
+                  ? ''
+                  : episode.episodeNumber != null
+                    ? `Episode ${episode.episodeNumber}`
+                    : '',
+                episode.dateLabel,
+                episode.scriptureTheme,
+              ]
+                .filter(Boolean)
+                .join(' · '),
+              cover: resolveLibraryCoverImage(episode, index),
+              searchText: [
+                episode.title,
+                episode.scriptureTheme,
+                episode.dateLabel,
+                episode.episodeNumber != null ? `Episode ${episode.episodeNumber}` : '',
+                ...(episode.topics ?? []),
+                cmsPlainExcerpt(episode.description),
+              ]
+                .filter(Boolean)
+                .join(' '),
+            }))
+            return <MiddayArchiveClient episodes={cards} empty={HOME_MIDDAY.empty} />
+          })()}
+
+          <div className="library-detail-actions">
+            <LocalizedLink href="/programs/midday-reflection" className="btn-outline">
               Midday Reflection program
             </LocalizedLink>
-            <LocalizedLink href="/library" className="btn-outline">
-              The Library
+            <LocalizedLink href="/library?shelf=listen" className="btn-outline">
+              Browse Listen
             </LocalizedLink>
           </div>
         </div>
       </section>
-    </article>
+    </div>
   )
 }

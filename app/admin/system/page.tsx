@@ -74,70 +74,128 @@ export default function AdminSystemPage() {
   }
 
   return (
-    <AdminShell title="System & database">
-      {loading ? <p>Loading system status…</p> : null}
+    <AdminShell title="System">
+      <div className="admin-page-tools">
+        <p className="admin-help">Launch checks, how deploys behave, and manual database tools.</p>
+      </div>
+      {loading ? <p className="admin-empty">Loading system status…</p> : null}
       {error ? <p className="admin-error">{error}</p> : null}
 
       {status ? (
         <>
           <div className="admin-card admin-card--spaced">
-            <h2 className="admin-card-title">Production checklist (API env)</h2>
-            <p className="admin-help">
-              Recommended Coolify settings for a live site. See <code>COOLIFY.md</code> and{' '}
-              <code>config/coolify-production.env.example</code>.
-            </p>
-            <ul className="admin-list">
-              <li>
-                HTTPS site URL:{' '}
-                {status.productionChecklist.httpsSiteUrl ? '✓' : '✗ set NEXT_PUBLIC_SITE_URL=https://…'}
+            <h2 className="admin-card-title">Launch checklist</h2>
+            <p className="admin-help">Settings worth confirming before the public site goes live.</p>
+            <ul className="admin-check-rows">
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.httpsSiteUrl ? 'admin-badge--published' : 'admin-badge--draft'}`}>
+                  {status.productionChecklist.httpsSiteUrl ? 'Ready' : 'Check'}
+                </span>
+                <span>
+                  <strong>HTTPS site URL</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.httpsSiteUrl ? 'Public site uses a secure address.' : 'The public address should start with https.'}
+                  </span>
+                </span>
               </li>
-              <li>
-                Strong JWT secret:{' '}
-                {status.productionChecklist.jwtSecretStrong
-                  ? '✓'
-                  : '✗ ADMIN_JWT_SECRET 32+ chars'}
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.jwtSecretStrong ? 'admin-badge--published' : 'admin-badge--draft'}`}>
+                  {status.productionChecklist.jwtSecretStrong ? 'Ready' : 'Check'}
+                </span>
+                <span>
+                  <strong>JWT secret</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.jwtSecretStrong ? 'Sign-in secret is long enough.' : 'Use a sign-in secret of at least 32 characters.'}
+                  </span>
+                </span>
               </li>
-              <li>
-                Skip seed on boot:{' '}
-                {status.productionChecklist.skipSeedAfterFirstDeploy
-                  ? '✓ SKIP_PRISMA_SEED=true'
-                  : '○ first deploy only — then set true'}
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.skipSeedAfterFirstDeploy ? 'admin-badge--published' : 'admin-badge--neutral'}`}>
+                  {status.productionChecklist.skipSeedAfterFirstDeploy ? 'Ready' : 'Note'}
+                </span>
+                <span>
+                  <strong>Seed on boot</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.skipSeedAfterFirstDeploy ? 'Sample data is not reloaded on every boot.' : 'Turn sample data off after the first deploy.'}
+                  </span>
+                </span>
               </li>
-              <li>
-                System UI locked:{' '}
-                {status.productionChecklist.systemOpsLocked
-                  ? '✓ ADMIN_ALLOW_SYSTEM_OPS not enabled'
-                  : '✗ enable only for emergencies'}
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.systemOpsLocked ? 'admin-badge--published' : 'admin-badge--draft'}`}>
+                  {status.productionChecklist.systemOpsLocked ? 'Ready' : 'Check'}
+                </span>
+                <span>
+                  <strong>System tools</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.systemOpsLocked ? 'Manual migrate and seed stay locked.' : 'Lock manual database tools except for emergencies.'}
+                  </span>
+                </span>
               </li>
-              <li>
-                CORS configured:{' '}
-                {status.productionChecklist.corsConfigured ? '✓' : '✗ set CORS_ORIGIN'}
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.corsConfigured ? 'admin-badge--published' : 'admin-badge--draft'}`}>
+                  {status.productionChecklist.corsConfigured ? 'Ready' : 'Check'}
+                </span>
+                <span>
+                  <strong>CORS</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.corsConfigured ? 'Allowed browser origins are set.' : 'Set which sites may call this API.'}
+                  </span>
+                </span>
               </li>
-              <li>
-                Trust proxy:{' '}
-                {status.productionChecklist.trustProxy ? '✓ TRUST_PROXY=true' : '○ optional behind Coolify'}
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.trustProxy ? 'admin-badge--published' : 'admin-badge--neutral'}`}>
+                  {status.productionChecklist.trustProxy ? 'Ready' : 'Note'}
+                </span>
+                <span>
+                  <strong>Trust proxy</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.trustProxy ? 'The API trusts the host proxy.' : 'Optional when the API sits behind a host proxy.'}
+                  </span>
+                </span>
               </li>
-              <li>
-                Paystack configured:{' '}
-                {status.productionChecklist.paystackConfigured ? '✓' : '✗ set live/test keys'}
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.paystackConfigured ? 'admin-badge--published' : 'admin-badge--draft'}`}>
+                  {status.productionChecklist.paystackConfigured ? 'Ready' : 'Check'}
+                </span>
+                <span>
+                  <strong>Paystack</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.paystackConfigured ? 'Keys are present.' : 'Add live or test keys.'}
+                  </span>
+                </span>
               </li>
-              <li>
-                Paystack live keys:{' '}
-                {status.productionChecklist.paystackLiveKeys
-                  ? '✓ sk_live_ / pk_live_'
-                  : '○ test keys OK on staging only'}
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.paystackLiveKeys ? 'admin-badge--published' : 'admin-badge--neutral'}`}>
+                  {status.productionChecklist.paystackLiveKeys ? 'Live' : 'Test'}
+                </span>
+                <span>
+                  <strong>Paystack mode</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.paystackLiveKeys ? 'Using live keys.' : 'Test keys are fine on staging.'}
+                  </span>
+                </span>
               </li>
-              <li>
-                Search indexing:{' '}
-                {status.productionChecklist.searchIndexingAllowed
-                  ? '✓ public robots allowed'
-                  : '✗ NEXT_PUBLIC_ROBOTS_NOINDEX=true'}
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.searchIndexingAllowed ? 'admin-badge--published' : 'admin-badge--draft'}`}>
+                  {status.productionChecklist.searchIndexingAllowed ? 'Ready' : 'Check'}
+                </span>
+                <span>
+                  <strong>Search indexing</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.searchIndexingAllowed ? 'Search engines may index the public site.' : 'Search engines are still blocked.'}
+                  </span>
+                </span>
               </li>
-              <li>
-                Strict env validation:{' '}
-                {status.productionChecklist.strictEnvValidation
-                  ? '✓ STRICT_PRODUCTION_ENV=true'
-                  : '○ optional — fails boot on critical env errors'}
+              <li className="admin-check-row">
+                <span className={`admin-badge ${status.productionChecklist.strictEnvValidation ? 'admin-badge--published' : 'admin-badge--neutral'}`}>
+                  {status.productionChecklist.strictEnvValidation ? 'Ready' : 'Note'}
+                </span>
+                <span>
+                  <strong>Strict environment checks</strong>
+                  <span className="admin-meta">
+                    {status.productionChecklist.strictEnvValidation ? 'The API stops on a critical configuration error.' : 'Optional. Stop the API on a critical configuration error when you want a hard check.'}
+                  </span>
+                </span>
               </li>
             </ul>
             {status.envWarnings.length > 0 ? (
@@ -154,50 +212,52 @@ export default function AdminSystemPage() {
 
           <div className="admin-card admin-card--spaced">
             <h2 className="admin-card-title">Deployment automation</h2>
-            <ul className="admin-list">
+            <ul className="admin-kv">
               <li>
-                <strong>Migrations on deploy:</strong>{' '}
-                {status.autoMigrateOnDeploy ? 'Yes (API container runs prisma migrate deploy)' : 'No'}
+                <span>Migrations on deploy</span>
+                <strong>
+                  {status.autoMigrateOnDeploy ? 'Yes, on API startup' : 'No'}
+                </strong>
               </li>
               <li>
-                <strong>Seed on deploy:</strong>{' '}
-                {status.autoSeedOnDeploy
-                  ? 'Yes (unless SKIP_PRISMA_SEED=true)'
-                  : 'Skipped (SKIP_PRISMA_SEED=true)'}
+                <span>Seed on deploy</span>
+                <strong>
+                  {status.autoSeedOnDeploy ? 'Yes, unless seed is skipped' : 'Skipped'}
+                </strong>
               </li>
               <li>
-                <strong>Environment:</strong> {status.environment}
+                <span>Environment</span>
+                <strong>{status.environment}</strong>
               </li>
               <li>
-                <strong>Manual system ops:</strong>{' '}
-                {status.systemOpsAllowed ? 'Allowed' : 'Blocked in production'}
+                <span>Manual system tools</span>
+                <strong>{status.systemOpsAllowed ? 'Allowed' : 'Blocked in production'}</strong>
               </li>
             </ul>
             {!status.systemOpsAllowed ? (
               <p className="admin-help">
-                To enable migrate/seed buttons in production, set{' '}
-                <code>ADMIN_ALLOW_SYSTEM_OPS=true</code> on the API service.
+              Manual migrate and seed are off on a live site. A super admin can turn them on for an emergency.
               </p>
             ) : null}
           </div>
 
-          <div className="admin-stats-grid">
-            <div className="admin-stat-card">
-              <span className="admin-stat-value">{status.counts.events}</span>
-              <span className="admin-stat-label">Events</span>
-            </div>
-            <div className="admin-stat-card">
-              <span className="admin-stat-value">{status.counts.contactMessages}</span>
-              <span className="admin-stat-label">Messages</span>
-            </div>
-            <div className="admin-stat-card">
-              <span className="admin-stat-value">{status.counts.donations}</span>
-              <span className="admin-stat-label">Donations</span>
-            </div>
-            <div className="admin-stat-card">
-              <span className="admin-stat-value">{status.counts.adminUsers}</span>
-              <span className="admin-stat-label">Admin users</span>
-            </div>
+          <div className="admin-kpi-grid">
+            <article className="admin-kpi-card admin-kpi-card--amber admin-kpi-card--static">
+              <span className="admin-kpi-label">Events</span>
+              <strong className="admin-kpi-value">{status.counts.events}</strong>
+            </article>
+            <article className="admin-kpi-card admin-kpi-card--slate admin-kpi-card--static">
+              <span className="admin-kpi-label">Messages</span>
+              <strong className="admin-kpi-value">{status.counts.contactMessages}</strong>
+            </article>
+            <article className="admin-kpi-card admin-kpi-card--emerald admin-kpi-card--static">
+              <span className="admin-kpi-label">Donations</span>
+              <strong className="admin-kpi-value">{status.counts.donations}</strong>
+            </article>
+            <article className="admin-kpi-card admin-kpi-card--violet admin-kpi-card--static">
+              <span className="admin-kpi-label">Admin users</span>
+              <strong className="admin-kpi-value">{status.counts.adminUsers}</strong>
+            </article>
           </div>
 
           <div className="admin-card admin-card--spaced">

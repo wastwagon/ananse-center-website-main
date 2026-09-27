@@ -132,7 +132,7 @@ export default async function ProgramsPage() {
   )
   const ctaSecondary = parseCmsJson<CmsHeroCta>(
     cms['programs.cta.secondary'],
-    { label: 'Apply Now', href: '/contact#form' },
+    { label: 'Apply Now', href: '/get-involved#contact' },
   )
   const benefits = parseCmsJson<ProgramBenefit[]>(cms['programs.benefits'], DEFAULT_PROGRAM_BENEFITS)
   const testimonials = parseCmsJson<ProgramTestimonial[]>(
@@ -158,7 +158,7 @@ export default async function ProgramsPage() {
       testimonialsBadge={cms['programs.testimonials.badge']}
       testimonialsHeading={cms['programs.testimonials.heading']}
       cardCtaPrimary="Get involved"
-      cardCtaSecondary="Learn more"
+      cardCtaSecondary=""
       ctaPrimary={ctaPrimary}
       ctaSecondary={{ label: 'Get involved', href: '/get-involved' }}
       benefitsLead="To develop people through leadership education, mentoring, intellectual engagement, authentic spirituality, and practical service."

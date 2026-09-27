@@ -43,7 +43,7 @@ export default function AdminDashboardHome() {
   }
 
   if (!data) {
-    return <p style={{ color: '#64748b' }}>Loading dashboard…</p>
+    return <p className="admin-empty">Loading dashboard…</p>
   }
 
   const live = !data.site.maintenanceMode
@@ -115,215 +115,188 @@ export default function AdminDashboardHome() {
   ]
 
   return (
-    <>
-      <div className={`admin-status-banner ${live ? 'admin-status-banner--live' : 'admin-status-banner--maintenance'}`}>
-        <strong>{live ? 'Site is live' : 'Maintenance mode is ON'}</strong>
-        <span>
-          {live
-            ? 'Visitors see the public website.'
-            : 'Visitors are redirected to the maintenance page.'}
-        </span>
+    <div className="admin-dash">
+      <header className={`admin-dash-hero ${live ? 'is-live' : 'is-maintenance'}`}>
+        <div>
+          <p className="admin-dash-kicker">{live ? 'Live' : 'Maintenance'}</p>
+          <h2 className="admin-dash-heading">
+            {live ? 'The public site is open.' : 'Visitors see the maintenance page.'}
+          </h2>
+        </div>
         <Link href="/admin/settings" className="admin-btn admin-btn--ghost admin-btn--sm">
-          Change in settings
+          Site settings
         </Link>
-      </div>
+      </header>
 
       <div className="admin-kpi-grid">
-        {kpis.map((kpi) => {
+        {kpis.slice(0, 4).map((kpi) => {
           const Icon = kpi.icon
-          const body = (
-            <>
+          return (
+            <Link key={kpi.key} href={kpi.href || '/admin'} className="admin-kpi-card">
               <span className={`admin-kpi-icon admin-kpi-icon--${kpi.tone}`} aria-hidden>
                 <Icon strokeWidth={1.75} />
               </span>
               <span className="admin-kpi-label">{kpi.label}</span>
               <strong className="admin-kpi-value">{kpi.value}</strong>
               <span className="admin-kpi-meta">{kpi.meta}</span>
-            </>
-          )
-          return kpi.href ? (
-            <Link key={kpi.key} href={kpi.href} className={`admin-kpi-card admin-kpi-card--${kpi.tone}`}>
-              {body}
             </Link>
-          ) : (
-            <article key={kpi.key} className={`admin-kpi-card admin-kpi-card--${kpi.tone}`}>
-              {body}
-            </article>
           )
         })}
       </div>
 
-      <div className="admin-card">
-        <h2 className="admin-card-title">Quick actions</h2>
-        <div className="admin-actions">
-          <Link href="/admin/analytics" className="admin-btn admin-btn--primary">
-            Website analytics
-          </Link>
-          <Link href="/admin/events" className="admin-btn admin-btn--ghost">
-            Manage events
-          </Link>
-          <Link href="/admin/inbox" className="admin-btn admin-btn--ghost">
-            Review inbox
-          </Link>
-          <Link href="/admin/content" className="admin-btn admin-btn--ghost">
-            Edit site content
-          </Link>
-          <Link href="/admin/settings" className="admin-btn admin-btn--ghost">
-            Site settings
-          </Link>
-          <Link href="/admin/media" className="admin-btn admin-btn--ghost">
-            Media library
-          </Link>
-          <Link href="/admin/system" className="admin-btn admin-btn--ghost">
-            System & database
-          </Link>
-        </div>
-      </div>
+      <div className="admin-dash-split">
+        <section className="admin-card">
+          <h2 className="admin-card-title">Inbox</h2>
+          <ul className="admin-attention-list">
+            {kpis.filter((kpi) => (kpi.key === 'stories' || kpi.key === 'rsvps') && kpi.value > 0).length ===
+            0 ? (
+              <li className="admin-attention-clear">No stories or RSVPs waiting.</li>
+            ) : (
+              kpis
+                .filter((kpi) => (kpi.key === 'stories' || kpi.key === 'rsvps') && kpi.value > 0)
+                .map((kpi) => (
+                  <li key={kpi.key}>
+                    <Link href={kpi.href || '/admin'}>
+                      <strong>{kpi.value}</strong>
+                      <span>{kpi.label}</span>
+                    </Link>
+                  </li>
+                ))
+            )}
+          </ul>
+          <p className="admin-help" style={{ margin: '0.75rem 0 0' }}>
+            <Link href="/admin/newsletter">{data.newsletter.subscribers} newsletter subscribers</Link>
+          </p>
+        </section>
 
-      {data.launchReadiness ? (
-        <div className="admin-card" style={{ marginTop: '1.25rem' }}>
-          <h2 className="admin-card-title">Launch readiness</h2>
-          {data.launchReadiness.ready ? (
-            <p style={{ color: '#166534', marginTop: 0, lineHeight: 1.6 }}>
-              Ops checks passed and no placeholder content detected. Review SEO and legal copy once more before
-              go-live.
+        <section className="admin-card">
+          <h2 className="admin-card-title">Launch</h2>
+          {data.launchReadiness?.ready ? (
+            <p className="admin-help" style={{ marginBottom: 0 }}>
+              Ops checks passed. Review SEO and legal copy once more before go-live.
             </p>
           ) : (
-            <p style={{ color: '#475569', marginTop: 0, lineHeight: 1.6 }}>
-              Clear the items below before public launch (or hide unfinished sections via{' '}
-              <code>*.sections.visible</code>). Guide: <code>docs/CMS-HANDOVER.md</code>.
-            </p>
-          )}
-
-          {data.launchReadiness.opsChecks && data.launchReadiness.opsChecks.length > 0 ? (
-            <>
-              <h3 style={{ fontSize: '0.95rem', margin: '1rem 0 0.35rem', color: '#0f172a' }}>
-                Operations
-              </h3>
-              <ul style={{ color: '#334155', lineHeight: 1.7, paddingLeft: '1.25rem', marginTop: 0 }}>
-                {data.launchReadiness.opsChecks.map((check) => {
-                  const blocking = !check.ok && check.required !== false
-                  return (
-                    <li
-                      key={check.id}
-                      style={{ color: check.ok ? '#166534' : blocking ? '#9a3412' : '#a16207' }}
-                    >
-                      {check.ok ? '✓ ' : blocking ? '○ ' : '! '}
-                      {check.href && !check.ok ? (
-                        <Link href={check.href}>{check.label}</Link>
-                      ) : (
-                        check.label
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            </>
-          ) : null}
-
-          {(data.launchReadiness.placeholderNewsCount ?? 0) > 0 ||
-          data.launchReadiness.placeholderContentKeys.length > 0 ? (
-            <>
-              <h3 style={{ fontSize: '0.95rem', margin: '1rem 0 0.35rem', color: '#0f172a' }}>
-                Placeholder content
-              </h3>
-              <ul
-                style={{
-                  color: '#334155',
-                  lineHeight: 1.7,
-                  paddingLeft: '1.25rem',
-                  marginTop: 0,
-                  marginBottom: 0,
-                }}
-              >
-                {(data.launchReadiness.placeholderNewsCount ?? 0) > 0 ? (
-                  <li>
-                    <Link href="/admin/news">
-                      {data.launchReadiness.placeholderNewsCount} news/blog post(s)
-                    </Link>{' '}
-                    still titled “Placeholder…”
-                  </li>
-                ) : null}
-                {data.launchReadiness.placeholderContentKeys.map((item) => (
-                  <li key={item.key}>
-                    <Link href={`/admin/content?q=${encodeURIComponent(item.key)}`}>{item.key}</Link>
-                    {item.label ? ` — ${item.label}` : null}
+            <ul className="admin-check-list">
+              {(data.launchReadiness?.opsChecks ?? [])
+                .filter((check) => !check.ok && check.id !== 'demo-preview')
+                .slice(0, 5)
+                .map((check) => (
+                  <li key={check.id}>
+                    {check.href ? <Link href={check.href}>{check.label}</Link> : check.label}
                   </li>
                 ))}
-              </ul>
-            </>
-          ) : null}
-        </div>
+              {(data.launchReadiness?.placeholderNewsCount ?? 0) > 0 ? (
+                <li>
+                  <Link href="/admin/insights">
+                    {data.launchReadiness?.placeholderNewsCount} insight drafts still titled Placeholder
+                  </Link>
+                </li>
+              ) : null}
+              {(data.launchReadiness?.opsChecks ?? []).every((check) => check.ok) &&
+              (data.launchReadiness?.placeholderNewsCount ?? 0) === 0 ? (
+                <li>A few content checks are still open. Open the list below.</li>
+              ) : null}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {data.demoPreview && data.demoPreview.total > 0 ? (
+        <section className="admin-card admin-card--demo">
+          <h2 className="admin-card-title">Demo records still published</h2>
+          <p className="admin-help">
+            These use <code>demo-*</code> slugs. Unpublish them before launch.
+          </p>
+          <div className="admin-task-grid admin-task-grid--fit">
+            {data.demoPreview.events > 0 ? (
+              <Link href="/admin/events" className="admin-task">
+                <strong>Events</strong>
+                <span>{data.demoPreview.events} still published</span>
+              </Link>
+            ) : null}
+            {data.demoPreview.people > 0 ? (
+              <Link href="/admin/people" className="admin-task">
+                <strong>People</strong>
+                <span>{data.demoPreview.people} still published</span>
+              </Link>
+            ) : null}
+            {data.demoPreview.library > 0 ? (
+              <Link href="/admin/library" className="admin-task">
+                <strong>Library</strong>
+                <span>{data.demoPreview.library} still published</span>
+              </Link>
+            ) : null}
+            {data.demoPreview.insights > 0 ? (
+              <Link href="/admin/insights" className="admin-task">
+                <strong>Insights</strong>
+                <span>{data.demoPreview.insights} still published</span>
+              </Link>
+            ) : null}
+            {data.demoPreview.photoAlbums > 0 ? (
+              <Link href="/admin/photo-albums" className="admin-task">
+                <strong>Photo albums</strong>
+                <span>{data.demoPreview.photoAlbums} still published</span>
+              </Link>
+            ) : null}
+          </div>
+        </section>
       ) : null}
 
-      <div className="admin-card" style={{ marginTop: '1.25rem' }}>
-        <h2 className="admin-card-title">Urgent — replace sample content</h2>
-        <p style={{ color: '#475569', marginTop: 0, lineHeight: 1.6 }}>
-          The website is ready for you to edit. Sample stories, dates, numbers, photos, and quotes are live so
-          the pages are not empty. Replace them in Admin before public launch. No developer is required for the
-          items below. Full guide: <code>docs/CMS-HANDOVER.md</code>. After a deploy, open Site Content and click{' '}
-          <strong>Sync registry</strong> once so new map and logo fields appear.
-        </p>
-        <ol style={{ color: '#334155', lineHeight: 1.7, paddingLeft: '1.25rem', marginBottom: 0 }}>
-          <li>
-            <Link href="/admin/settings">Settings</Link> — phone, email, address, social links
-          </li>
-          <li>
-            <Link href="/admin/content">Site Content → site</Link> — logo, favicon, nav, footer, global band
-          </li>
-          <li>
-            <Link href="/admin/content">Site Content → home</Link> — hero, story (rich text), CTAs, stats, images
-          </li>
-          <li>
-            <Link href="/admin/content">Site Content → about</Link> — Who We Are, mission/vision, timeline,
-            leadership placeholders
-          </li>
-          <li>
-            <Link href="/admin/programs">Programs</Link> +{' '}
-            <Link href="/admin/content">programs.testimonials</Link> — real titles/covers; replace placeholder
-            quotes
-          </li>
-          <li>
-            <Link href="/admin/events">Events</Link> — dates, starts/ends, capacity, registration status, covers
-          </li>
-          <li>
-            <Link href="/admin/news">News & blog</Link> — create posts with rich text, cover photo, author,
-            featured
-          </li>
-          <li>
-            <Link href="/admin/media">Media</Link> — upload workshop/community photos; wire into image keys /
-            photoUrl
-          </li>
-          <li>
-            <Link href="/admin/content">trustees.members</Link> — replace placeholder board names
-          </li>
-          <li>
-            <Link href="/admin/content?q=contact.map">Contact map</Link> — paste a Google Maps embed URL and
-            directions link when you have the pin
-          </li>
-          <li>
-            <Link href="/admin/content?q=site.partners">Partner and award logos</Link> — upload in Media, then
-            fill <code>site.partners</code> and <code>site.awards</code>. Empty rows stay hidden
-          </li>
-          <li>
-            <Link href="/admin/content?q=videos.items">Videos</Link> — paste real YouTube links. Invalid links
-            stay hidden
-          </li>
-          <li>
-            <Link href="/admin/content?q=transparency.reports">Transparency reports</Link> — point each row at a
-            real PDF, not the contact form
-          </li>
-          <li>
-            <Link href="/admin/content">Site Content → seo</Link> — page titles & descriptions before launch
-          </li>
-          <li>
-            <Link href="/admin/analytics">Analytics</Link> — review self-hosted traffic after go-live
-          </li>
-          <li>
-            Optional: hide unfinished blocks via <code>*.sections.visible</code> JSON keys
-          </li>
-        </ol>
-      </div>
-    </>
+      <section className="admin-card">
+        <h2 className="admin-card-title">Start here</h2>
+        <div className="admin-task-grid">
+          <Link href="/admin/settings" className="admin-task">
+            <strong>Settings</strong>
+            <span>Phone, email, address, social links</span>
+          </Link>
+          <Link href="/admin/content" className="admin-task">
+            <strong>Site content</strong>
+            <span>Logo, navigation, home, and about</span>
+          </Link>
+          <Link href="/admin/media" className="admin-task">
+            <strong>Media library</strong>
+            <span>Upload photos used across the site</span>
+          </Link>
+          <Link href="/admin/programs" className="admin-task">
+            <strong>Programs</strong>
+            <span>Titles, covers, and descriptions</span>
+          </Link>
+          <Link href="/admin/events" className="admin-task">
+            <strong>Events</strong>
+            <span>Dates, capacity, and registration</span>
+          </Link>
+          <Link href="/admin/insights" className="admin-task">
+            <strong>Insights</strong>
+            <span>Articles, essays, and reflections</span>
+          </Link>
+        </div>
+        <details className="admin-more">
+          <summary>More before launch</summary>
+          <ul className="admin-check-list">
+            <li>
+              <Link href="/admin/content?q=trustees.members">Replace trustee names</Link>
+            </li>
+            <li>
+              <Link href="/admin/content?q=contact.map">Add the contact map</Link>
+            </li>
+            <li>
+              <Link href="/admin/content?q=site.partners">Partner and award logos</Link>
+            </li>
+            <li>
+              <Link href="/admin/content?q=videos.items">Real video links</Link>
+            </li>
+            <li>
+              <Link href="/admin/content?q=transparency.reports">Transparency PDFs</Link>
+            </li>
+            <li>
+              <Link href="/admin/content">SEO titles and descriptions</Link>
+            </li>
+            <li>
+              <Link href="/admin/system">System and database</Link>
+            </li>
+          </ul>
+        </details>
+      </section>
+    </div>
   )
 }

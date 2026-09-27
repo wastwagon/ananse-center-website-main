@@ -30,7 +30,7 @@ export default async function AdmissionsPage() {
         badge={cms['admissions.badge']}
         title={cms['admissions.heading']}
         lead={cms['admissions.lead']}
-        primaryCta={{ label: 'Apply now', href: '/contact#form' }}
+        primaryCta={{ label: 'Apply now', href: '/get-involved#contact' }}
         secondaryCta={{ label: 'Browse programs', href: '/programs' }}
       >
         <CmsRichText body={cms['admissions.body']} className="content-prose-body" />
@@ -57,7 +57,7 @@ export default async function AdmissionsPage() {
         </div>
         <p className="page-body-text text-body-md">
           Ready to enroll?{' '}
-          <LocalizedLink href="/contact#form" className="content-cta-link">
+          <LocalizedLink href="/get-involved#contact" className="content-cta-link">
             Submit an inquiry
           </LocalizedLink>
           .

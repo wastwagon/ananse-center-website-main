@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
+import { AdminStatus, formatAdminWhen } from '../../../components/admin/AdminStatus'
 import { donationsExportUrl, type AdminDonation, fetchAdminDonations } from '../../../lib/admin-api'
 
 function formatAmount(amount: number, currency: string) {
@@ -32,25 +33,25 @@ export default function AdminDonationsPage() {
 
   return (
     <AdminShell title="Donations">
-      {error ? <p className="admin-error" style={{ marginBottom: '1rem' }}>{error}</p> : null}
-      <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        <a href={donationsExportUrl()} className="content-cta-link">
-          Download donations CSV
-        </a>{' '}
-        for CRM import (set CRM_WEBHOOK_URL for live sync).
-      </p>
+      {error ? <p className="admin-error">{error}</p> : null}
+      <div className="admin-page-tools">
+        <p className="admin-help">Gifts recorded on the site, ready to export for your records.</p>
+        <a href={donationsExportUrl()} className="admin-btn admin-btn--ghost">
+          Download CSV
+        </a>
+      </div>
       <div className="admin-card">
         {loading ? (
-          <p>Loading donations…</p>
+          <p className="admin-empty">Loading donations…</p>
         ) : donations.length === 0 ? (
-          <p>No donations recorded yet.</p>
+          <p className="admin-empty">No donations recorded yet.</p>
         ) : (
           <table className="admin-table">
             <thead>
               <tr>
                 <th>Reference</th>
                 <th>Donor</th>
-                <th>Amount</th>
+                <th className="admin-num">Amount</th>
                 <th>Status</th>
                 <th>Date</th>
               </tr>
@@ -58,14 +59,20 @@ export default function AdminDonationsPage() {
             <tbody>
               {donations.map((donation) => (
                 <tr key={donation.id}>
-                  <td>{donation.reference}</td>
+                  <td>
+                    <span className="admin-meta">{donation.reference}</span>
+                  </td>
                   <td>
                     {donation.donorName || '—'}
-                    <div style={{ color: '#64748b', fontSize: '0.8125rem' }}>{donation.email}</div>
+                    <a className="admin-meta" href={`mailto:${donation.email}`}>
+                      {donation.email}
+                    </a>
                   </td>
-                  <td>{formatAmount(donation.amount, donation.currency)}</td>
-                  <td>{donation.status}</td>
-                  <td>{new Date(donation.createdAt).toLocaleString()}</td>
+                  <td className="admin-num">{formatAmount(donation.amount, donation.currency)}</td>
+                  <td>
+                    <AdminStatus value={donation.status} />
+                  </td>
+                  <td>{formatAdminWhen(donation.createdAt)}</td>
                 </tr>
               ))}
             </tbody>

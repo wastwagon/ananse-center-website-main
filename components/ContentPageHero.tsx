@@ -1,3 +1,5 @@
+import CmsRichText from './CmsRichText'
+
 type ContentPageHeroProps = {
   badge: string
   title: string
@@ -13,7 +15,7 @@ export default function ContentPageHero({ badge, title, lead }: ContentPageHeroP
         <h1 id="content-page-title" className="content-page-hero-title">
           {title}
         </h1>
-        {lead ? <p className="content-page-hero-lead">{lead}</p> : null}
+        {lead ? <CmsRichText body={lead} className="content-page-hero-lead" /> : null}
       </div>
     </section>
   )

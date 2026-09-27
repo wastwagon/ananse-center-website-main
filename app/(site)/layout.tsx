@@ -1,5 +1,4 @@
 import SkipLink from '../../components/SkipLink'
-import TopBar from '../../components/TopBar'
 import Navbar from '../../components/Navbar'
 import MobileBottomNav from '../../components/MobileBottomNav'
 import Footer from '../../components/Footer'
@@ -9,10 +8,7 @@ import SectionRevealInit from '../../components/SectionRevealInit'
 import AnalyticsBeacon from '../../components/AnalyticsBeacon'
 import { getCmsTexts, parseCmsJson, type CmsHeroCta } from '../../lib/cms/content'
 import {
-  DEFAULT_FOOTER_PROGRAM_LINKS,
-  DEFAULT_FOOTER_QUICK_LINKS,
   DEFAULT_MOBILE_NAV,
-  resolveFooterLinks,
   resolvePrimaryNav,
   resolveSheetNav,
   type CmsMobileNavLink,
@@ -30,8 +26,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       'site.footer.mission',
       'site.footer.cta.primary',
       'site.footer.cta.secondary',
-      'site.footer.quickLinks',
-      'site.footer.programLinks',
       'site.logo',
       'site.nav.primary',
       'site.nav.mobile',
@@ -55,11 +49,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     : storedFooterSecondary
   const storedPrimary = parseCmsJson<CmsNavLink[]>(chromeCms['site.nav.primary'], [])
   const primaryNav = resolvePrimaryNav(storedPrimary)
-  const quickLinks = resolveFooterLinks(
-    parseCmsJson<CmsNavLink[]>(chromeCms['site.footer.quickLinks'], []),
-    DEFAULT_FOOTER_QUICK_LINKS,
-  )
-  const programLinks = DEFAULT_FOOTER_PROGRAM_LINKS
   const storedMobile = parseCmsJson<CmsMobileNavLink[]>(chromeCms['site.nav.mobile'], [])
   const mobileNavLinks = storedMobile.some((link) => link.href.startsWith('/support') || link.href.startsWith('/contact'))
     ? DEFAULT_MOBILE_NAV
@@ -67,7 +56,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       ? storedMobile
       : DEFAULT_MOBILE_NAV
   const sheetLinks = resolveSheetNav(parseCmsJson<CmsNavLink[]>(chromeCms['site.nav.sheet'], []))
-  const logoSrc = resolveCmsImage(chromeCms['site.logo'], '/ananse-logo.png')
+  const rawLogo = resolveCmsImage(chromeCms['site.logo'], '/ananse-logo.png')
+  const logoSrc =
+    rawLogo === '/ananse-wordmark.svg' || rawLogo.endsWith('/ananse-wordmark.svg')
+      ? '/ananse-logo.png'
+      : rawLogo
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
 
@@ -82,7 +75,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         <SectionRevealInit />
         <AnalyticsBeacon />
         <SkipLink />
-        <TopBar contact={profile.contact} social={profile.social} />
         <Navbar logoSrc={logoSrc} primaryLinks={primaryNav} sheetLinks={sheetLinks} />
         <main id="main-content" className="site-main flex-grow">
           {children}
@@ -100,8 +92,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           footerPrimaryCta={footerPrimaryCta}
           footerSecondaryCta={footerSecondaryCta}
           logoSrc={logoSrc}
-          quickLinks={quickLinks}
-          programLinks={programLinks}
         />
         <MobileBottomNav links={mobileNavLinks} />
       </div>

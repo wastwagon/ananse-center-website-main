@@ -5,12 +5,16 @@ import { mediaPublicPath } from './media-url.js'
 type ProgramRef = Pick<Program, 'id' | 'slug' | 'title'>
 type PersonRef = Pick<Person, 'id' | 'slug' | 'name'>
 
+type EventRef = { id: string; slug: string; title: string }
+
 type LibraryWithRelations = LibraryItem & {
   coverMedia?: MediaAsset | null
   audioMedia?: MediaAsset | null
   videoMedia?: MediaAsset | null
   program?: ProgramRef | null
   person?: PersonRef | null
+  event?: EventRef | null
+  newsPost?: { id: string; slug: string; title: string } | null
 }
 
 export const libraryIncludeRelations = {
@@ -19,6 +23,8 @@ export const libraryIncludeRelations = {
   videoMedia: true,
   program: { select: { id: true, slug: true, title: true } },
   person: { select: { id: true, slug: true, name: true } },
+  event: { select: { id: true, slug: true, title: true } },
+  newsPost: { select: { id: true, slug: true, title: true } },
 } as const
 
 function mediaUrl(asset: MediaAsset | null | undefined, fallbackUrl: string) {
@@ -44,11 +50,18 @@ export function mapPublicLibraryItem(row: LibraryWithRelations) {
     dateLabel: row.dateLabel,
     publishedAt: row.publishedAt?.toISOString() ?? null,
     topics: parseStringArray(row.topics),
+    keywords: row.keywords,
     program: row.program
       ? { id: row.program.id, slug: row.program.slug, title: row.program.title }
       : null,
+    event: row.event
+      ? { id: row.event.id, slug: row.event.slug, title: row.event.title }
+      : null,
     person: row.person
       ? { id: row.person.id, slug: row.person.slug, name: row.person.name }
+      : null,
+    insight: row.newsPost
+      ? { id: row.newsPost.id, slug: row.newsPost.slug, title: row.newsPost.title }
       : null,
     coverImageUrl: row.coverMedia ? mediaPublicPath(row.coverMedia.id) : null,
     audioUrl: mediaUrl(row.audioMedia, row.audioUrl),
@@ -75,7 +88,9 @@ export function mapAdminLibraryItem(row: LibraryWithRelations) {
     dateLabel: row.dateLabel,
     publishedAt: row.publishedAt?.toISOString() ?? null,
     topics: parseStringArray(row.topics),
+    keywords: row.keywords,
     programId: row.programId,
+    eventId: row.eventId,
     personId: row.personId,
     newsPostId: row.newsPostId,
     coverMediaId: row.coverMediaId,

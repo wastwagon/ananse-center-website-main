@@ -32,7 +32,7 @@ After the next deploy, open **Site Content** and click **Sync registry** once. T
 | Financial PDFs | `transparency.reports` |
 | Privacy and Terms, reviewed by counsel | `privacy.*`, `terms.*` |
 | Page titles | **Site Content → seo** |
-| Contact hero location | `contact.hero.stats` — should say Akatakyiwa, not Accra |
+| Contact hero location | `contact.hero.stats` — should reflect Accra/Ghana and leadership location, not legacy Akatakyiwa campus copy |
 
 Hide a section you are not ready to publish with `home.sections.visible` (and the same pattern on About, Programs, Events, and Support). Set `partners` or `awards` to `false` to hide those strips.
 
@@ -65,7 +65,7 @@ Online donations stay offline until Paystack live keys are set in the server env
 | Global audience band (home) | `site.globalBand.*` |
 | Events (dates, time, capacity, registration status, story, cover) | **Events** → `/admin/events` |
 | Programs (catalog, covers, features) | **Programs** → `/admin/programs` |
-| News / blog posts (rich text, cover, author, category, featured) | **News** → `/admin/news` |
+| Insights (rich text, cover, topics, featured, optional Library Read link) | **Insights** → `/admin/insights` |
 | Self-hosted website analytics (pageviews, top pages) | **Analytics** → `/admin/analytics` |
 | Photo uploads | **Media** → `/admin/media` |
 | Phone, email, address, social, site name | **Settings** → `/admin/settings` |
@@ -214,29 +214,29 @@ Anything marked **Placeholder** in Admin or below should be swapped for approved
 
 **Date tip:** Prefer `August 15-17, 2026` or set **Starts at** / **Ends at**. Registration status: `auto` (from dates), `open`, `closed`, `waitlist`, `completed`.
 
-### News & blog (`/admin/news`)
+### Insights (`/admin/insights`)
 | Field | Notes |
 |---|---|
 | Title / slug | Slug auto-from title if blank |
 | Date label | Display date on listing + detail |
-| Author / category | Optional; defaults category `News` |
-| Excerpt | Short summary on `/news` cards |
-| Full story | Rich text editor → `/news/your-slug` |
+| Topics / content type | Filter chips on `/insights` (not separate menus) |
+| Excerpt | Short summary on listing cards |
+| Full story | Rich text editor → `/insights/your-slug` |
 | Cover image | Media picker (recommended) |
-| Featured | Pins to top of listing |
+| Featured | Editorial highlight (not the same as “latest”) |
 | Published | Drafts stay off the public site |
+| Library Read link | Optional link to a Library item |
 | External link | Leave empty for on-site article; or paste an off-site URL |
 
-Listing chrome (badge, heading, lead, CTAs, empty message): **Site Content → news.***  
-Fallback JSON `news.items` is used only if zero posts exist in the database — prefer Admin → News.
+Listing chrome: **Site Content → insights.*** (legacy `news.*` keys may still exist; prefer Insights admin.)
 
-**Seeded sample content:** 3 News + 3 Blog posts with cover images and full article pages ship for demo. Edit or replace them anytime under `/admin/news`. Filter on `/news` by All / News / Blog.
+**Legacy:** `/admin/news` redirects to Insights. Public `/news` redirects to `/insights`.
 
 ### Support / Contact / Videos
 - Heroes, CTAs, donation tiers (`imageUrl` optional), other ways (`imageUrl`, `href`), transparency image  
-- Videos grid: `videos.items` — paste a normal YouTube link or an embed URL. Invalid links stay hidden
-- Contact map: `contact.map.embedUrl` (Google Maps → Share → Embed a map → copy the `src`), plus `contact.map.linkUrl` for “Open in Google Maps”
-- Partner logos: upload in **Media**, then `site.partners` (`name`, `imageUrl`, optional `href`). Awards: `site.awards`. They appear on the home page when a name and image are set. Partners also appear on Partnerships.  
+- Videos grid: `videos.items` — paste a normal YouTube link or an embed URL. Invalid links stay hidden. Public `/videos` redirects to Library.  
+- Contact map: `contact.map.embedUrl` (Google Maps → Share → Embed a map → copy the `src`), plus `contact.map.linkUrl` for “Open in Google Maps”. Form lives on **Get Involved** (`/get-involved#contact`).  
+- Partner logos: upload in **Media**, then `site.partners` (`name`, `imageUrl`, optional `href`). Awards: `site.awards`. They appear on the home page when a name and image are set.  
 - Contact subjects: `contact.form.subjects`  
 
 ### Legal / secondary pages

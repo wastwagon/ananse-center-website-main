@@ -51,7 +51,7 @@ export default async function VideosPage() {
   })
   const bottomCtaSecondary = parseCmsJson<CmsHeroCta>(cms['videos.cta.secondary'], {
     label: 'Get in Touch',
-    href: '/contact#form',
+    href: '/get-involved#contact',
   })
 
   return (

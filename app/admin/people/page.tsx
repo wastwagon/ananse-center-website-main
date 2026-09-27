@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
+import AdminRowActions from '../../../components/admin/AdminRowActions'
+import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
 import { PEOPLE_GROUPS } from '../../../lib/leadership/taxonomy'
@@ -9,14 +11,19 @@ import {
   createAdminPerson,
   deleteAdminPerson,
   fetchAdminPeople,
+  fetchAdminPrograms,
   updateAdminPerson,
   type AdminPerson,
+  type AdminProgram,
 } from '../../../lib/admin-api'
 
 const emptyForm = {
   name: '',
   slug: '',
   roleTitle: '',
+  expertise: '',
+  cohortLabel: '',
+  programIds: [] as string[],
   bio: '',
   groups: [] as string[],
   isOrganization: false,
@@ -35,6 +42,7 @@ function toggleGroup(groups: string[], group: string): string[] {
 
 export default function AdminPeoplePage() {
   const [records, setRecords] = useState<AdminPerson[]>([])
+  const [programs, setPrograms] = useState<AdminProgram[]>([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -46,8 +54,9 @@ export default function AdminPeoplePage() {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await fetchAdminPeople()
-      setRecords(data)
+      const [peopleRes, programsRes] = await Promise.all([fetchAdminPeople(), fetchAdminPrograms()])
+      setRecords(peopleRes.data)
+      setPrograms(programsRes.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load people')
     } finally {
@@ -70,6 +79,9 @@ export default function AdminPeoplePage() {
       name: record.name,
       slug: record.slug,
       roleTitle: record.roleTitle ?? '',
+      expertise: record.expertise ?? '',
+      cohortLabel: record.cohortLabel ?? '',
+      programIds: record.programIds ?? [],
       bio: record.bio ?? '',
       groups: record.groups ?? [],
       isOrganization: record.isOrganization ?? false,
@@ -98,6 +110,9 @@ export default function AdminPeoplePage() {
         name: form.name.trim(),
         slug: form.slug.trim() || undefined,
         roleTitle: form.roleTitle.trim(),
+        expertise: form.expertise.trim(),
+        cohortLabel: form.cohortLabel.trim(),
+        programIds: form.programIds,
         bio: form.bio,
         groups: form.groups,
         isOrganization: form.isOrganization,
@@ -139,24 +154,22 @@ export default function AdminPeoplePage() {
 
   return (
     <AdminShell title="People">
-      <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        Manage leadership, mentors, speakers, fellows, and partners for <code>/people</code>. Use organization
-        mode for partner logos; individuals use a portrait photo.
-      </p>
-
       {error ? <p className="admin-error">{error}</p> : null}
       {notice ? <p className="admin-notice">{notice}</p> : null}
 
-      <div className="admin-actions" style={{ marginBottom: '1rem' }}>
+      <div className="admin-page-tools">
+        <p className="admin-help">
+          Leadership, mentors, speakers, fellows, and partners. Organizations use a logo; people use a portrait.
+        </p>
         <button type="button" className="admin-btn admin-btn--primary" onClick={startCreate}>
           New profile
         </button>
       </div>
 
       {editingId ? (
-        <div className="admin-card" style={{ marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>
-            {editingId === 'new' ? 'Create profile' : 'Edit profile'}
+        <div className="admin-card admin-card--spaced">
+          <h2 className="admin-card-title">
+            {editingId === 'new' ? 'New profile' : 'Edit profile'}
           </h2>
           <form className="admin-form" onSubmit={onSubmit}>
             <label className="admin-toggle-row">
@@ -186,29 +199,32 @@ export default function AdminPeoplePage() {
                 />
               </div>
             ) : null}
-            <div className="admin-field">
-              <label htmlFor="person-slug">Slug (optional)</label>
-              <input
-                id="person-slug"
-                value={form.slug}
-                onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                placeholder="auto-from-name"
-              />
-            </div>
-            <div className="admin-field">
-              <label htmlFor="person-role">Role / title</label>
-              <input
-                id="person-role"
-                value={form.roleTitle}
-                onChange={(e) => setForm((f) => ({ ...f, roleTitle: e.target.value }))}
-                placeholder="Executive Director"
-              />
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="person-slug">Slug</label>
+                <input
+                  id="person-slug"
+                  value={form.slug}
+                  onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                  placeholder="auto-from-name"
+                />
+                <p className="admin-meta">Optional. Leave blank to generate from the name.</p>
+              </div>
+              <div className="admin-field">
+                <label htmlFor="person-role">Role</label>
+                <input
+                  id="person-role"
+                  value={form.roleTitle}
+                  onChange={(e) => setForm((f) => ({ ...f, roleTitle: e.target.value }))}
+                  placeholder="Executive Director"
+                />
+              </div>
             </div>
             <div className="admin-field">
               <label>Groups</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <div className="admin-choice-stack">
                 {PEOPLE_GROUPS.map((group) => (
-                  <label key={group} className="admin-toggle-row" style={{ margin: 0 }}>
+                  <label key={group} className="admin-toggle-row">
                     <input
                       type="checkbox"
                       checked={form.groups.includes(group)}
@@ -217,6 +233,48 @@ export default function AdminPeoplePage() {
                       }
                     />
                     <span>{group}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="person-expertise">Expertise</label>
+                <input
+                  id="person-expertise"
+                  value={form.expertise}
+                  onChange={(e) => setForm((f) => ({ ...f, expertise: e.target.value }))}
+                  placeholder="Leadership, mentoring, public speaking"
+                />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="person-cohort">Cohort or season</label>
+                <input
+                  id="person-cohort"
+                  value={form.cohortLabel}
+                  onChange={(e) => setForm((f) => ({ ...f, cohortLabel: e.target.value }))}
+                  placeholder="2026 Fellows"
+                />
+              </div>
+            </div>
+            <div className="admin-field">
+              <label>Linked programs</label>
+              <div className="admin-choice-stack">
+                {programs.map((program) => (
+                  <label key={program.id} className="admin-toggle-row">
+                    <input
+                      type="checkbox"
+                      checked={form.programIds.includes(program.id)}
+                      onChange={() =>
+                        setForm((f) => ({
+                          ...f,
+                          programIds: f.programIds.includes(program.id)
+                            ? f.programIds.filter((id) => id !== program.id)
+                            : [...f.programIds, program.id],
+                        }))
+                      }
+                    />
+                    <span>{program.title}</span>
                   </label>
                 ))}
               </div>
@@ -301,9 +359,9 @@ export default function AdminPeoplePage() {
 
       <div className="admin-card">
         {loading ? (
-          <p>Loading people…</p>
+          <p className="admin-empty">Loading people…</p>
         ) : records.length === 0 ? (
-          <p className="admin-help">No profiles yet.</p>
+          <p className="admin-empty">No profiles yet.</p>
         ) : (
           <table className="admin-table">
             <thead>
@@ -319,42 +377,25 @@ export default function AdminPeoplePage() {
               {records.map((record) => (
                 <tr key={record.id}>
                   <td>
-                    {record.name}
+                    <strong>{record.name}</strong>
                     {record.isOrganization ? (
-                      <span className="admin-badge admin-badge--draft" style={{ marginLeft: 8 }}>
-                        Org
-                      </span>
+                      <span className="admin-badge admin-badge--neutral">Org</span>
                     ) : null}
-                    <div style={{ color: '#64748b', fontSize: '0.75rem' }}>/{record.slug}</div>
+                    <span className="admin-meta">/{record.slug}</span>
                   </td>
                   <td>{record.roleTitle || '—'}</td>
                   <td>{record.groups?.length ? record.groups.join(', ') : '—'}</td>
                   <td>
-                    <span
-                      className={`admin-badge ${
-                        record.published ? 'admin-badge--published' : 'admin-badge--draft'
-                      }`}
-                    >
-                      {record.published ? 'Published' : 'Draft'}
-                    </span>
+                    <AdminStatus value={record.published ? 'published' : 'draft'} />
                   </td>
                   <td>
-                    <div className="admin-actions">
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--ghost"
-                        onClick={() => startEdit(record)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--danger"
-                        onClick={() => void onDelete(record.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <AdminRowActions
+                      items={[
+                        { label: 'View', href: `/people/${record.slug}`, external: true },
+                        { label: 'Edit', onClick: () => startEdit(record) },
+                        { label: 'Delete', tone: 'danger', onClick: () => void onDelete(record.id) },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

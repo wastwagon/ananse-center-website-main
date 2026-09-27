@@ -1,8 +1,12 @@
-import type { MediaAsset, NewsPost } from '@prisma/client'
+import type { MediaAsset, NewsPost, Person, Program } from '@prisma/client'
 import { parseStringArray } from './json-arrays.js'
 import { mediaPublicPath } from './media-url.js'
 
-type NewsWithCover = NewsPost & { coverMedia?: MediaAsset | null }
+type NewsWithCover = NewsPost & {
+  coverMedia?: MediaAsset | null
+  program?: Pick<Program, 'id' | 'slug' | 'title'> | null
+  authorPerson?: Pick<Person, 'id' | 'slug' | 'name'> | null
+}
 
 function insightHref(row: NewsWithCover) {
   const link = row.linkHref.trim()
@@ -16,10 +20,17 @@ export function mapPublicNewsPost(row: NewsWithCover) {
     id: row.id,
     title: row.title,
     slug: row.slug,
+    subtitle: row.subtitle,
     excerpt: row.excerpt,
     body: row.body,
     date: row.dateLabel,
-    author: row.author || '',
+    author: row.author || row.authorPerson?.name || '',
+    authorPerson: row.authorPerson
+      ? { id: row.authorPerson.id, slug: row.authorPerson.slug, name: row.authorPerson.name }
+      : null,
+    program: row.program
+      ? { id: row.program.id, slug: row.program.slug, title: row.program.title }
+      : null,
     category: row.category || 'Articles',
     contentType: row.contentType || row.category || 'Articles',
     topics: parseStringArray(row.topics),
@@ -50,7 +61,10 @@ export function mapAdminNewsPost(row: NewsWithCover) {
     excerpt: row.excerpt,
     body: row.body,
     dateLabel: row.dateLabel,
+    subtitle: row.subtitle,
     author: row.author || '',
+    authorPersonId: row.authorPersonId,
+    programId: row.programId,
     category: row.category || 'Articles',
     contentType: row.contentType || 'Articles',
     topics: parseStringArray(row.topics),
@@ -66,4 +80,8 @@ export function mapAdminNewsPost(row: NewsWithCover) {
   }
 }
 
-export const newsIncludeCover = { coverMedia: true } as const
+export const newsIncludeCover = {
+  coverMedia: true,
+  program: { select: { id: true, slug: true, title: true } },
+  authorPerson: { select: { id: true, slug: true, name: true } },
+} as const

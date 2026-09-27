@@ -29,6 +29,10 @@ export default function CoverMediaField({
   return (
     <div className="admin-field">
       <label>{label}</label>
+      <p className="admin-help" style={{ marginTop: 0 }}>
+        Files come from the shared Media Library. Detach clears this field only — the file stays
+        reusable until deleted in Media Library.
+      </p>
       {previewUrl && imagesOnly ? (
         <div className="admin-cover-preview">
           <Image
@@ -41,21 +45,21 @@ export default function CoverMediaField({
           />
           <div className="admin-actions" style={{ marginTop: '0.5rem' }}>
             <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setPickerOpen(true)}>
-              Replace
+              Replace / choose another
             </button>
             <button type="button" className="admin-btn admin-btn--danger" onClick={() => onChange(null)}>
-              Remove
+              Detach
             </button>
           </div>
         </div>
       ) : previewUrl ? (
         <div className="admin-actions" style={{ marginBottom: '0.5rem' }}>
-          <span className="admin-help">Media selected</span>
+          <span className="admin-help">Media selected (id stored; file stays in library)</span>
           <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setPickerOpen(true)}>
-            Replace
+            Replace / choose another
           </button>
           <button type="button" className="admin-btn admin-btn--danger" onClick={() => onChange(null)}>
-            Remove
+            Detach
           </button>
         </div>
       ) : (

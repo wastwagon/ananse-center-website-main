@@ -9,10 +9,10 @@ export const HOME_HERO = {
   primary: { label: 'Explore ANANSE', href: '/about' },
   secondary: { label: 'Explore our programs', href: '/programs' },
   stats: [
-    { value: 'Character', label: 'Integrity, responsibility, courage' },
-    { value: 'Wisdom', label: 'Judgment for what matters' },
-    { value: 'Competence', label: 'Knowledge, skill, excellence' },
-    { value: 'Service', label: 'Influence used for others' },
+    { value: 'Character', label: 'Integrity' },
+    { value: 'Wisdom', label: 'Judgment' },
+    { value: 'Competence', label: 'Skill' },
+    { value: 'Service', label: 'Others first' },
   ],
 }
 
@@ -22,6 +22,19 @@ export const HOME_WELCOME = {
     'Leadership is character in action. It is responsibility, influence, wisdom, and service.',
     'At ANANSE, we believe that developing effective leaders requires more than teaching skills. It requires developing the whole person—strengthening character, deepening understanding, nurturing authentic spirituality, encouraging excellence, and equipping people to respond creatively to the challenges around them.',
     "We bring people together through education, mentorship, lectures, conversations, publications, and practical initiatives designed to add value to people's lives.",
+  ],
+}
+
+/** Brief §11 — Explore ANANSE: Learn. Listen. Watch. Engage. */
+export const HOME_EXPLORE = {
+  heading: 'Explore ANANSE',
+  lead: 'Learn. Listen. Watch. Engage.',
+  body: 'The ANANSE website is a living learning platform — programs to join, a library to keep, gatherings to attend, and ideas to read.',
+  links: [
+    { label: 'Learn', href: '/programs', hint: 'Programs and pathways' },
+    { label: 'Listen', href: '/library?shelf=listen', hint: 'Audio in the Library' },
+    { label: 'Watch', href: '/library?shelf=watch', hint: 'Video in the Library' },
+    { label: 'Engage', href: '/events', hint: 'Upcoming gatherings' },
   ],
 }
 
@@ -65,7 +78,19 @@ export {
   INSIGHT_CONTENT_TYPES,
 } from './taxonomy'
 
-/** Photo Gallery shelf for the Library opening page (albums live separately). */
+export const LIBRARY_COLLECTION_BLURBS: Record<string, string> = {
+  'Midday Reflection': 'Discovering wisdom for everyday living.',
+  'Leadership Lectures': 'Developing leaders whose character matches their competence.',
+  'Excellence Lectures': 'Bringing accomplished voices and important ideas into conversation.',
+  'Sankofa ADR':
+    'A specialized ANANSE program for resolving disputes and peacemaking as was done by our African forebears.',
+  'Interviews & Conversations': 'Creating spaces for thoughtful engagement with significant questions.',
+  'Public Lectures & Conversations': 'Creating spaces for thoughtful engagement with significant questions.',
+  Interviews: 'Creating spaces for thoughtful engagement with significant questions.',
+  'Mentorship Sessions': 'Connecting experience with emerging talent.',
+  'Special Programs': 'Responding creatively to emerging needs and opportunities.',
+  'Workshops & Seminars': 'Focused learning and guided discussion.',
+}
 export const LIBRARY_PHOTO_SHELF = {
   title: 'Photo Gallery',
   items: [
@@ -80,6 +105,61 @@ export const LIBRARY_PHOTO_SHELF = {
   ],
 } as const
 
+
+export const INSIGHT_TOPICS_INTRO = [
+  {
+    title: 'Leadership',
+    body: 'Ideas about leadership, influence, responsibility, decision-making, organizational life, and the character required to lead.',
+  },
+  {
+    title: 'Character',
+    body: 'Reflections on integrity, courage, discipline, responsibility, trustworthiness, and the formation of the person behind the position.',
+  },
+  {
+    title: 'Excellence',
+    body: 'Thinking about quality, competence, diligence, continuous improvement, and the pursuit of meaningful achievement.',
+  },
+  {
+    title: 'Mentorship',
+    body: 'Perspectives on learning from others, developing potential, intergenerational relationships, guidance, coaching, and the responsibility to help others grow.',
+  },
+  {
+    title: 'Authentic Spirituality',
+    body: 'Reflections on faith, spiritual formation, Scripture, values, meaning, and the relationship between spirituality and everyday life.',
+  },
+  {
+    title: 'Education',
+    body: 'Ideas about learning, teaching, intellectual development, educational leadership, students, institutions, and the future of education.',
+  },
+  {
+    title: 'Faith & Life',
+    body: 'Explorations of the relationship between faith and the realities of everyday living.',
+  },
+  {
+    title: 'Marriage & Relationships',
+    body: 'Reflections on marriage, family, friendship, communication, responsibility, and the relationships that shape human life.',
+  },
+  {
+    title: 'Music & Culture',
+    body: 'Explorations of music, culture, identity, creativity, heritage, and the ways people express and understand who they are.',
+  },
+  {
+    title: 'Healthy Living',
+    body: 'Perspectives on living wisely and purposefully, including habits, wellbeing, balance, relationships, and responsible stewardship of life.',
+  },
+  {
+    title: 'Africa & Development',
+    body: "Ideas and conversations about Africa, development, leadership, institutions, citizenship, culture, education, and the continent's relationship with the wider world.",
+  },
+  {
+    title: 'Society',
+    body: 'Reflections on social responsibility, citizenship, institutions, justice, community, public life, and issues affecting society.',
+  },
+  {
+    title: 'Personal Growth',
+    body: 'Practical reflections on becoming, learning, adapting, overcoming challenges, discovering purpose, and living a meaningful life.',
+  },
+] as const
 
 export const HOME_INSIGHTS = {
   heading: 'ANANSE Insights',
@@ -125,53 +205,116 @@ export const GET_INVOLVED_PATHS = [
   {
     id: 'learn',
     title: 'Learn',
-    body: 'Explore our lectures, reflections, writings, and educational resources.',
+    kicker: 'Keep growing',
+    body: 'Explore the ideas, conversations, resources, and learning opportunities available through ANANSE. You can begin without joining a formal program.',
+    points: [
+      'Explore ANANSE programs',
+      'Listen to Midday Reflection',
+      'Watch lectures and conversations',
+      'Read ANANSE Insights',
+      'Explore the Library',
+      'Discover recommended resources',
+      'Follow topics that interest you',
+    ],
     href: '/programs',
-    cta: 'Explore programs',
+    cta: 'Explore ANANSE',
   },
   {
     id: 'attend',
     title: 'Attend',
-    body: 'Join an upcoming program, lecture, seminar, or conversation.',
+    kicker: 'Join the conversation',
+    body: 'ANANSE events create opportunities to learn together, meet people, exchange ideas, and take part in meaningful conversations.',
+    points: [
+      'Public lectures',
+      'Excellence Lectures',
+      'Workshops',
+      'Seminars',
+      'Mentorship gatherings',
+      'Public conversations',
+      'Music & Culture programs',
+      'Special initiatives',
+      'Community engagement',
+    ],
     href: '/events',
-    cta: 'See events',
+    cta: 'Explore events',
   },
   {
     id: 'mentor',
     title: 'Mentor',
-    body: 'Share your experience, knowledge, and wisdom with emerging leaders. This is an expression of interest, not a guaranteed match.',
+    kicker: 'Share wisdom. Develop potential.',
+    body: 'If you have knowledge, experience, or a desire to help others grow, you may contribute as a mentor. Sending interest does not confirm a mentoring match.',
+    points: [
+      'One-to-one mentoring',
+      'Group mentoring',
+      'Professional guidance',
+      'Leadership development',
+      'Career conversations',
+      'Skills development',
+      'Life experience and practical wisdom',
+    ],
     href: '#mentor-form',
-    cta: 'Offer to mentor',
+    cta: 'Become a mentor',
   },
   {
     id: 'partner',
     title: 'Partner',
-    body: 'Work with ANANSE to develop people and strengthen communities.',
+    kicker: 'Let’s work together',
+    body: 'ANANSE welcomes partnerships with people and organizations that share an interest in developing people and strengthening communities. A partnership is based on shared purpose and clearly defined expectations.',
+    points: [
+      'Educational institutions and professional organizations',
+      'Businesses, NGOs, and community organizations',
+      'Cultural, faith-based, and public institutions',
+      'Joint programs, lectures, and mentorship',
+      'Educational, cultural, and community projects',
+    ],
     href: '#contact',
-    cta: 'Write about a partnership',
+    cta: 'Partner with us',
   },
   {
     id: 'support',
     title: 'Support',
-    body: 'Help create new opportunities for leadership development, learning, and service. Support is financial giving. It is separate from offering time, skill, resources, or opportunities.',
+    kicker: 'Help strengthen the work',
+    body: 'Financial gifts support programs, learning, and special initiatives. Expertise, resources, and opportunities are different kinds of support and are offered through the other pathways on this page.',
+    points: [
+      'Give — financial gifts through the Support page',
+      'Give expertise — knowledge and skill, offered as mentoring or partnership',
+      'Give resources — books, materials, or facilities, where appropriate',
+      'Give opportunities — internships, professional doors, or connections',
+    ],
     href: '/support#donate',
-    cta: 'Give',
+    cta: 'Support ANANSE',
   },
   {
     id: 'share',
     title: 'Share',
-    body: 'Help others discover resources that can add value to their lives.',
+    kicker: 'Help the conversation travel',
+    body: 'If something helps you learn, it may help someone else grow. Share Midday Reflection, Insights, lectures, videos, articles, and events.',
+    points: [
+      'A colleague, student, or mentee',
+      'A friend or community group',
+      'A professional network',
+      'Your own audience, when the material is useful',
+    ],
     href: '#share',
-    cta: 'Share ANANSE',
+    cta: 'Share the work',
+  },
+  {
+    id: 'contact',
+    title: 'Contact',
+    body: 'Start a conversation with ANANSE about programs, events, partnership, or a general question.',
+    points: [] as string[],
+    href: '/get-involved#contact',
+    cta: 'Write to ANANSE',
   },
 ] as const
 
 export const ABOUT_JUMPS = [
   { id: 'who-we-are', label: 'Who We Are' },
+  { id: 'who-we-serve', label: 'Who We Serve' },
   { id: 'the-ananse-story', label: 'The ANANSE Story' },
+  { id: 'continuity', label: 'Roots & Continuity' },
   { id: 'vision-mission', label: 'Vision & Mission' },
   { id: 'core-values', label: 'Core Values' },
-  { id: 'eaglesonline', label: 'EAGLESonline' },
 ] as const
 
 export const CORE_VALUES = [
@@ -260,4 +403,8 @@ export const CONTACT_SUBJECTS = [
   'Partnership',
   'Support / giving',
   'Share',
+  'Speaking',
+  'Media',
+  'Other',
 ] as const
+

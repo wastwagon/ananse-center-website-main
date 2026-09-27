@@ -64,10 +64,14 @@ export async function adminExportRoutes(app: FastifyInstance) {
       orderBy: { createdAt: 'desc' },
       take: 2000,
     })
-    const header = ['email', 'created_at']
+    const header = ['email', 'status', 'created_at', 'unsubscribed_at']
     const lines = [
       header.join(','),
-      ...rows.map((r) => [r.email, r.createdAt.toISOString()].map(csvEscape).join(',')),
+      ...rows.map((r) =>
+        [r.email, r.status, r.createdAt.toISOString(), r.unsubscribedAt?.toISOString() || '']
+          .map(csvEscape)
+          .join(','),
+      ),
     ]
     reply.header('Content-Type', 'text/csv; charset=utf-8')
     reply.header('Content-Disposition', 'attachment; filename="newsletter-subscribers.csv"')

@@ -15,7 +15,8 @@ export default function LocalizedLink({ href, ...props }: LocalizedLinkProps) {
   const hashIndex = href.indexOf('#')
   const path = hashIndex >= 0 ? href.slice(0, hashIndex) : href
   const hash = hashIndex >= 0 ? href.slice(hashIndex) : ''
-  const localized = localizedPath(path || '/', locale) + hash
+  // Same-page anchors (#contact) must stay as hash-only — do not promote to "/#…"
+  const localized = path ? localizedPath(path, locale) + hash : hash || '/'
 
   return <Link href={localized} {...props} />
 }

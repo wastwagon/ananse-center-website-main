@@ -7,23 +7,18 @@ const staticPaths = [
   '/',
   '/about',
   '/programs',
+  '/library',
+  '/library/midday-reflection',
+  '/library/photos',
   '/events',
-  '/videos',
+  '/insights',
+  '/people',
+  '/get-involved',
   '/support',
-  '/contact',
   '/privacy',
   '/terms',
-  '/visit',
-  '/repatriation',
-  '/trustees',
-  '/transparency',
-  '/admissions',
-  '/community',
-  '/resources',
-  '/archives',
-  '/news',
+  '/accessibility',
   '/search',
-  '/partnerships',
 ] as const
 
 async function fetchSlugs(endpoint: string): Promise<string[]> {
@@ -44,17 +39,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!base) return []
 
   const now = new Date()
-  const [eventSlugs, programSlugs, newsSlugs] = await Promise.all([
-    fetchSlugs('/api/v1/events'),
-    fetchSlugs('/api/v1/programs'),
-    fetchSlugs('/api/v1/news'),
-  ])
+  const [eventSlugs, programSlugs, insightSlugs, librarySlugs, peopleSlugs, albumSlugs] =
+    await Promise.all([
+      fetchSlugs('/api/v1/events'),
+      fetchSlugs('/api/v1/programs'),
+      fetchSlugs('/api/v1/insights'),
+      fetchSlugs('/api/v1/library'),
+      fetchSlugs('/api/v1/people'),
+      fetchSlugs('/api/v1/photo-albums'),
+    ])
 
   const paths = [
     ...staticPaths,
     ...eventSlugs.map((slug) => `/events/${slug}` as const),
     ...programSlugs.map((slug) => `/programs/${slug}` as const),
-    ...newsSlugs.map((slug) => `/news/${slug}` as const),
+    ...insightSlugs.map((slug) => `/insights/${slug}` as const),
+    ...librarySlugs.map((slug) => `/library/${slug}` as const),
+    ...peopleSlugs.map((slug) => `/people/${slug}` as const),
+    ...albumSlugs.map((slug) => `/library/photos/${slug}` as const),
   ]
 
   return paths.flatMap((path) =>

@@ -59,25 +59,8 @@ async function sendViaResend(to: string[], subject: string, text: string) {
 }
 
 async function sendViaSmtp(to: string[], subject: string, text: string) {
-  const host = process.env.SMTP_HOST?.trim()
-  if (!host) return false
-
-  const port = Number(process.env.SMTP_PORT || 587)
-  const user = process.env.SMTP_USER?.trim()
-  const pass = process.env.SMTP_PASS?.trim()
-  const from = process.env.NOTIFY_FROM_EMAIL?.trim() || user
-  if (!from) return false
-
-  const { createTransport } = await import('nodemailer')
-  const transport = createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: user && pass ? { user, pass } : undefined,
-  })
-
-  await transport.sendMail({ from, to: to.join(', '), subject, text })
-  return true
+  const { sendSmtpMail } = await import('./mail.js')
+  return sendSmtpMail({ to, subject, text })
 }
 
 /** CRM webhook + optional staff email (Resend API or SMTP). Fire-and-forget. */

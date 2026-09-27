@@ -3,6 +3,12 @@
 /** Next/Image sizes for responsive card grids (2 col mobile → 4 col desktop). */
 export const cardImageSizes = '(max-width: 639px) 50vw, (max-width: 899px) 50vw, 25vw'
 
+/** Media-library URLs must skip the Next optimizer or they collapse in card frames. */
+export function isUnoptimizedMediaSrc(src: string | null | undefined): boolean {
+  if (!src) return false
+  return src.startsWith('/api/') || src.includes('/api/media/')
+}
+
 /** Resolve a CMS image path (public file or /api/media/...) with a safe fallback. */
 export function resolveCmsImage(path: string | undefined | null, fallback: string): string {
   const trimmed = path?.trim()

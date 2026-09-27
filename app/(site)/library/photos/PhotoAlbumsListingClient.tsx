@@ -1,9 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Image from 'next/image'
 import LocalizedLink from '../../../../components/LocalizedLink'
-import { cardImageSizes } from '../../../../lib/images'
+import CardCover from '../../../../components/CardCover'
+import PremiumFilterBar from '../../../../components/PremiumFilterBar'
+import { cmsPlainExcerpt } from '../../../../lib/cms/richtext'
 import { PHOTO_COLLECTIONS } from '../../../../lib/leadership/taxonomy'
 
 export type PhotoAlbumListItem = {
@@ -41,22 +42,21 @@ export default function PhotoAlbumsListingClient({
 
   return (
     <>
-      <div className="filter-scroll" style={{ marginBottom: '1.5rem' }}>
-        <div className="segmented-control" role="tablist" aria-label="Photo collection">
-          {[ALL_COLLECTIONS, ...PHOTO_COLLECTIONS].map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="tab"
-              aria-selected={collectionFilter === option}
-              onClick={() => setCollectionFilter(option)}
-              className={`filter-btn ${collectionFilter === option ? 'filter-btn-active' : ''}`}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PremiumFilterBar
+        groups={[
+          {
+            label: 'Collection',
+            ariaLabel: 'Photo collection',
+            value: collectionFilter,
+            variant: 'tabs',
+            onChange: setCollectionFilter,
+            options: [ALL_COLLECTIONS, ...PHOTO_COLLECTIONS].map((option) => ({
+              value: option,
+              label: option,
+            })),
+          },
+        ]}
+      />
 
       {filtered.length === 0 ? (
         <p className="page-body-text">{empty}</p>
@@ -65,17 +65,10 @@ export default function PhotoAlbumsListingClient({
           {filtered.map((item) => (
             <article
               key={item.key}
-              className={`premium-card${item.featured ? ' premium-card--featured' : ''}`}
+              className={`premium-card library-listing-card${item.featured ? ' premium-card--featured' : ''}`}
             >
               <div className="premium-card-image-wrapper">
-                <Image
-                  src={item.cover}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                  sizes={cardImageSizes}
-                  unoptimized={item.cover.startsWith('/api/')}
-                />
+                <CardCover src={item.cover} alt={item.title} />
               </div>
               <div className="premium-card-header">
                 <span className="premium-card-featured-label">{item.collection}</span>
@@ -85,12 +78,8 @@ export default function PhotoAlbumsListingClient({
               </div>
               {item.dateLabel ? <p className="premium-card-date">{item.dateLabel}</p> : null}
               <h3 className="premium-card-title">{item.title}</h3>
-              {item.place ? (
-                <p className="page-body-text text-body-sm" style={{ marginBottom: '0.5rem' }}>
-                  {item.place}
-                </p>
-              ) : null}
-              <p className="premium-card-description">{item.description}</p>
+              {item.place ? <p className="library-photo-place">{item.place}</p> : null}
+              <p className="premium-card-description">{cmsPlainExcerpt(item.description)}</p>
               <LocalizedLink href={item.href} className="btn-primary premium-card-cta">
                 {viewAlbum}
               </LocalizedLink>

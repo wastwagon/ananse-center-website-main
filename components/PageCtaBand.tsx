@@ -1,4 +1,5 @@
 import LocalizedLink from './LocalizedLink'
+import CmsRichText from './CmsRichText'
 
 type CtaItem = {
   label: string
@@ -18,7 +19,7 @@ export default function PageCtaBand({ heading, body, primary, secondary }: PageC
     <section className="page-cta-section section-reveal">
       <div className="page-section-container page-cta-inner">
         <h2 className="page-cta-heading">{heading}</h2>
-        <p className="page-cta-body">{body}</p>
+        <CmsRichText body={body} className="page-cta-body" />
         <div className="page-cta-buttons">
           <LocalizedLink
             href={primary.href}

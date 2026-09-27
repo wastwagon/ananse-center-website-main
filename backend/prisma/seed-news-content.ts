@@ -101,7 +101,7 @@ const POSTS: PostSeed[] = [
   <li>Master drummer workshops</li>
   <li>Community dance circles open to all ages</li>
 </ul>
-<p>Registration and volunteer openings will be posted on the <a href="/events">events page</a>. Partners interested in supporting instruments, meals, or travel stipends can reach us via <a href="/contact#form">Contact</a>.</p>
+<p>Registration and volunteer openings will be posted on the <a href="/events">events page</a>. Partners interested in supporting instruments, meals, or travel stipends can reach us via <a href="/get-involved#contact">Contact</a>.</p>
 `.trim(),
   },
   {
@@ -147,7 +147,7 @@ const POSTS: PostSeed[] = [
   <li>Peer coaching on a real community problem</li>
   <li>Commitments for the week ahead</li>
 </ol>
-<p>Graduates often continue as peer mentors in arts and culture programs. Read more about pathways on the <a href="/programs">programs</a> page, or ask about the next cohort through <a href="/contact#form">Contact</a>.</p>
+<p>Graduates often continue as peer mentors in arts and culture programs. Read more about pathways on the <a href="/programs">programs</a> page, or ask about the next cohort through <a href="/get-involved#contact">Contact</a>.</p>
 `.trim(),
   },
   {
@@ -170,7 +170,7 @@ const POSTS: PostSeed[] = [
   <li>Diaspora guests seeking embodied cultural reconnection</li>
   <li>Community groups requesting closed restorative workshops</li>
 </ul>
-<p>Finished pieces sometimes join exhibitions or remain private, according to each participant’s choice. Explore related offerings under <a href="/programs">Programs</a>, or request a group session via <a href="/contact#form">Contact</a>.</p>
+<p>Finished pieces sometimes join exhibitions or remain private, according to each participant’s choice. Explore related offerings under <a href="/programs">Programs</a>, or request a group session via <a href="/get-involved#contact">Contact</a>.</p>
 `.trim(),
   },
 ]

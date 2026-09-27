@@ -232,7 +232,7 @@ export default function DonateSection({
                   {symbol}
                   {opt.amount}
                 </div>
-                <div className="section-badge" style={{ marginBottom: '1.5rem' }}>
+                <div className="section-badge">
                   {opt.label}
                 </div>
                 <button
@@ -274,7 +274,7 @@ export default function DonateSection({
 
           {!paymentsReady ? (
             <p className="page-body-text text-center" style={{ marginTop: '1.5rem' }}>
-              <LocalizedLink href="/contact#form" className="program-card-link">
+              <LocalizedLink href="/get-involved#contact" className="program-card-link">
                 Contact us to give offline →
               </LocalizedLink>
             </p>

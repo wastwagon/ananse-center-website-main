@@ -15,6 +15,10 @@ export type ApiEvent = {
   deliveryMode?: 'in_person' | 'online' | 'hybrid' | string
   meetingUrl?: string | null
   recordingUrl?: string | null
+  audioUrl?: string | null
+  transcript?: string
+  subtitle?: string
+  speakers?: { role: string; id: string; slug: string; name: string; roleTitle: string }[]
   galleryImageUrls?: string[]
   program?: { id: string; slug: string; title: string } | null
   location: string
@@ -234,6 +238,7 @@ export type ApiNewsPost = {
   id: string
   title: string
   slug: string
+  subtitle?: string
   excerpt: string
   body: string
   date: string
@@ -248,6 +253,8 @@ export type ApiNewsPost = {
 export type ApiInsightPost = ApiNewsPost & {
   contentType: string
   topics: string[]
+  authorPerson?: { id: string; slug: string; name: string } | null
+  program?: { id: string; slug: string; title: string } | null
   showInLibraryRead?: boolean
 }
 
@@ -261,6 +268,11 @@ export type ApiPerson = {
   isOrganization: boolean
   organizationName: string
   websiteUrl: string | null
+  expertise?: string
+  cohortLabel?: string
+  programs?: { id: string; slug: string; title: string }[]
+  events?: { id: string; slug: string; title: string; date: string; role: string }[]
+  insights?: { id: string; slug: string; title: string; date: string; contentType: string }[]
   photoImageUrl: string | null
   logoImageUrl: string | null
   featured: boolean
@@ -285,8 +297,11 @@ export type ApiLibraryItem = {
   dateLabel: string
   publishedAt: string | null
   topics: string[]
+  keywords?: string
   program: ApiLibraryProgramRef | null
+  event?: { id: string; slug: string; title: string } | null
   person: ApiLibraryPersonRef | null
+  insight?: { id: string; slug: string; title: string } | null
   coverImageUrl: string | null
   audioUrl: string | null
   videoUrl: string | null
@@ -552,6 +567,21 @@ export async function subscribeNewsletter(email: string) {
   const payload = await response.json().catch(() => ({}))
   if (!response.ok) {
     throw new Error(payload.error || 'Unable to subscribe')
+  }
+
+  return payload as { ok: boolean; message: string; alreadySubscribed?: boolean; emailed?: boolean }
+}
+
+export async function unsubscribeNewsletter(token: string) {
+  const response = await fetch(`${getPublicApiUrl()}/api/v1/newsletter/unsubscribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  })
+
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    throw new Error(payload.error || 'Unable to unsubscribe')
   }
 
   return payload as { ok: boolean; message: string }

@@ -11,8 +11,8 @@ export async function generateMetadata() {
 export default async function VisitPage() {
   const cms = await getCmsTexts(['visit.badge', 'visit.heading', 'visit.lead', 'visit.body', 'visit.directions'] as const)
   const directions = await loadLabeledRows('visit.directions', [
-    { label: 'Region', value: 'Central Region, Ghana' },
-    { label: 'Community', value: 'Akatakyiwa' },
+    { label: 'Country', value: 'Ghana' },
+    { label: 'Hub', value: 'Accra' },
   ])
 
   return (
@@ -21,8 +21,8 @@ export default async function VisitPage() {
       badge={cms['visit.badge']}
       title={cms['visit.heading']}
       lead={cms['visit.lead']}
-      primaryCta={{ label: 'Schedule a visit', href: '/contact#form' }}
-      secondaryCta={{ label: 'Repatriation resources', href: '/repatriation' }}
+      primaryCta={{ label: 'Schedule a visit', href: '/get-involved#contact' }}
+      secondaryCta={{ label: 'Get involved', href: '/get-involved' }}
     >
       <CmsRichText body={cms['visit.body']} className="content-prose-body" />
       <div className="detail-info-grid">

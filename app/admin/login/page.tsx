@@ -33,12 +33,15 @@ function AdminLoginForm() {
   return (
     <div className="admin-login-page">
       <div className="admin-login-card">
-        <h1 className="admin-title" style={{ marginBottom: '0.5rem' }}>
-          Admin sign in
-        </h1>
-        <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9375rem' }}>
-          Manage events, messages, and donations.
-        </p>
+        <img
+          src="/ananse-logo.png"
+          alt="ANANSE"
+          className="admin-login-logo"
+          width={220}
+          height={66}
+        />
+        <h1 className="admin-title admin-login-title">Admin sign in</h1>
+        <p className="admin-help">Events, programs, messages, and site settings.</p>
 
         <form className="admin-form" onSubmit={onSubmit}>
           <div className="admin-field">

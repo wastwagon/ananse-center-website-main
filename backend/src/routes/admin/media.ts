@@ -12,6 +12,7 @@ import {
   maxUploadBytes,
 } from '../../lib/media-path.js'
 import { mapMedia } from '../../lib/media-map.js'
+import { collectMediaUsage, detachMediaEverywhere } from '../../lib/media-usage.js'
 
 const patchSchema = z.object({
   altText: z.string().max(500).optional(),
@@ -66,6 +67,17 @@ export async function adminMediaRoutes(app: FastifyInstance) {
     return { data: mapMedia(asset) }
   })
 
+  app.get<{ Params: { id: string } }>(
+    '/api/v1/admin/media/:id/usage',
+    guard,
+    async (request, reply) => {
+      const asset = await prisma.mediaAsset.findUnique({ where: { id: request.params.id } })
+      if (!asset) return reply.status(404).send({ error: 'Media not found' })
+      const usage = await collectMediaUsage(prisma, asset.id)
+      return { data: usage }
+    },
+  )
+
   app.post('/api/v1/admin/media', guard, async (request, reply) => {
     const file = await request.file()
     if (!file) {
@@ -101,6 +113,60 @@ export async function adminMediaRoutes(app: FastifyInstance) {
     return reply.status(201).send({ data: mapMedia(asset) })
   })
 
+  /** Replace file bytes while keeping the same media id (all attachments keep working). */
+  app.post<{ Params: { id: string } }>(
+    '/api/v1/admin/media/:id/replace',
+    guard,
+    async (request, reply) => {
+      const existing = await prisma.mediaAsset.findUnique({ where: { id: request.params.id } })
+      if (!existing) return reply.status(404).send({ error: 'Media not found' })
+
+      const file = await request.file()
+      if (!file) {
+        return reply.status(400).send({ error: 'No file uploaded' })
+      }
+
+      const mimeType = file.mimetype || 'application/octet-stream'
+      if (!ALLOWED_MEDIA_MIME_TYPES.has(mimeType)) {
+        return reply.status(400).send({ error: `File type not allowed: ${mimeType}` })
+      }
+
+      const buffer = await file.toBuffer()
+      if (buffer.byteLength > maxUploadBytes()) {
+        return reply.status(400).send({ error: 'File exceeds maximum upload size' })
+      }
+
+      const ext = extensionForMime(mimeType) || pathExtFromName(file.filename)
+      const storedName = `${randomUUID()}${ext}`
+      await ensureUploadDir()
+      await writeFile(filePathForStoredName(storedName), buffer)
+
+      const previousFilename = existing.filename
+      const asset = await prisma.mediaAsset.update({
+        where: { id: existing.id },
+        data: {
+          filename: storedName,
+          originalName: file.filename,
+          mimeType,
+          sizeBytes: buffer.byteLength,
+          width: null,
+          height: null,
+          title: existing.title || file.filename,
+        },
+      })
+
+      try {
+        if (previousFilename !== storedName) {
+          await unlink(filePathForStoredName(previousFilename))
+        }
+      } catch {
+        /* previous file may already be gone */
+      }
+
+      return { data: mapMedia(asset) }
+    },
+  )
+
   app.patch<{ Params: { id: string } }>('/api/v1/admin/media/:id', guard, async (request, reply) => {
     const parsed = patchSchema.safeParse(request.body)
     if (!parsed.success) {
@@ -119,11 +185,8 @@ export async function adminMediaRoutes(app: FastifyInstance) {
     const asset = await prisma.mediaAsset.findUnique({ where: { id: request.params.id } })
     if (!asset) return reply.status(404).send({ error: 'Media not found' })
 
-    await prisma.$transaction([
-      prisma.event.updateMany({ where: { coverMediaId: asset.id }, data: { coverMediaId: null } }),
-      prisma.program.updateMany({ where: { coverMediaId: asset.id }, data: { coverMediaId: null } }),
-      prisma.mediaAsset.delete({ where: { id: asset.id } }),
-    ])
+    await detachMediaEverywhere(prisma, asset.id)
+    await prisma.mediaAsset.delete({ where: { id: asset.id } })
 
     try {
       await unlink(filePathForStoredName(asset.filename))

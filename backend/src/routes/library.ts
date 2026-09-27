@@ -36,6 +36,10 @@ function buildLibraryWhere(query: LibraryQuery): Prisma.LibraryItemWhereInput {
       { body: contains },
       { transcript: contains },
       { wisdomNugget: contains },
+      { scriptureTheme: contains },
+      { keywords: contains },
+      { dateLabel: contains },
+      { topics: { string_contains: query.q.trim() } },
     ]
   }
   return where

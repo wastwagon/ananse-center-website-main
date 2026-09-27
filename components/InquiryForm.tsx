@@ -27,6 +27,7 @@ export default function InquiryForm({
 }: InquiryFormProps) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [organization, setOrganization] = useState('')
   const [subject, setSubject] = useState(defaultSubject)
   const [message, setMessage] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -37,11 +38,16 @@ export default function InquiryForm({
     setStatus('loading')
     setFeedback('')
     try {
-      const result = await submitContactMessage({ name, email, subject, message })
+      const organizationLine = organization.trim()
+      const messageBody = organizationLine
+        ? `Organization: ${organizationLine}\n\n${message}`
+        : message
+      const result = await submitContactMessage({ name, email, subject, message: messageBody })
       setStatus('success')
       setFeedback(successNote || result.message)
       setName('')
       setEmail('')
+      setOrganization('')
       setMessage('')
       setSubject(defaultSubject)
     } catch (error) {
@@ -88,6 +94,20 @@ export default function InquiryForm({
               required
             />
           </div>
+        </div>
+        <div className="form-group">
+          <label htmlFor={`${id}-organization`} className="form-label">
+            Organization
+          </label>
+          <input
+            id={`${id}-organization`}
+            name="organization"
+            type="text"
+            autoComplete="organization"
+            className="form-input"
+            value={organization}
+            onChange={(e) => setOrganization(e.target.value)}
+          />
         </div>
         <div className="form-group">
           <label htmlFor={`${id}-subject`} className="form-label">

@@ -19,7 +19,7 @@ export default async function NotFound() {
             <LocalizedLink href="/" className="btn-primary">
               {t('policy.home', locale)}
             </LocalizedLink>
-            <LocalizedLink href="/contact#form" className="btn-outline">
+            <LocalizedLink href="/get-involved#contact" className="btn-outline">
               {t('policy.contact', locale)}
             </LocalizedLink>
           </div>

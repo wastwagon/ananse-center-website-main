@@ -4,7 +4,8 @@ import { getCmsTexts } from '../../../lib/cms/content'
 import { CONTENT_REGISTRY } from '../../../lib/cms/registry'
 
 function leadershipLegalCopy(value: string, key: 'privacy.lead' | 'privacy.body') {
-  if (/arts and culture|newsletter/i.test(value)) return CONTENT_REGISTRY[key].defaultBody
+  if (/arts and culture/i.test(value)) return CONTENT_REGISTRY[key].defaultBody
+  if (/does not send a newsletter/i.test(value)) return CONTENT_REGISTRY[key].defaultBody
   return value
 }
 

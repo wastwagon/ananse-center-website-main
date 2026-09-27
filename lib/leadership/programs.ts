@@ -1,4 +1,5 @@
 import type { ApiProgram } from '../api'
+import { looksLikeHtml, stripHtmlToPlain } from '../cms/richtext'
 
 /**
  * Ten ANANSE programs, in the client's order.
@@ -47,7 +48,13 @@ export const LEADERSHIP_PROGRAMS: ApiProgram[] = [
     iconKey: 'Users',
     sortOrder: 1,
     coverImageUrl: null,
-    features: [],
+    features: [
+      'Intergenerational exchange',
+      'Shared experience',
+      'Emerging talent',
+      'Practical guidance',
+      'Walking alongside',
+    ],
     description: [
       'Connecting experience with emerging talent.',
       'Wisdom Shared. Potential Developed.',
@@ -68,7 +75,14 @@ export const LEADERSHIP_PROGRAMS: ApiProgram[] = [
     iconKey: 'GraduationCap',
     sortOrder: 2,
     coverImageUrl: null,
-    features: [],
+    features: [
+      'Leadership',
+      'Education',
+      'Professional development',
+      'Character',
+      'Society and culture',
+      'Human flourishing',
+    ],
     description: [
       'Bringing accomplished voices and important ideas into conversation.',
       'Ideas That Challenge. Voices That Inspire. Wisdom That Endures.',
@@ -88,9 +102,18 @@ export const LEADERSHIP_PROGRAMS: ApiProgram[] = [
     iconKey: 'Sun',
     sortOrder: 3,
     coverImageUrl: null,
-    features: [],
+    features: [
+      'Scripture',
+      'Wisdom',
+      'Character',
+      'Relationships',
+      'Leadership',
+      'Faith',
+      'Everyday life',
+    ],
     description: [
       'Discovering wisdom for everyday living.',
+      'Wisdom for the Journey of Life.',
       'Midday Reflection is a weekly journey into Scripture, wisdom, character, relationships, leadership, faith, and everyday life.',
       'Hosted by Dr. Samuel Koranteng-Pipim, the program invites listeners to slow down, think deeply, and discover wisdom for the journey of life.',
       'It is more than a weekly broadcast. It is an invitation to pause amid the demands of life and consider how timeless wisdom can shape the way we live.',
@@ -109,7 +132,13 @@ export const LEADERSHIP_PROGRAMS: ApiProgram[] = [
     iconKey: 'Globe',
     sortOrder: 4,
     coverImageUrl: null,
-    features: [],
+    features: [
+      'Lectures',
+      'Panel discussions',
+      'Interviews',
+      'Forums',
+      'Conversations',
+    ],
     description: [
       'Creating spaces for thoughtful engagement with significant questions.',
       'Thinking Together About Questions That Matter.',
@@ -129,7 +158,14 @@ export const LEADERSHIP_PROGRAMS: ApiProgram[] = [
     iconKey: 'Sparkles',
     sortOrder: 5,
     coverImageUrl: null,
-    features: [],
+    features: [
+      'Education',
+      'Mentorship',
+      'Youth development',
+      'Professional development',
+      'Community engagement',
+      'Practical training',
+    ],
     description: [
       'Responding creatively to emerging needs and opportunities.',
       'Responding to Needs. Creating Opportunities. Making a Difference.',
@@ -150,7 +186,14 @@ export const LEADERSHIP_PROGRAMS: ApiProgram[] = [
     iconKey: 'Heart',
     sortOrder: 6,
     coverImageUrl: null,
-    features: [],
+    features: [
+      'Marriage',
+      'Family',
+      'Friendship',
+      'Communication',
+      'Commitment',
+      'Trust',
+    ],
     description: [
       'Exploring the principles that contribute to healthy and meaningful relationships.',
       'Building Relationships That Matter.',
@@ -171,7 +214,14 @@ export const LEADERSHIP_PROGRAMS: ApiProgram[] = [
     iconKey: 'Music',
     sortOrder: 7,
     coverImageUrl: null,
-    features: [],
+    features: [
+      'Music',
+      'Culture',
+      'Heritage',
+      'Identity',
+      'Creativity',
+      'The arts',
+    ],
     description: [
       'Exploring music, culture, heritage, identity, creativity, and the arts.',
       'Understanding Who We Are Through What We Create and Share.',
@@ -192,7 +242,14 @@ export const LEADERSHIP_PROGRAMS: ApiProgram[] = [
     iconKey: 'Scale',
     sortOrder: 8,
     coverImageUrl: null,
-    features: [],
+    features: [
+      'Dispute resolution',
+      'Reconciliation',
+      'Dialogue',
+      'Mediation',
+      'Peacemaking',
+      'African traditions',
+    ],
     description: [
       'A specialized ANANSE program for resolving disputes and peacemaking as was done by our African forebears.',
       'Resolving Disputes. Restoring Relationships. Pursuing Peace.',
@@ -254,7 +311,37 @@ export const LEGACY_ARTS_PROGRAM_SLUGS = [
 ] as const
 
 export function programSummary(description: string): string {
-  return description.split(/\n\s*\n/)[0]?.trim() || description
+  const plain = looksLikeHtml(description) ? stripHtmlToPlain(description) : description
+  return plain.split(/\n\s*\n/)[0]?.trim() || plain
+}
+
+/** Split program copy into hero lead, optional tagline, and body paragraphs. */
+export function programNarrative(description: string): {
+  summary: string
+  tagline: string | null
+  body: string[]
+} {
+  const summary = programSummary(description)
+  if (looksLikeHtml(description)) {
+    return { summary, tagline: null, body: [] }
+  }
+  const parts = description
+    .split(/\n\s*\n/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  const candidate = parts[1]
+  const isTagline = (text: string) => {
+    if (text.length <= 72) return true
+    const fragments = text
+      .split('.')
+      .map((part) => part.trim())
+      .filter(Boolean)
+    return fragments.length >= 2 && fragments.every((part) => part.length <= 40) && text.length <= 110
+  }
+  if (candidate && isTagline(candidate)) {
+    return { summary, tagline: candidate, body: parts.slice(2) }
+  }
+  return { summary, tagline: null, body: parts.slice(1) }
 }
 
 export function leadershipProgramBySlug(slug: string): ApiProgram | null {
@@ -266,4 +353,51 @@ export function selectLeadershipPrograms(programs: ApiProgram[]): ApiProgram[] {
   const matched = programs.filter((program) => LEADERSHIP_PROGRAM_SLUGS.has(program.slug))
   if (matched.length === 0) return LEADERSHIP_PROGRAMS
   return [...matched].sort((a, b) => a.sortOrder - b.sortOrder)
+}
+
+/** Next programs in catalog order (wraps), excluding the current page. */
+export function neighborPrograms(
+  currentSlug: string,
+  programs: ApiProgram[],
+  count = 3,
+): ApiProgram[] {
+  const sorted = selectLeadershipPrograms(programs)
+  const index = sorted.findIndex((program) => program.slug === currentSlug)
+  if (index < 0) {
+    return sorted.filter((program) => program.slug !== currentSlug).slice(0, count)
+  }
+  const neighbors: ApiProgram[] = []
+  for (let step = 1; step < sorted.length && neighbors.length < count; step += 1) {
+    const candidate = sorted[(index + step) % sorted.length]
+    if (candidate.slug !== currentSlug) neighbors.push(candidate)
+  }
+  return neighbors
+}
+
+/** Prefer live CMS fields, then fill gaps from the leadership seed. */
+export function resolveLeadershipProgram(live: ApiProgram | null, slug: string): ApiProgram | null {
+  const seed = leadershipProgramBySlug(slug)
+  if (!live && !seed) return null
+  if (!live) return seed
+  if (!seed) return live
+
+  const liveNarrative = programNarrative(live.description)
+  const seedNarrative = programNarrative(seed.description)
+  // TipTap HTML has no “tagline” block — never overwrite live rich copy with seed.
+  const description =
+    !live.description.trim()
+      ? seed.description
+      : looksLikeHtml(live.description)
+        ? live.description
+        : !liveNarrative.tagline && seedNarrative.tagline
+          ? seed.description
+          : live.description
+
+  return {
+    ...live,
+    features: live.features.length > 0 ? live.features : seed.features,
+    description,
+    iconKey: live.iconKey || seed.iconKey,
+    coverImageUrl: live.coverImageUrl || seed.coverImageUrl,
+  }
 }

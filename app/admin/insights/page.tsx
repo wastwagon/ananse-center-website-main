@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import AdminShell from '../../../components/admin/AdminShell'
+import AdminRowActions from '../../../components/admin/AdminRowActions'
+import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
 import { INSIGHT_CONTENT_TYPES, INSIGHT_TOPICS } from '../../../lib/leadership/taxonomy'
@@ -9,8 +11,12 @@ import {
   createAdminNews,
   deleteAdminNews,
   fetchAdminNews,
+  fetchAdminPeople,
+  fetchAdminPrograms,
   updateAdminNews,
   type AdminNewsPost,
+  type AdminPerson,
+  type AdminProgram,
 } from '../../../lib/admin-api'
 
 const emptyForm = {
@@ -19,7 +25,10 @@ const emptyForm = {
   excerpt: '',
   body: '',
   dateLabel: '',
+  subtitle: '',
   author: '',
+  authorPersonId: '' as string,
+  programId: '' as string,
   contentType: INSIGHT_CONTENT_TYPES[0] as string,
   topics: [] as string[],
   showInLibraryRead: false,
@@ -36,6 +45,8 @@ function toggleTopic(topics: string[], topic: string): string[] {
 
 export default function AdminInsightsPage() {
   const [records, setRecords] = useState<AdminNewsPost[]>([])
+  const [people, setPeople] = useState<AdminPerson[]>([])
+  const [programs, setPrograms] = useState<AdminProgram[]>([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -47,8 +58,14 @@ export default function AdminInsightsPage() {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await fetchAdminNews()
-      setRecords(data)
+      const [newsRes, peopleRes, programsRes] = await Promise.all([
+        fetchAdminNews(),
+        fetchAdminPeople(),
+        fetchAdminPrograms(),
+      ])
+      setRecords(newsRes.data)
+      setPeople(peopleRes.data)
+      setPrograms(programsRes.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load insights')
     } finally {
@@ -73,7 +90,10 @@ export default function AdminInsightsPage() {
       excerpt: record.excerpt,
       body: record.body,
       dateLabel: record.dateLabel,
+      subtitle: record.subtitle ?? '',
       author: record.author ?? '',
+      authorPersonId: record.authorPersonId ?? '',
+      programId: record.programId ?? '',
       contentType:
         (record.contentType as (typeof INSIGHT_CONTENT_TYPES)[number]) ||
         INSIGHT_CONTENT_TYPES[0],
@@ -94,6 +114,10 @@ export default function AdminInsightsPage() {
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
+    if (!form.excerpt.replace(/<[^>]+>/g, '').trim()) {
+      setError('Excerpt is required.')
+      return
+    }
     setSaving(true)
     setError(null)
     setNotice(null)
@@ -104,7 +128,10 @@ export default function AdminInsightsPage() {
         excerpt: form.excerpt,
         body: form.body,
         dateLabel: form.dateLabel.trim(),
+        subtitle: form.subtitle.trim(),
         author: form.author.trim(),
+        authorPersonId: form.authorPersonId || null,
+        programId: form.programId || null,
         category: form.contentType,
         contentType: form.contentType,
         topics: form.topics,
@@ -145,24 +172,22 @@ export default function AdminInsightsPage() {
 
   return (
     <AdminShell title="Insights">
-      <p className="admin-help" style={{ marginBottom: '1rem' }}>
-        Written reflections and articles for <code>/insights</code>. Choose topics for filtering; enable
-        &ldquo;Also in Library Read&rdquo; to surface the piece on the Read shelf when published.
-      </p>
-
       {error ? <p className="admin-error">{error}</p> : null}
       {notice ? <p className="admin-notice">{notice}</p> : null}
 
-      <div className="admin-actions" style={{ marginBottom: '1rem' }}>
+      <div className="admin-page-tools">
+        <p className="admin-help">
+          Written reflections and articles for the insights page. Topics power the public filters.
+        </p>
         <button type="button" className="admin-btn admin-btn--primary" onClick={startCreate}>
           New insight
         </button>
       </div>
 
       {editingId ? (
-        <div className="admin-card" style={{ marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>
-            {editingId === 'new' ? 'Create insight' : 'Edit insight'}
+        <div className="admin-card admin-card--spaced">
+          <h2 className="admin-card-title">
+            {editingId === 'new' ? 'New insight' : 'Edit insight'}
           </h2>
           <form className="admin-form" onSubmit={onSubmit}>
             <div className="admin-field">
@@ -184,49 +209,92 @@ export default function AdminInsightsPage() {
               />
             </div>
             <div className="admin-field">
-              <label htmlFor="insight-type">Content type</label>
-              <select
-                id="insight-type"
-                className="admin-input"
-                value={form.contentType}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    contentType: e.target.value as (typeof INSIGHT_CONTENT_TYPES)[number],
-                  }))
-                }
-              >
-                {INSIGHT_CONTENT_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="admin-field">
-              <label htmlFor="insight-date">Date label</label>
+              <label htmlFor="insight-subtitle">Subtitle</label>
               <input
-                id="insight-date"
-                value={form.dateLabel}
-                onChange={(e) => setForm((f) => ({ ...f, dateLabel: e.target.value }))}
+                id="insight-subtitle"
+                value={form.subtitle}
+                onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
               />
             </div>
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="insight-type">Content type</label>
+                <select
+                  id="insight-type"
+                  value={form.contentType}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      contentType: e.target.value as (typeof INSIGHT_CONTENT_TYPES)[number],
+                    }))
+                  }
+                >
+                  {INSIGHT_CONTENT_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="admin-field">
+                <label htmlFor="insight-date">Date label</label>
+                <input
+                  id="insight-date"
+                  value={form.dateLabel}
+                  onChange={(e) => setForm((f) => ({ ...f, dateLabel: e.target.value }))}
+                />
+              </div>
+            </div>
             <div className="admin-field">
-              <label htmlFor="insight-author">Author</label>
+              <label htmlFor="insight-author">Author name</label>
               <input
                 id="insight-author"
                 value={form.author}
                 onChange={(e) => setForm((f) => ({ ...f, author: e.target.value }))}
               />
+              <p className="admin-meta">Used when no person profile is linked.</p>
+            </div>
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="insight-author-person">Author profile</label>
+                <select
+                  id="insight-author-person"
+                  className="admin-input"
+                  value={form.authorPersonId}
+                  onChange={(e) => setForm((f) => ({ ...f, authorPersonId: e.target.value }))}
+                >
+                  <option value="">— None —</option>
+                  {people.map((person) => (
+                    <option key={person.id} value={person.id}>
+                      {person.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="admin-field">
+                <label htmlFor="insight-program">Linked program</label>
+                <select
+                  id="insight-program"
+                  className="admin-input"
+                  value={form.programId}
+                  onChange={(e) => setForm((f) => ({ ...f, programId: e.target.value }))}
+                >
+                  <option value="">— None —</option>
+                  {programs.map((program) => (
+                    <option key={program.id} value={program.id}>
+                      {program.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="admin-field">
-              <label htmlFor="insight-excerpt">Excerpt (listing summary)</label>
-              <textarea
-                id="insight-excerpt"
+              <label>Excerpt (listing summary)</label>
+              <CmsRichTextEditor
                 value={form.excerpt}
-                onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))}
-                rows={3}
-                required
+                onChange={(excerpt) => setForm((f) => ({ ...f, excerpt }))}
+                placeholder="Short summary for cards and search…"
+                compact
               />
             </div>
             <div className="admin-field">
@@ -242,9 +310,9 @@ export default function AdminInsightsPage() {
             />
             <div className="admin-field">
               <label>Topics</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1rem' }}>
+              <div className="admin-choice-row">
                 {INSIGHT_TOPICS.map((topic) => (
-                  <label key={topic} className="admin-toggle-row" style={{ margin: 0 }}>
+                  <label key={topic} className="admin-toggle-row">
                     <input
                       type="checkbox"
                       checked={form.topics.includes(topic)}
@@ -324,9 +392,9 @@ export default function AdminInsightsPage() {
 
       <div className="admin-card">
         {loading ? (
-          <p>Loading insights…</p>
+          <p className="admin-empty">Loading insights…</p>
         ) : records.length === 0 ? (
-          <p className="admin-help">No insights yet.</p>
+          <p className="admin-empty">No insights yet.</p>
         ) : (
           <table className="admin-table">
             <thead>
@@ -342,42 +410,25 @@ export default function AdminInsightsPage() {
               {records.map((record) => (
                 <tr key={record.id}>
                   <td>
-                    {record.title}
+                    <strong>{record.title}</strong>
                     {record.featured ? (
-                      <span className="admin-badge admin-badge--published" style={{ marginLeft: 8 }}>
-                        Featured
-                      </span>
+                      <span className="admin-badge admin-badge--neutral">Featured</span>
                     ) : null}
-                    <div style={{ color: '#64748b', fontSize: '0.75rem' }}>/{record.slug}</div>
+                    <span className="admin-meta">/{record.slug}</span>
                   </td>
                   <td>{record.contentType || record.category || 'Articles'}</td>
                   <td>{record.topics?.length ? record.topics.join(', ') : '—'}</td>
                   <td>
-                    <span
-                      className={`admin-badge ${
-                        record.published ? 'admin-badge--published' : 'admin-badge--draft'
-                      }`}
-                    >
-                      {record.published ? 'Published' : 'Draft'}
-                    </span>
+                    <AdminStatus value={record.published ? 'published' : 'draft'} />
                   </td>
                   <td>
-                    <div className="admin-actions">
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--ghost"
-                        onClick={() => startEdit(record)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-btn admin-btn--danger"
-                        onClick={() => void onDelete(record.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <AdminRowActions
+                      items={[
+                        { label: 'View', href: `/insights/${record.slug}`, external: true },
+                        { label: 'Edit', onClick: () => startEdit(record) },
+                        { label: 'Delete', tone: 'danger', onClick: () => void onDelete(record.id) },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

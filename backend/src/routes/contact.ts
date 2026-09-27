@@ -36,7 +36,7 @@ export async function contactRoutes(app: FastifyInstance) {
     return reply.status(201).send({
       ok: true,
       id: message.id,
-      message: 'Thank you. We received your message and will respond soon.',
+      message: 'Thank you. ANANSE received your message and will reply.',
     })
   })
 }

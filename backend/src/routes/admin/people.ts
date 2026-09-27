@@ -17,6 +17,9 @@ const personSchema = z.object({
   isOrganization: z.boolean().optional(),
   organizationName: z.string().max(200).optional(),
   websiteUrl: z.string().max(500).optional(),
+  expertise: z.string().max(2000).optional(),
+  cohortLabel: z.string().max(80).optional(),
+  programIds: z.array(z.string().cuid()).max(10).optional(),
   photoMediaId: z.string().cuid().optional().nullable(),
   logoMediaId: z.string().cuid().optional().nullable(),
   featured: z.boolean().optional(),
@@ -50,6 +53,11 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
           isOrganization: parsed.data.isOrganization ?? false,
           organizationName: parsed.data.organizationName ?? '',
           websiteUrl: parsed.data.websiteUrl ?? '',
+          expertise: parsed.data.expertise ?? '',
+          cohortLabel: parsed.data.cohortLabel ?? '',
+          programs: {
+            create: (parsed.data.programIds ?? []).map((programId) => ({ programId })),
+          },
           photoMediaId: parsed.data.photoMediaId ?? null,
           logoMediaId: parsed.data.logoMediaId ?? null,
           featured: parsed.data.featured ?? false,
@@ -82,6 +90,16 @@ export async function adminPeopleRoutes(app: FastifyInstance) {
           ...(data.isOrganization !== undefined ? { isOrganization: data.isOrganization } : {}),
           ...(data.organizationName !== undefined ? { organizationName: data.organizationName } : {}),
           ...(data.websiteUrl !== undefined ? { websiteUrl: data.websiteUrl } : {}),
+          ...(data.expertise !== undefined ? { expertise: data.expertise } : {}),
+          ...(data.cohortLabel !== undefined ? { cohortLabel: data.cohortLabel } : {}),
+          ...(data.programIds !== undefined
+            ? {
+                programs: {
+                  deleteMany: {},
+                  create: data.programIds.map((programId) => ({ programId })),
+                },
+              }
+            : {}),
           ...(data.photoMediaId !== undefined ? { photoMediaId: data.photoMediaId } : {}),
           ...(data.logoMediaId !== undefined ? { logoMediaId: data.logoMediaId } : {}),
           ...(data.featured !== undefined ? { featured: data.featured } : {}),

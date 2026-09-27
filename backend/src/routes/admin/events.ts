@@ -21,6 +21,13 @@ const eventBodySchema = z.object({
   deliveryMode: z.enum(EVENT_DELIVERY_MODES).optional(),
   meetingUrl: z.string().max(500).optional(),
   recordingUrl: z.string().max(500).optional(),
+  audioUrl: z.string().max(500).optional(),
+  transcript: z.string().max(50000).optional(),
+  subtitle: z.string().max(240).optional(),
+  speakers: z
+    .array(z.object({ personId: z.string().cuid(), role: z.string().max(80).optional() }))
+    .max(24)
+    .optional(),
   galleryMediaIds: z.array(z.string().cuid()).max(48).optional(),
   programId: z.string().cuid().optional().nullable(),
   location: z.string().min(2).max(200),
@@ -91,6 +98,15 @@ export async function adminEventRoutes(app: FastifyInstance) {
         deliveryMode: data.deliveryMode ?? 'in_person',
         meetingUrl: data.meetingUrl ?? '',
         recordingUrl: data.recordingUrl ?? '',
+        audioUrl: data.audioUrl ?? '',
+        transcript: data.transcript ?? '',
+        subtitle: data.subtitle ?? '',
+        speakers: {
+          create: (data.speakers ?? []).map((speaker) => ({
+            personId: speaker.personId,
+            role: speaker.role?.trim() || 'Speaker',
+          })),
+        },
         galleryMediaIds: data.galleryMediaIds ?? [],
         programId: data.programId ?? null,
         location: data.location,
@@ -145,6 +161,20 @@ export async function adminEventRoutes(app: FastifyInstance) {
         ...(data.deliveryMode !== undefined ? { deliveryMode: data.deliveryMode } : {}),
         ...(data.meetingUrl !== undefined ? { meetingUrl: data.meetingUrl } : {}),
         ...(data.recordingUrl !== undefined ? { recordingUrl: data.recordingUrl } : {}),
+        ...(data.audioUrl !== undefined ? { audioUrl: data.audioUrl } : {}),
+        ...(data.transcript !== undefined ? { transcript: data.transcript } : {}),
+        ...(data.subtitle !== undefined ? { subtitle: data.subtitle } : {}),
+        ...(data.speakers !== undefined
+          ? {
+              speakers: {
+                deleteMany: {},
+                create: data.speakers.map((speaker) => ({
+                  personId: speaker.personId,
+                  role: speaker.role?.trim() || 'Speaker',
+                })),
+              },
+            }
+          : {}),
         ...(data.galleryMediaIds !== undefined ? { galleryMediaIds: data.galleryMediaIds } : {}),
         ...(data.programId !== undefined ? { programId: data.programId } : {}),
         ...(data.location !== undefined ? { location: data.location } : {}),

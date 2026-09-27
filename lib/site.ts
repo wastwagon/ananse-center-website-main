@@ -23,8 +23,8 @@ export const social = {
   instagram: 'https://www.instagram.com/anansecenter',
   youtube: 'https://www.youtube.com/@anansecenter',
   twitter: 'https://twitter.com/anansecenter',
-  linkedin: '',
-  whatsapp: '',
+  linkedin: 'https://www.linkedin.com/company/anansecenter',
+  whatsapp: 'https://wa.me/233257127205',
 } as const
 
 /** Impact metrics — update when you have audited figures */

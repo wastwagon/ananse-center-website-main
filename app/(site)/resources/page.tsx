@@ -22,7 +22,7 @@ export default async function ResourcesPage() {
       badge={cms['resources.badge']}
       title={cms['resources.heading']}
       lead={cms['resources.lead']}
-      primaryCta={{ label: 'List your organization', href: '/contact#form' }}
+      primaryCta={{ label: 'List your organization', href: '/get-involved#contact' }}
       secondaryCta={{ label: 'About our mission', href: '/about' }}
       wide
     >

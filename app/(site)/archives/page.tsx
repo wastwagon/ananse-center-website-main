@@ -40,7 +40,7 @@ export default async function ArchivesPage() {
       badge={cms['archives.badge']}
       title={cms['archives.heading']}
       lead={cms['archives.lead']}
-      primaryCta={{ label: 'Research inquiry', href: '/contact#form' }}
+      primaryCta={{ label: 'Research inquiry', href: '/get-involved#contact' }}
       secondaryCta={{ label: 'Explore programs', href: '/programs' }}
     >
       <CmsRichText body={cms['archives.body']} className="content-prose-body" />

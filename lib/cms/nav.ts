@@ -21,10 +21,13 @@ export const DEFAULT_PRIMARY_NAV: CmsNavLink[] = [
     shortLabel: 'About',
     children: [
       { label: 'Who We Are', href: '/about#who-we-are' },
+      { label: 'Who We Serve', href: '/about#who-we-serve' },
       { label: 'The ANANSE Story', href: '/about#the-ananse-story' },
+      { label: 'Roots & Continuity', href: '/about#continuity' },
       { label: 'Vision & Mission', href: '/about#vision-mission' },
       { label: 'Core Values', href: '/about#core-values' },
-      { label: 'EAGLESonline', href: '/about#eaglesonline' },
+      { label: 'ANANSE & EAGLESonline', href: '/about#eaglesonline' },
+      { label: 'ANANSE & Africa', href: '/about#ananse-africa' },
     ],
   },
   {
@@ -44,10 +47,52 @@ export const DEFAULT_PRIMARY_NAV: CmsNavLink[] = [
       { label: 'Healthy Living', href: '/programs/healthy-living' },
     ],
   },
-  { label: 'Library', href: '/library', shortLabel: 'Library' },
-  { label: 'Events', href: '/events', shortLabel: 'Events' },
-  { label: 'Insights', href: '/insights', shortLabel: 'Insights' },
-  { label: 'People', href: '/people', shortLabel: 'People' },
+  {
+    label: 'Library',
+    href: '/library',
+    shortLabel: 'Library',
+    children: [
+      { label: 'Listen', href: '/library?shelf=listen' },
+      { label: 'Watch', href: '/library?shelf=watch' },
+      { label: 'Read', href: '/library?shelf=read' },
+      { label: 'Midday Reflection archive', href: '/library/midday-reflection' },
+      { label: 'Photo galleries', href: '/library/photos' },
+    ],
+  },
+  {
+    label: 'Events',
+    href: '/events',
+    shortLabel: 'Events',
+    children: [
+      { label: 'All Events', href: '/events' },
+      { label: 'Lectures', href: '/events?type=Lecture' },
+      { label: 'Seminars', href: '/events?type=Seminar' },
+      { label: 'Workshops', href: '/events?type=Workshop' },
+      { label: 'Conferences', href: '/events?type=Conference' },
+      { label: 'Conversations', href: '/events?type=Conversation' },
+      { label: 'Mentorship', href: '/events?type=Mentorship' },
+      { label: 'Special Programs', href: '/events?type=Special%20Program' },
+    ],
+  },
+  {
+    label: 'Insights',
+    href: '/insights',
+    shortLabel: 'Insights',
+    children: [{ label: 'Browse by topic', href: '/insights' }],
+  },
+  {
+    label: 'People',
+    href: '/people',
+    shortLabel: 'People',
+    children: [
+      { label: 'All People', href: '/people' },
+      { label: 'Leadership', href: '/people?group=Leadership' },
+      { label: 'Mentors', href: '/people?group=Mentors' },
+      { label: 'Speakers & Faculty', href: '/people?group=Speakers%20%26%20Faculty' },
+      { label: 'Fellows and Participants', href: '/people?group=Fellows%20and%20Participants' },
+      { label: 'Partners', href: '/people?group=Partners' },
+    ],
+  },
   {
     label: 'Get Involved',
     href: '/get-involved',
@@ -67,9 +112,9 @@ export const DEFAULT_PRIMARY_NAV: CmsNavLink[] = [
 export const DEFAULT_MOBILE_NAV: CmsMobileNavLink[] = [
   { label: 'Home', href: '/', iconKey: 'Home' },
   { label: 'Programs', href: '/programs', iconKey: 'Sparkles' },
+  { label: 'Library', href: '/library', iconKey: 'Library' },
   { label: 'Events', href: '/events', iconKey: 'CalendarDays' },
-  { label: 'Insights', href: '/insights', iconKey: 'BookOpen' },
-  { label: 'Get Involved', href: '/get-involved', iconKey: 'HandHeart' },
+  { label: 'People', href: '/people', iconKey: 'Users' },
 ]
 
 export const DEFAULT_SHEET_NAV: CmsNavLink[] = [
@@ -80,13 +125,13 @@ export const DEFAULT_SHEET_NAV: CmsNavLink[] = [
 ]
 
 export const DEFAULT_FOOTER_QUICK_LINKS: CmsNavLink[] = [
-  { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Programs', href: '/programs' },
-  { label: 'Library', href: '/library' },
   { label: 'Events', href: '/events' },
+  { label: 'Library', href: '/library' },
   { label: 'Insights', href: '/insights' },
   { label: 'People', href: '/people' },
+  { label: 'Support', href: '/support' },
   { label: 'Get Involved', href: '/get-involved' },
 ]
 
@@ -116,12 +161,43 @@ function usesArtsNav(links: CmsNavLink[]): boolean {
   })
 }
 
-/** Keep a customized menu only when it already follows the leadership architecture. */
+function hasAnyChildren(links: CmsNavLink[]): boolean {
+  return links.some((link) => (link.children?.length ?? 0) > 0)
+}
+
+/** Keep a customized menu only when it already follows the leadership architecture with dropdowns. */
 export function resolvePrimaryNav(stored: CmsNavLink[] | null | undefined): CmsNavLink[] {
-  if (!stored?.length || usesArtsNav(stored) || !stored.some((link) => splitHref(link.href).path === '/library')) {
+  if (
+    !stored?.length ||
+    usesArtsNav(stored) ||
+    !stored.some((link) => splitHref(link.href).path === '/library') ||
+    !hasAnyChildren(stored)
+  ) {
     return DEFAULT_PRIMARY_NAV
   }
-  return stored
+  return normalizeLeadershipNav(stored)
+}
+
+const ABOUT_ANCHORS: CmsNavLink[] = [
+  { label: 'ANANSE & EAGLESonline', href: '/about#eaglesonline' },
+  { label: 'ANANSE & Africa', href: '/about#ananse-africa' },
+]
+
+function normalizeLeadershipNav(links: CmsNavLink[]): CmsNavLink[] {
+  return links.map((link) => {
+    const path = splitHref(link.href).path
+    if (path === '/insights') {
+      return { ...link, children: [{ label: 'Browse by topic', href: '/insights' }] }
+    }
+    if (path === '/about') {
+      const children = [...(link.children ?? [])]
+      for (const anchor of ABOUT_ANCHORS) {
+        if (!children.some((child) => child.href === anchor.href)) children.push(anchor)
+      }
+      return { ...link, children }
+    }
+    return link
+  })
 }
 
 export function resolveSheetNav(stored: CmsNavLink[] | null | undefined): CmsNavLink[] {

@@ -26,7 +26,7 @@ export default async function TransparencyPage() {
       title={cms['transparency.heading']}
       lead={cms['transparency.lead']}
       primaryCta={{ label: 'Donate', href: '/support#donate' }}
-      secondaryCta={{ label: 'Trustee Circle', href: '/trustees' }}
+      secondaryCta={{ label: 'People & leadership', href: '/people' }}
     >
       <CmsRichText body={cms['transparency.body']} className="content-prose-body" />
       <h2 className="content-block-title content-block-title--plain">Reports</h2>

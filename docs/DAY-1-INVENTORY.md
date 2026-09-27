@@ -34,7 +34,7 @@ This inventory describes what is **live in the product** on day one. Content cou
 
 **Redirects:** `/news` → Insights (legacy news URL).
 
-**Secondary / legacy routes** (not in main menu): archives, visit, admissions, repatriation, trustees, transparency, videos, community, partnerships, resources — may still exist from the prior arts site; do not treat as ANANSE primary IA.
+**Secondary / legacy routes** (not in main menu): archives, visit, admissions, repatriation, trustees, transparency, videos, community, partnerships, resources — carried over from the prior arts site. They **redirect or render leadership-safe placeholder copy**; they are **not** content-ready ANANSE pages. Do not treat as primary IA.
 
 ---
 
@@ -47,11 +47,7 @@ This inventory describes what is **live in the product** on day one. Content cou
 | Media | `/admin/media` | Uploads for covers, logos, gallery |
 | Programs | `/admin/programs` | Ten program catalog entries |
 | Events | `/admin/events` | Schedule, delivery, status, registration, covers |
-| **Insights** | `/admin/insights` | Articles, topics, content types, featured, Library Read link |
-| **Library** | `/admin/library` | Multi-format items (listen/watch/read), Midday fields |
-| **Photo albums** | `/admin/photo-albums` | Galleries + collections |
-| **People** | `/admin/people` | Profiles (permission-based; no personal phone/email) |
-| News | `/admin/news` | Legacy news UI (public listing is Insights) |
+| **Insights** | `/admin/insights` | Articles, topics, content types, featured, Library Read link (`/admin/news` redirects here) |
 | Inbox | `/admin/inbox` | Community stories, event RSVPs |
 | Contact | `/admin/contact` | Form messages |
 | Newsletter | `/admin/newsletter` | Subscribers (**store only** — no sending yet) |
@@ -63,16 +59,18 @@ This inventory describes what is **live in the product** on day one. Content cou
 
 ---
 
-## Content entered (Stage C — from approved copy only)
+## Content entered (Stage C + demo handover pack)
 
-| Type | Cap | Day-1 status |
-|------|-----|----------------|
-| Insights | 8 | Seeded from institutional About/identity copy |
-| Library (Read / study) | 15 | Seeded text items (incl. wisdom nuggets on core values) |
-| Events | 8 | **0** — awaiting client dates/titles |
-| People | 12 | **0** — awaiting agreed list + permission |
-| Photo albums | 4 | **0** — awaiting images/captions |
-| Midday episodes | — | **0** — awaiting real audio/video/transcripts |
+| Type | Cap | Status for client review |
+|------|-----|--------------------------|
+| Insights | 8 | Seeded from approved institutional copy (edit/replace as needed) |
+| Library (Read) | part of 15 | Stage C study / wisdom items from approved copy |
+| Library (Listen/Watch + Midday) | part of 15 | **`demo-*` samples** — replace with real episodes and media |
+| Events | 8 | **`demo-*` samples** (incl. past, postponed, cancelled) — replace with real dates |
+| People | 12 | **`demo-*` samples** — replace with agreed profiles + permission |
+| Photo albums | 4 | **`demo-*` samples** — replace with approved photographs |
+
+All invented public samples say *Preview sample — for layout only…* and use `demo-` slugs. See [HANDOVER-DEMO.md](./HANDOVER-DEMO.md).
 
 Arts-era news in the database was unpublished so it does not appear as ANANSE Insights.
 
@@ -93,18 +91,19 @@ Arts-era news in the database was unpublished so it does not appear as ANANSE In
 
 ---
 
-## What the client still supplies (post day-1)
+## What the client still supplies (after reviewing this pack)
 
-1. Production domain DNS + Coolify access (see [LAUNCH.md](./LAUNCH.md))  
-2. Live Paystack keys when ready to accept online gifts  
-3. Events (up to 8), people (up to 12 with permission), Midday media, photo albums (up to 4)  
+1. Real Midday media, lectures, events, people (with permission), and photo albums — enter in Admin using the same fields shown by the demo records  
+2. Production domain DNS + server access (see [LAUNCH.md](./LAUNCH.md))  
+3. Live Paystack keys when ready to accept online gifts  
 4. Logo, favicon, hero photography, counsel-reviewed Privacy/Terms  
-5. Real contact address, map pin, social URLs in **Settings**
+5. Real contact address, map pin, social URLs (incl. LinkedIn / WhatsApp) in **Settings**
 
 ---
 
 ## Related docs
 
+- **Replace demo → real:** [HANDOVER-DEMO.md](./HANDOVER-DEMO.md)  
 - Short admin guide: [ADMIN-GUIDE.md](./ADMIN-GUIDE.md)  
 - Detailed CMS handover (legacy arts notes may remain): [CMS-HANDOVER.md](./CMS-HANDOVER.md)  
 - Coolify deploy: [../COOLIFY.md](../COOLIFY.md)  
