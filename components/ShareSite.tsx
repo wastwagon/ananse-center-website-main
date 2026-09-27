@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-export default function ShareSite() {
+export default function ShareSite({ id = 'share' }: { id?: string }) {
   const [copied, setCopied] = useState(false)
 
   async function copyLink() {
@@ -16,7 +16,7 @@ export default function ShareSite() {
   }
 
   return (
-    <div id="share" className="premium-card">
+    <div id={id} className="premium-card">
       <h2 className="premium-card-title">Share</h2>
       <p className="page-body-text">
         Help others discover resources that can add value to their lives. Share the ANANSE website with someone who would benefit from it.
