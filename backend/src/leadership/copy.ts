@@ -63,7 +63,7 @@ export {
   LIBRARY_SHELVES,
   PHOTO_COLLECTIONS,
   INSIGHT_CONTENT_TYPES,
-} from './taxonomy'
+} from './taxonomy.js'
 
 /** Photo Gallery shelf for the Library opening page (albums live separately). */
 export const LIBRARY_PHOTO_SHELF = {

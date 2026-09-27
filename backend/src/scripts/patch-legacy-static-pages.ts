@@ -59,7 +59,10 @@ async function main() {
     }
     await prisma.contentBlock.update({
       where: { key },
-      data: { body: entry.defaultBody, format: entry.format ?? row.format },
+      data: {
+        body: entry.defaultBody,
+        format: 'format' in entry && entry.format ? entry.format : row.format,
+      },
     })
     updated.push(key)
   }

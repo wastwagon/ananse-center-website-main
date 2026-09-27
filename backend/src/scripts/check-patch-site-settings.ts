@@ -5,7 +5,7 @@ async function main() {
   const s = await p.siteSettings.findFirst()
   console.log(
     JSON.stringify(
-      { name: s?.siteName, location: s?.location, address: s?.address },
+      { name: s?.siteName, location: s?.siteLocation, address: s?.contactAddress },
       null,
       2,
     ),
@@ -13,8 +13,8 @@ async function main() {
   if (s) {
     const artsName = /arts and culture/i.test(String(s.siteName || ''))
     const artsPlace =
-      /akatakyiwa/i.test(String(s.location || '')) ||
-      /akatakyiwa|arts and culture/i.test(String(s.address || ''))
+      /akatakyiwa/i.test(String(s.siteLocation || '')) ||
+      /akatakyiwa|arts and culture/i.test(String(s.contactAddress || ''))
     if (artsName || artsPlace) {
       await p.siteSettings.update({
         where: { id: s.id },
@@ -22,13 +22,13 @@ async function main() {
           siteName: artsName
             ? 'ANANSE Center for Leadership Development'
             : s.siteName,
-          location: /akatakyiwa/i.test(String(s.location || ''))
+          siteLocation: /akatakyiwa/i.test(String(s.siteLocation || ''))
             ? 'Ghana'
-            : s.location,
-          address:
+            : s.siteLocation,
+          contactAddress:
             artsPlace || artsName
               ? 'ANANSE Center for Leadership Development\nGhana'
-              : s.address,
+              : s.contactAddress,
         },
       })
       console.log('patched siteSettings')
