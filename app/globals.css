@@ -3993,12 +3993,13 @@ p {
 
 .hero-page-btn--primary {
   background: var(--color-accent-light);
-  color: #1a1208;
+  color: #ffffff;
 }
 
 .hero-page-btn--primary:hover {
   transform: translateY(-1px);
-  background: #fbbf24;
+  background: #b45309;
+  color: #ffffff;
 }
 
 .hero-page-btn--ghost {
