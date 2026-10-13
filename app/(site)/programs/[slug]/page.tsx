@@ -26,6 +26,8 @@ import { buildPageMetadata } from '../../../../lib/page-meta'
 import { programIconForKey } from '../../../../lib/program-icons'
 import { resolveProgramCoverImage } from '../../../../lib/images'
 import { deliveryModeLabel, eventStatusLabel } from '../../../../lib/leadership/taxonomy'
+import { applyRelatedItems } from '../../../../lib/related-overrides'
+import InquiryForm from '../../../../components/InquiryForm'
 
 export async function generateMetadata({
   params,
@@ -42,10 +44,11 @@ export async function generateMetadata({
     return buildPageMetadata({ title: 'Program', path: `/programs/${slug}` })
   }
   return buildPageMetadata({
-    title: program.title,
-    description: programSummary(program.description),
+    title: program.seoTitle?.trim() || program.title,
+    description: program.seoDescription?.trim() || program.summary?.trim() || programSummary(program.description),
     path: `/programs/${slug}`,
-    ogImage: resolveProgramCoverImage(program),
+    ogImage: program.shareImageUrl || resolveProgramCoverImage(program),
+    noindex: program.noindex,
   })
 }
 
@@ -60,7 +63,7 @@ export default async function ProgramDetailPage({
   const program = resolveLeadershipProgram(live, slug)
   if (!program) notFound()
 
-  const [relatedEvents, relatedLibrary, relatedAlbums, catalogPrograms, insightRows, peopleRows] =
+  const [eventsRaw, libraryRaw, albumsRaw, catalogPrograms, insightRows, peopleRows] =
     await Promise.all([
       fetchEventsForProgram(program.slug).catch(() => []),
       fetchLibraryItems({ program: program.slug }).catch(() => []),
@@ -69,17 +72,33 @@ export default async function ProgramDetailPage({
       fetchInsights().catch(() => []),
       fetchPeople().catch(() => []),
     ])
-  const relatedInsights = insightRows
-    .filter((item) => item.program?.slug === program.slug)
-    .slice(0, 6)
-  const relatedPeople = peopleRows
-    .filter((person) => person.programs?.some((item) => item.slug === program.slug))
-    .slice(0, 6)
+  const pinned = program.relatedPinned
+  const hidden = program.relatedHidden
+  const relatedEvents = applyRelatedItems(eventsRaw, pinned?.events, hidden?.events)
+  const relatedLibrary = applyRelatedItems(libraryRaw, pinned?.library, hidden?.library)
+  const relatedAlbums = applyRelatedItems(albumsRaw, pinned?.albums, hidden?.albums)
+  const relatedInsights = applyRelatedItems(
+    insightRows.filter((item) => item.program?.slug === program.slug),
+    pinned?.insights,
+    hidden?.insights,
+    insightRows,
+  )
+  const relatedPeople = applyRelatedItems(
+    peopleRows.filter((person) => person.programs?.some((item) => item.slug === program.slug)),
+    pinned?.people,
+    hidden?.people,
+    peopleRows,
+  )
 
   const Icon = programIconForKey(program.iconKey)
   const cover = resolveProgramCoverImage(program)
   const isRichDescription = looksLikeHtml(program.description)
-  const { summary, tagline, body } = programNarrative(program.description)
+  const narrative = programNarrative(program.description)
+  const summary = program.summary?.trim() || narrative.summary
+  const tagline = program.tagline?.trim() || narrative.tagline
+  const body = narrative.body
+  const ctaLabel = program.ctaLabel?.trim() || (program.slug === 'mentorship' ? 'Inquire about mentorship' : 'Get involved')
+  const ctaHref = program.ctaHref?.trim() || (program.slug === 'mentorship' ? '/get-involved#mentor-form' : '/get-involved')
   const secondaryHref =
     program.slug === 'midday-reflection' ? '/library/midday-reflection' : '/programs'
   const secondaryLabel = program.slug === 'midday-reflection' ? 'Episode archive' : 'All programs'
@@ -96,7 +115,7 @@ export default async function ProgramDetailPage({
         imageAlt={program.title}
         title={program.title}
         description={summary}
-        primaryCta={{ label: 'Get involved', href: '/get-involved' }}
+        primaryCta={{ label: ctaLabel, href: ctaHref }}
         secondaryCta={{ label: secondaryLabel, href: secondaryHref }}
         stats={[]}
       />
@@ -139,9 +158,15 @@ export default async function ProgramDetailPage({
                   Learn, attend, mentor, or partner around this program. Financial support stays on
                   the Support page. Mentoring is an expression of interest.
                 </p>
-                <LocalizedLink href="/get-involved" className="btn-primary program-detail-aside-cta">
-                  Get involved
+                <LocalizedLink href={ctaHref} className="btn-primary program-detail-aside-cta">
+                  {ctaLabel}
                 </LocalizedLink>
+                {program.lead ? (
+                  <p className="page-body-text">
+                    Program lead:{' '}
+                    <LocalizedLink href={`/people/${program.lead.slug}`}>{program.lead.name}</LocalizedLink>
+                  </p>
+                ) : null}
                 {program.slug === 'midday-reflection' ? (
                   <LocalizedLink
                     href="/library/midday-reflection"
@@ -211,6 +236,12 @@ export default async function ProgramDetailPage({
                   </article>
                 ))}
               </div>
+            </div>
+          ) : null}
+          {program.topics && program.topics.length > 0 ? (
+            <div className="program-detail-panel">
+              <h3 className="program-detail-panel-title">Topics</h3>
+              <p className="page-body-text">{program.topics.join(' · ')}</p>
             </div>
           ) : null}
         </div>
@@ -286,7 +317,7 @@ export default async function ProgramDetailPage({
               {relatedAlbums.map((album) => (
                 <LocalizedLink
                   key={album.id}
-                  href={`/library/photos/${album.slug}`}
+                  href={`/library/photo-gallery/${album.slug}`}
                   className="program-detail-link-card"
                 >
                   <span className="program-detail-link-title">{album.title}</span>
@@ -351,6 +382,22 @@ export default async function ProgramDetailPage({
                 </LocalizedLink>
               ))}
             </div>
+          </div>
+        </section>
+      ) : null}
+
+      {program.slug === 'mentorship' ? (
+        <section className="page-section section-reveal bg-slate-50">
+          <div className="page-section-container">
+            <InquiryForm
+              id="mentor-inquiry"
+              heading="Inquire about mentorship"
+              intro="Mentorship at ANANSE is a relationship of walking alongside, not a transaction. Mentors and participants can write to ask how to take part."
+              defaultSubject="Mentor — expression of interest"
+              subjects={['Mentor — expression of interest', 'Mentorship participant inquiry']}
+              messageLabel="What experience can you share, or what kind of mentoring are you seeking?"
+              submitLabel="Send inquiry"
+            />
           </div>
         </section>
       ) : null}

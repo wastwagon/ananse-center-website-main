@@ -2,29 +2,41 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import Image from 'next/image'
+import AdminFormSection from '../../../components/admin/AdminFormSection'
 import AdminShell from '../../../components/admin/AdminShell'
 import AdminRowActions from '../../../components/admin/AdminRowActions'
 import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
 import MediaPicker from '../../../components/admin/MediaPicker'
+import PublicationFields from '../../../components/admin/PublicationFields'
+import RelatedOverridesFields from '../../../components/admin/RelatedOverridesFields'
 import { PHOTO_COLLECTIONS } from '../../../lib/leadership/taxonomy'
 import {
   createAdminPhotoAlbum,
   deleteAdminPhotoAlbum,
   fetchAdminEvents,
+  fetchAdminPeople,
   fetchAdminPhotoAlbums,
   fetchAdminPrograms,
   updateAdminPhotoAlbum,
   type AdminEvent,
+  type AdminPerson,
   type AdminMedia,
   type AdminPhotoAlbum,
   type AdminPhotoAlbumImage,
   type AdminProgram,
 } from '../../../lib/admin-api'
 import { mediaFileUrl } from '../../../lib/media'
+import {
+  fromDatetimeLocal,
+  publishedFromStatus,
+  statusFromPublished,
+  toDatetimeLocal,
+} from '../../../lib/publication'
+import type { RelatedOverrides } from '../../../lib/related-overrides'
 
-type AlbumImageDraft = { mediaId: string; caption: string; sortOrder: number }
+type AlbumImageDraft = { mediaId: string; caption: string; altText: string; sortOrder: number }
 
 const emptyForm = {
   title: '',
@@ -35,10 +47,22 @@ const emptyForm = {
   collection: PHOTO_COLLECTIONS[0] as string,
   programId: '',
   eventId: '',
+  photographer: '',
+  rightsNote: '',
+  seoTitle: '',
+  seoDescription: '',
+  keywords: '',
+  noindex: false,
+  shareMediaId: null as string | null,
   coverMediaId: null as string | null,
   images: [] as AlbumImageDraft[],
+  personIds: [] as string[],
   featured: false,
   published: true,
+  publicationStatus: 'published',
+  scheduledAtLocal: '',
+  relatedPinned: {} as RelatedOverrides,
+  relatedHidden: {} as RelatedOverrides,
   sortOrder: 0,
 }
 
@@ -46,6 +70,7 @@ export default function AdminPhotoAlbumsPage() {
   const [records, setRecords] = useState<AdminPhotoAlbum[]>([])
   const [programs, setPrograms] = useState<AdminProgram[]>([])
   const [events, setEvents] = useState<AdminEvent[]>([])
+  const [people, setPeople] = useState<AdminPerson[]>([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -58,14 +83,16 @@ export default function AdminPhotoAlbumsPage() {
     setLoading(true)
     setError(null)
     try {
-      const [albumsRes, programsRes, eventsRes] = await Promise.all([
+      const [albumsRes, programsRes, eventsRes, peopleRes] = await Promise.all([
         fetchAdminPhotoAlbums(),
         fetchAdminPrograms(),
         fetchAdminEvents(),
+        fetchAdminPeople(),
       ])
       setRecords(albumsRes.data)
       setPrograms(programsRes.data)
       setEvents(eventsRes.data)
+      setPeople(peopleRes.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load photo albums')
     } finally {
@@ -81,6 +108,7 @@ export default function AdminPhotoAlbumsPage() {
     return images.map((img, index) => ({
       mediaId: img.mediaId,
       caption: img.caption ?? '',
+      altText: img.altText ?? '',
       sortOrder: img.sortOrder ?? index,
     }))
   }
@@ -101,10 +129,22 @@ export default function AdminPhotoAlbumsPage() {
       collection: (record.collection as (typeof PHOTO_COLLECTIONS)[number]) || PHOTO_COLLECTIONS[0],
       programId: record.programId ?? '',
       eventId: record.eventId ?? '',
+      photographer: record.photographer ?? '',
+      rightsNote: record.rightsNote ?? '',
+      seoTitle: record.seoTitle ?? '',
+      seoDescription: record.seoDescription ?? '',
+      keywords: record.keywords ?? '',
+      noindex: record.noindex ?? false,
+      shareMediaId: record.shareMediaId ?? null,
       coverMediaId: record.coverMediaId,
       images: imagesFromRecord(record.images ?? []),
+      personIds: record.personIds ?? [],
       featured: record.featured,
       published: record.published,
+      publicationStatus: record.publicationStatus ?? statusFromPublished(record.published),
+      scheduledAtLocal: toDatetimeLocal(record.scheduledAt),
+      relatedPinned: record.relatedPinned ?? {},
+      relatedHidden: record.relatedHidden ?? {},
       sortOrder: record.sortOrder,
     })
   }
@@ -118,7 +158,7 @@ export default function AdminPhotoAlbumsPage() {
     if (form.images.some((img) => img.mediaId === asset.id)) return
     setForm((f) => ({
       ...f,
-      images: [...f.images, { mediaId: asset.id, caption: '', sortOrder: f.images.length }],
+      images: [...f.images, { mediaId: asset.id, caption: '', altText: asset.altText ?? '', sortOrder: f.images.length }],
     }))
   }
 
@@ -126,6 +166,13 @@ export default function AdminPhotoAlbumsPage() {
     setForm((f) => ({
       ...f,
       images: f.images.map((img, i) => (i === index ? { ...img, caption } : img)),
+    }))
+  }
+
+  function updateImageAlt(index: number, altText: string) {
+    setForm((f) => ({
+      ...f,
+      images: f.images.map((img, i) => (i === index ? { ...img, altText } : img)),
     }))
   }
 
@@ -138,6 +185,17 @@ export default function AdminPhotoAlbumsPage() {
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
+    const wouldPublish =
+      form.publicationStatus === 'published' ||
+      publishedFromStatus(form.publicationStatus, form.scheduledAtLocal)
+    if (wouldPublish && form.images.length === 0) {
+      setError('Add at least one photograph before publishing.')
+      return
+    }
+    if (wouldPublish && !form.rightsNote.trim()) {
+      setError('Add a rights note before publishing.')
+      return
+    }
     setSaving(true)
     setError(null)
     setNotice(null)
@@ -151,14 +209,29 @@ export default function AdminPhotoAlbumsPage() {
         collection: form.collection,
         programId: form.programId || null,
         eventId: form.eventId || null,
+        photographer: form.photographer.trim(),
+        rightsNote: form.rightsNote.trim(),
+        seoTitle: form.seoTitle.trim(),
+        seoDescription: form.seoDescription.trim(),
+        keywords: form.keywords.trim(),
+        noindex: form.noindex,
+        shareMediaId: form.shareMediaId,
         coverMediaId: form.coverMediaId,
         images: form.images.map((img, index) => ({
           mediaId: img.mediaId,
           caption: img.caption.trim(),
+          altText: img.altText.trim(),
           sortOrder: index,
         })),
+        personIds: form.personIds,
         featured: form.featured,
-        published: form.published,
+        publicationStatus: form.publicationStatus,
+        scheduledAt: fromDatetimeLocal(form.scheduledAtLocal),
+        relatedPinned: form.relatedPinned,
+        relatedHidden: form.relatedHidden,
+        published:
+          form.publicationStatus === 'published' ||
+          publishedFromStatus(form.publicationStatus, form.scheduledAtLocal),
         sortOrder: form.sortOrder,
       }
       if (editingId && editingId !== 'new') {
@@ -209,6 +282,7 @@ export default function AdminPhotoAlbumsPage() {
             {editingId === 'new' ? 'New album' : 'Edit album'}
           </h2>
           <form className="admin-form" onSubmit={onSubmit}>
+            <AdminFormSection title="Basic information">
             <div className="admin-field">
               <label htmlFor="album-title">Title</label>
               <input
@@ -249,20 +323,27 @@ export default function AdminPhotoAlbumsPage() {
               </div>
             </div>
             <div className="admin-field">
-              <label>Description</label>
-              <CmsRichTextEditor
-                value={form.description}
-                onChange={(description) => setForm((f) => ({ ...f, description }))}
-                placeholder="Album overview…"
-                compact
-              />
-            </div>
-            <div className="admin-field">
               <label htmlFor="album-date">Date label</label>
               <input
                 id="album-date"
                 value={form.dateLabel}
                 onChange={(e) => setForm((f) => ({ ...f, dateLabel: e.target.value }))}
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="album-photographer">Photographer / credit</label>
+              <input
+                id="album-photographer"
+                value={form.photographer}
+                onChange={(e) => setForm((f) => ({ ...f, photographer: e.target.value }))}
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="album-rights">Permission / rights</label>
+              <input
+                id="album-rights"
+                value={form.rightsNote}
+                onChange={(e) => setForm((f) => ({ ...f, rightsNote: e.target.value }))}
               />
             </div>
             <div className="admin-field">
@@ -273,6 +354,56 @@ export default function AdminPhotoAlbumsPage() {
                 onChange={(e) => setForm((f) => ({ ...f, place: e.target.value }))}
               />
             </div>
+            </AdminFormSection>
+            <AdminFormSection title="Main content">
+            <div className="admin-field">
+              <label>Description</label>
+              <CmsRichTextEditor
+                value={form.description}
+                onChange={(description) => setForm((f) => ({ ...f, description }))}
+                placeholder="Album overview…"
+                compact
+              />
+            </div>
+            </AdminFormSection>
+            <AdminFormSection title="Classification">
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="album-seo-title">SEO title</label>
+                <input
+                  id="album-seo-title"
+                  value={form.seoTitle}
+                  onChange={(e) => setForm((f) => ({ ...f, seoTitle: e.target.value }))}
+                />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="album-seo-description">SEO description</label>
+                <input
+                  id="album-seo-description"
+                  value={form.seoDescription}
+                  onChange={(e) => setForm((f) => ({ ...f, seoDescription: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="admin-field">
+              <label htmlFor="album-keywords">Keywords</label>
+              <input
+                id="album-keywords"
+                value={form.keywords}
+                onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))}
+                placeholder="Comma-separated search terms"
+              />
+            </div>
+            <label className="admin-toggle-row">
+              <input
+                type="checkbox"
+                checked={form.noindex}
+                onChange={(e) => setForm((f) => ({ ...f, noindex: e.target.checked }))}
+              />
+              <span>Hide from search engines</span>
+            </label>
+            </AdminFormSection>
+            <AdminFormSection title="People and relationships">
             <div className="admin-field">
               <label htmlFor="album-program">Linked program (optional)</label>
               <select
@@ -305,9 +436,38 @@ export default function AdminPhotoAlbumsPage() {
                 ))}
               </select>
             </div>
+            <div className="admin-field">
+              <label>People in this album</label>
+              <div className="admin-choice-stack">
+                {people.map((person) => (
+                  <label key={person.id} className="admin-toggle-row">
+                    <input
+                      type="checkbox"
+                      checked={form.personIds.includes(person.id)}
+                      onChange={() =>
+                        setForm((f) => ({
+                          ...f,
+                          personIds: f.personIds.includes(person.id)
+                            ? f.personIds.filter((id) => id !== person.id)
+                            : [...f.personIds, person.id],
+                        }))
+                      }
+                    />
+                    <span>{person.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            </AdminFormSection>
+            <AdminFormSection title="Images and media">
             <CoverMediaField
               value={form.coverMediaId}
               onChange={(coverMediaId) => setForm((f) => ({ ...f, coverMediaId }))}
+            />
+            <CoverMediaField
+              label="Social sharing image"
+              value={form.shareMediaId}
+              onChange={(shareMediaId) => setForm((f) => ({ ...f, shareMediaId }))}
             />
             <div className="admin-field">
               <label>Album images</label>
@@ -328,6 +488,12 @@ export default function AdminPhotoAlbumsPage() {
                         placeholder="Caption"
                         aria-label={`Caption for image ${index + 1}`}
                         onChange={(e) => updateImageCaption(index, e.target.value)}
+                      />
+                      <input
+                        value={img.altText}
+                        placeholder="Alt text"
+                        aria-label={`Alt text for image ${index + 1}`}
+                        onChange={(e) => updateImageAlt(index, e.target.value)}
                       />
                       <button
                         type="button"
@@ -352,6 +518,8 @@ export default function AdminPhotoAlbumsPage() {
                 imagesOnly
               />
             </div>
+            </AdminFormSection>
+            <AdminFormSection title="Review and permissions">
             <div className="admin-field">
               <label htmlFor="album-sort">Sort order</label>
               <input
@@ -370,14 +538,38 @@ export default function AdminPhotoAlbumsPage() {
               />
               <span>Featured</span>
             </label>
-            <label className="admin-toggle-row">
-              <input
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))}
+              <PublicationFields
+                value={{
+                  publicationStatus: form.publicationStatus,
+                  scheduledAtLocal: form.scheduledAtLocal,
+                  published: form.published,
+                }}
+                checklist={[
+                  { label: 'At least one photograph', ok: form.images.length > 0 },
+                  { label: 'Rights note', ok: Boolean(form.rightsNote.trim()) },
+                  {
+                    label: 'Short description',
+                    ok: Boolean(form.description.replace(/<[^>]+>/g, '').trim()),
+                  },
+                ]}
+                onChange={(next) =>
+                  setForm((f) => ({
+                    ...f,
+                    publicationStatus: next.publicationStatus,
+                    scheduledAtLocal: next.scheduledAtLocal,
+                    published: next.published,
+                  }))
+                }
               />
-              <span>Published</span>
-            </label>
+            </AdminFormSection>
+            <AdminFormSection title="Related content">
+              <RelatedOverridesFields
+                pinned={form.relatedPinned}
+                hidden={form.relatedHidden}
+                onPinnedChange={(relatedPinned) => setForm((f) => ({ ...f, relatedPinned }))}
+                onHiddenChange={(relatedHidden) => setForm((f) => ({ ...f, relatedHidden }))}
+              />
+            </AdminFormSection>
             <div className="admin-actions">
               <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
                 {saving ? 'Saving…' : 'Save'}
@@ -388,7 +580,7 @@ export default function AdminPhotoAlbumsPage() {
               {editingId !== 'new' && form.slug ? (
                 <a
                   className="admin-btn admin-btn--ghost"
-                  href={`/library/photos/${form.slug}`}
+                  href={`/library/photo-gallery/${form.slug}`}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -426,7 +618,11 @@ export default function AdminPhotoAlbumsPage() {
                   <td>{record.collection}</td>
                   <td>{record.images?.length ?? 0}</td>
                   <td>
-                    <AdminStatus value={record.published ? 'published' : 'draft'} />
+                    <AdminStatus
+                      value={
+                        record.publicationStatus ?? (record.published ? 'published' : 'draft')
+                      }
+                    />
                   </td>
                   <td>
                     <AdminRowActions

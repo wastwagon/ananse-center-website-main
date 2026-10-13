@@ -8,13 +8,17 @@ if [ ! -d node_modules ] || [ ! -f node_modules/.package-lock.json ]; then
   npm install
 fi
 
-echo "Running database migrations..."
+echo "Applying database migrations..."
 npx prisma migrate deploy
 npx prisma generate
+echo "Database migrations applied"
 
 if [ "$SKIP_PRISMA_SEED" != "true" ]; then
   echo "Seeding database..."
-  npx prisma db seed || true
+  npx prisma db seed
+  echo "Seed complete"
+else
+  echo "Skipping seed (SKIP_PRISMA_SEED=true)"
 fi
 
 exec "$@"

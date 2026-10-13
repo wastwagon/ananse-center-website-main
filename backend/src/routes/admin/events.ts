@@ -3,10 +3,34 @@ import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
 import { slugify } from '../../lib/slug.js'
 import { eventIncludeAdmin, mapAdminEvent } from '../../lib/event-map.js'
+import {
+  adminPublicationFieldsSchema,
+  publicationCreateDefaults,
+  resolvePublicationWrite,
+} from '../../lib/admin-publication-fields.js'
+import { rememberPathRedirect } from '../../lib/path-redirect.js'
 import { EVENT_DELIVERY_MODES, EVENT_STATUSES } from '../../lib/taxonomy.js'
+import { CONTENT_EDITOR_ROLES } from '../../lib/admin-roles.js'
+import {
+  denyPublicationChange,
+  enteringPublication,
+  plainText,
+  publishError,
+  sharedEntryCreate,
+  sharedEntryFieldsSchema,
+  sharedEntryWrite,
+} from '../../lib/entry-fields.js'
 import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 
-const registrationStatusSchema = z.enum(['auto', 'open', 'closed', 'waitlist', 'completed'])
+const registrationStatusSchema = z.enum([
+  'auto',
+  'open',
+  'closed',
+  'waitlist',
+  'completed',
+  'not_required',
+  'unavailable',
+])
 
 const eventBodySchema = z.object({
   title: z.string().min(2).max(200),
@@ -22,6 +46,12 @@ const eventBodySchema = z.object({
   meetingUrl: z.string().max(500).optional(),
   recordingUrl: z.string().max(500).optional(),
   audioUrl: z.string().max(500).optional(),
+  cost: z.string().max(120).optional(),
+  registrationUrl: z.string().max(500).optional(),
+  organizer: z.string().max(200).optional(),
+  timeZone: z.string().max(80).optional(),
+  seoTitle: z.string().max(160).optional(),
+  seoDescription: z.string().max(320).optional(),
   transcript: z.string().max(50000).optional(),
   subtitle: z.string().max(240).optional(),
   speakers: z
@@ -38,10 +68,10 @@ const eventBodySchema = z.object({
   storyBody: z.string().max(20000).optional().nullable(),
   highlights: z.array(z.string().min(1)).optional(),
   featured: z.boolean().optional(),
-  published: z.boolean().optional(),
   slug: z.string().min(2).max(200).optional(),
   coverMediaId: z.string().cuid().optional().nullable(),
-})
+  insightIds: z.array(z.string().cuid()).max(24).optional(),
+}).merge(sharedEntryFieldsSchema).merge(adminPublicationFieldsSchema)
 
 function parseOptionalDate(value: string | null | undefined): Date | null | undefined {
   if (value === undefined) return undefined
@@ -51,7 +81,7 @@ function parseOptionalDate(value: string | null | undefined): Date | null | unde
 }
 
 export async function adminEventRoutes(app: FastifyInstance) {
-  const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
+  const guard = { preHandler: [withAdminRoles(CONTENT_EDITOR_ROLES)] }
 
   app.get('/api/v1/admin/events', guard, async () => {
     const events = await prisma.event.findMany({
@@ -77,6 +107,17 @@ export async function adminEventRoutes(app: FastifyInstance) {
     }
 
     const data = parsed.data
+    const nextStatus = data.publicationStatus ?? (data.published === false ? 'draft' : 'published')
+    if (denyPublicationChange(request.admin?.role, nextStatus, null, reply)) return
+    if (enteringPublication(nextStatus, null)) {
+      const error = publishError(
+        [
+          !plainText(data.description) ? 'short description' : '',
+          !plainText(data.storyBody) ? 'full description' : '',
+        ].filter(Boolean),
+      )
+      if (error) return reply.status(400).send({ error })
+    }
     const slug = data.slug?.trim() || slugify(data.title)
     const existing = await prisma.event.findUnique({ where: { slug } })
     if (existing) {
@@ -99,6 +140,12 @@ export async function adminEventRoutes(app: FastifyInstance) {
         meetingUrl: data.meetingUrl ?? '',
         recordingUrl: data.recordingUrl ?? '',
         audioUrl: data.audioUrl ?? '',
+        cost: data.cost ?? '',
+        registrationUrl: data.registrationUrl ?? '',
+        organizer: data.organizer ?? '',
+        timeZone: data.timeZone ?? '',
+        seoTitle: data.seoTitle ?? '',
+        seoDescription: data.seoDescription ?? '',
         transcript: data.transcript ?? '',
         subtitle: data.subtitle ?? '',
         speakers: {
@@ -117,8 +164,12 @@ export async function adminEventRoutes(app: FastifyInstance) {
         storyBody: data.storyBody ?? null,
         highlights: data.highlights ?? [],
         featured: data.featured ?? false,
-        published: data.published ?? true,
+        ...publicationCreateDefaults(data),
+        ...sharedEntryCreate(data),
         coverMediaId: data.coverMediaId ?? null,
+        ...(data.insightIds
+          ? { insightLinks: { create: data.insightIds.map((newsPostId) => ({ newsPostId })) } }
+          : {}),
       },
       include: eventIncludeAdmin,
     })
@@ -136,11 +187,25 @@ export async function adminEventRoutes(app: FastifyInstance) {
     if (!existing) return reply.status(404).send({ error: 'Event not found' })
 
     const data = parsed.data
+    const nextStatus = data.publicationStatus ?? existing.publicationStatus
+    if (denyPublicationChange(request.admin?.role, data.publicationStatus, existing.publicationStatus, reply)) {
+      return
+    }
+    if (enteringPublication(nextStatus, existing.publicationStatus)) {
+      const error = publishError(
+        [
+          !plainText(data.description ?? existing.description) ? 'short description' : '',
+          !plainText(data.storyBody ?? existing.storyBody) ? 'full description' : '',
+        ].filter(Boolean),
+      )
+      if (error) return reply.status(400).send({ error })
+    }
     const slug = data.slug?.trim() || (data.title ? slugify(data.title) : undefined)
 
     if (slug && slug !== existing.slug) {
       const conflict = await prisma.event.findUnique({ where: { slug } })
       if (conflict) return reply.status(409).send({ error: 'An event with this slug already exists' })
+      await rememberPathRedirect(`/events/${existing.slug}`, `/events/${slug}`)
     }
 
     const event = await prisma.event.update({
@@ -162,6 +227,12 @@ export async function adminEventRoutes(app: FastifyInstance) {
         ...(data.meetingUrl !== undefined ? { meetingUrl: data.meetingUrl } : {}),
         ...(data.recordingUrl !== undefined ? { recordingUrl: data.recordingUrl } : {}),
         ...(data.audioUrl !== undefined ? { audioUrl: data.audioUrl } : {}),
+        ...(data.cost !== undefined ? { cost: data.cost } : {}),
+        ...(data.registrationUrl !== undefined ? { registrationUrl: data.registrationUrl } : {}),
+        ...(data.organizer !== undefined ? { organizer: data.organizer } : {}),
+        ...(data.timeZone !== undefined ? { timeZone: data.timeZone } : {}),
+        ...(data.seoTitle !== undefined ? { seoTitle: data.seoTitle } : {}),
+        ...(data.seoDescription !== undefined ? { seoDescription: data.seoDescription } : {}),
         ...(data.transcript !== undefined ? { transcript: data.transcript } : {}),
         ...(data.subtitle !== undefined ? { subtitle: data.subtitle } : {}),
         ...(data.speakers !== undefined
@@ -185,8 +256,17 @@ export async function adminEventRoutes(app: FastifyInstance) {
         ...(data.storyBody !== undefined ? { storyBody: data.storyBody } : {}),
         ...(data.highlights !== undefined ? { highlights: data.highlights } : {}),
         ...(data.featured !== undefined ? { featured: data.featured } : {}),
-        ...(data.published !== undefined ? { published: data.published } : {}),
+        ...resolvePublicationWrite(data, existing),
+        ...sharedEntryWrite(data),
         ...(data.coverMediaId !== undefined ? { coverMediaId: data.coverMediaId } : {}),
+        ...(data.insightIds !== undefined
+          ? {
+              insightLinks: {
+                deleteMany: {},
+                create: data.insightIds.map((newsPostId) => ({ newsPostId })),
+              },
+            }
+          : {}),
       },
       include: eventIncludeAdmin,
     })
@@ -197,6 +277,7 @@ export async function adminEventRoutes(app: FastifyInstance) {
   app.delete<{ Params: { id: string } }>('/api/v1/admin/events/:id', guard, async (request, reply) => {
     const existing = await prisma.event.findUnique({ where: { id: request.params.id } })
     if (!existing) return reply.status(404).send({ error: 'Event not found' })
+    if (denyPublicationChange(request.admin?.role, 'draft', existing.publicationStatus, reply)) return
     await prisma.event.delete({ where: { id: existing.id } })
     return { ok: true }
   })

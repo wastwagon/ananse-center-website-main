@@ -12,6 +12,7 @@ import { TableCell } from '@tiptap/extension-table-cell'
 import { TableHeader } from '@tiptap/extension-table-header'
 import { useEffect, useState } from 'react'
 import { cmsBodyToSafeHtml, looksLikeHtml, plainTextToHtml } from '../../lib/cms/richtext'
+import { IframeEmbed, toEmbedSrc } from '../../lib/cms/iframe-embed'
 import { mediaFileUrl } from '../../lib/media'
 import type { AdminMedia } from '../../lib/admin-api'
 import MediaPicker from './MediaPicker'
@@ -22,6 +23,8 @@ type CmsRichTextEditorProps = {
   placeholder?: string
   /** Shorter min-height for secondary fields (wisdom, album blurb, etc.). */
   compact?: boolean
+  /** Allow YouTube/Vimeo/Spotify iframe embeds (Insights body). */
+  allowEmbeds?: boolean
 }
 
 export default function CmsRichTextEditor({
@@ -29,6 +32,7 @@ export default function CmsRichTextEditor({
   onChange,
   placeholder = 'Write content…',
   compact = false,
+  allowEmbeds = false,
 }: CmsRichTextEditorProps) {
   const initial = looksLikeHtml(value) ? value : plainTextToHtml(value)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -53,6 +57,7 @@ export default function CmsRichTextEditor({
       TableRow,
       TableHeader,
       TableCell,
+      ...(allowEmbeds ? [IframeEmbed] : []),
       Placeholder.configure({ placeholder }),
     ],
     content: initial,
@@ -192,6 +197,23 @@ export default function CmsRichTextEditor({
         <ToolbarButton disabled={showSource} onClick={() => setPickerOpen(true)}>
           Image
         </ToolbarButton>
+        {allowEmbeds ? (
+          <ToolbarButton
+            disabled={showSource}
+            onClick={() => {
+              const raw = window.prompt('Embed URL (YouTube, Vimeo, Spotify, SoundCloud)')
+              if (raw === null) return
+              const src = toEmbedSrc(raw)
+              if (!src) {
+                window.alert('That URL is not on the allowlist for embeds.')
+                return
+              }
+              editor.chain().focus().insertContent({ type: 'iframeEmbed', attrs: { src } }).run()
+            }}
+          >
+            Embed
+          </ToolbarButton>
+        ) : null}
         <ToolbarButton
           active={editor.isActive('table')}
           disabled={showSource}

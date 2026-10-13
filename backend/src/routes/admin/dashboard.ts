@@ -3,6 +3,7 @@ import { withAdminRoles, anyAdminRole } from '../../plugins/admin-role-guard.js'
 import { prisma } from '../../lib/prisma.js'
 import { getSiteSettings, mapSiteSettings } from '../../lib/site-settings.js'
 import { isPaystackConfigured } from '../../lib/paystack.js'
+import { publicVisibilityWhere } from '../../lib/publication.js'
 
 const PLACEHOLDER_RE =
   /\bplaceholder\b|before (public )?launch|will be updated with our full|coming soon/i
@@ -43,7 +44,7 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
         demoAlbums,
       ] = await Promise.all([
         prisma.event.count(),
-        prisma.event.count({ where: { published: true } }),
+        prisma.event.count({ where: publicVisibilityWhere() }),
         prisma.contactMessage.count(),
         prisma.contactMessage.count({ where: { status: 'new' } }),
         prisma.donation.count(),
@@ -52,9 +53,9 @@ export async function adminDashboardRoutes(app: FastifyInstance) {
         prisma.eventRegistration.count({ where: { status: 'new' } }),
         prisma.newsletterSubscriber.count({ where: { status: 'subscribed' } }),
         getSiteSettings(),
-        prisma.newsPost.count({ where: { published: true } }),
+        prisma.newsPost.count({ where: publicVisibilityWhere() }),
         prisma.newsPost.count({
-          where: { published: true, title: { startsWith: 'Placeholder' } },
+          where: { AND: [publicVisibilityWhere(), { title: { startsWith: 'Placeholder' } }] },
         }),
         prisma.contentBlock.findMany({
           where: { published: true },

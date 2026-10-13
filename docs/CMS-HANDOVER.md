@@ -224,9 +224,21 @@ Anything marked **Placeholder** in Admin or below should be swapped for approved
 | Full story | Rich text editor → `/insights/your-slug` |
 | Cover image | Media picker (recommended) |
 | Featured | Editorial highlight (not the same as “latest”) |
-| Published | Drafts stay off the public site |
+| Publication status | Draft / In review / Scheduled / Published / Archived. Scheduled needs a datetime; due items go live automatically. |
+| Primary category | Required to publish; listing topic filter matches primary or topics[] |
+| Programs | Primary + additional programs (InsightProgram); public Connected shows all |
+| Linked gatherings | Optional EventInsight links (editable here or on Events → Linked insights) |
+| Related content | Optional pinned/hidden slugs per type (insights, library, events, albums, people) |
+| Embeds | Full story toolbar **Embed** for YouTube, Vimeo, Spotify, SoundCloud |
+| noindex / share image | noindex hides from lists/search/sitemap; share image overrides OG when set |
 | Library Read link | Optional link to a Library item |
 | External link | Leave empty for on-site article; or paste an off-site URL |
+
+### Library (`/admin/library`)
+Same **Publishing**, **Related content**, **noindex/share**, plus shelf/collection, audio/video, optional **download** file, and **original date**.
+
+### Photo albums (`/admin/photo-albums`)
+Same **Publishing**, **Related content**, **noindex/share**, plus gallery images (per-image alt), collection, program/event/**people** links.
 
 Listing chrome: **Site Content → insights.*** (legacy `news.*` keys may still exist; prefer Insights admin.)
 

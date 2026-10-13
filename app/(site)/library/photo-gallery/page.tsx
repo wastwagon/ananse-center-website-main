@@ -9,7 +9,7 @@ export async function generateMetadata() {
   return buildPageMetadata({
     title: 'Photo galleries',
     description: 'Photographs from ANANSE events, lectures, mentorship, and community engagement.',
-    path: '/library/photos',
+    path: '/library/photo-gallery',
     ogImage: images.hero.events,
   })
 }
@@ -24,7 +24,7 @@ export default async function PhotoAlbumsPage() {
     collection: album.collection,
     dateLabel: album.dateLabel,
     place: album.place,
-    href: `/library/photos/${album.slug}`,
+    href: `/library/photo-gallery/${album.slug}`,
     cover: resolvePhotoAlbumCover(album, index),
     imageCount: album.images.length,
     featured: album.featured,

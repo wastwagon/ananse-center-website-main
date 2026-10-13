@@ -24,11 +24,18 @@ model MediaAsset {
   newsCovers   NewsPost[] @relation("NewsCover")
   personPhotos Person[]  @relation("PersonPhoto")
   personLogos  Person[]  @relation("PersonLogo")
-  libraryCovers LibraryItem[] @relation("LibraryCover")
-  libraryAudio LibraryItem[]  @relation("LibraryAudio")
-  libraryVideo LibraryItem[]  @relation("LibraryVideo")
-  albumCovers  PhotoAlbum[]   @relation("AlbumCover")
-  albumImages  PhotoAlbumImage[]
+  libraryCovers    LibraryItem[] @relation("LibraryCover")
+  libraryAudio     LibraryItem[]  @relation("LibraryAudio")
+  libraryVideo     LibraryItem[]  @relation("LibraryVideo")
+  libraryDownloads LibraryItem[]  @relation("LibraryDownload")
+  albumCovers      PhotoAlbum[]   @relation("AlbumCover")
+  albumImages      PhotoAlbumImage[]
+  programShares    Program[]      @relation("ProgramShare")
+  eventShares      Event[]        @relation("EventShare")
+  newsShares       NewsPost[]     @relation("NewsShare")
+  personShares     Person[]       @relation("PersonShare")
+  libraryShares    LibraryItem[]  @relation("LibraryShare")
+  albumShares      PhotoAlbum[]   @relation("AlbumShare")
 
   @@index([mimeType, createdAt(sort: Desc)])
   @@map("media_assets")
@@ -47,17 +54,41 @@ model Program {
   features     Json        @default("[]")
   sortOrder    Int         @default(0) @map("sort_order")
   published    Boolean     @default(true)
-  coverMediaId String?     @map("cover_media_id")
-  coverMedia   MediaAsset? @relation("ProgramCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
-  events       Event[]
+  /** draft | in_review | scheduled | published | archived */
+  publicationStatus String     @default("draft") @map("publication_status")
+  scheduledAt       DateTime?  @map("scheduled_at")
+  relatedPinned     Json       @default("{}") @map("related_pinned")
+  relatedHidden     Json       @default("{}") @map("related_hidden")
+  coverMediaId   String?     @map("cover_media_id")
+  coverMedia     MediaAsset? @relation("ProgramCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  tagline        String      @default("")
+  ctaLabel       String      @default("") @map("cta_label")
+  ctaHref        String      @default("") @map("cta_href")
+  /** JSON string[] from the shared topic list */
+  topics         Json        @default("[]")
+  seoTitle       String      @default("") @map("seo_title")
+  seoDescription String      @default("") @map("seo_description")
+  /** Card and archive summary, distinct from the full description. */
+  summary        String      @default("") @db.Text
+  keywords       String      @default("")
+  noindex        Boolean     @default(false)
+  shareMediaId   String?     @map("share_media_id")
+  shareMedia     MediaAsset? @relation("ProgramShare", fields: [shareMediaId], references: [id], onDelete: SetNull)
+  leadPersonId   String?     @map("lead_person_id")
+  leadPerson     Person?     @relation("ProgramLead", fields: [leadPersonId], references: [id], onDelete: SetNull)
+  events         Event[]
   libraryItems LibraryItem[]
   photoAlbums  PhotoAlbum[]
   people       PersonProgram[]
   insights     NewsPost[]
+  insightLinks InsightProgram[]
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
 
   @@index([section, published, sortOrder])
+  @@index([shareMediaId])
+  @@index([publicationStatus, scheduledAt])
+  @@index([leadPersonId])
   @@map("programs")
 }
 
@@ -80,6 +111,16 @@ model Event {
   recordingUrl       String      @default("") @map("recording_url")
   /** Separate audio when the recording link is video. */
   audioUrl           String      @default("") @map("audio_url")
+  cost               String      @default("")
+  registrationUrl    String      @default("") @map("registration_url")
+  organizer          String      @default("")
+  timeZone           String      @default("") @map("time_zone")
+  seoTitle           String      @default("") @map("seo_title")
+  seoDescription     String      @default("") @map("seo_description")
+  keywords           String      @default("")
+  noindex            Boolean     @default(false)
+  shareMediaId       String?     @map("share_media_id")
+  shareMedia         MediaAsset? @relation("EventShare", fields: [shareMediaId], references: [id], onDelete: SetNull)
   transcript         String      @default("") @db.Text
   subtitle           String      @default("")
   /** JSON string[] of media asset ids kept on the same page after the date */
@@ -97,14 +138,22 @@ model Event {
   highlights         Json        @default("[]")
   featured           Boolean     @default(false)
   published          Boolean     @default(true)
+  /** draft | in_review | scheduled | published | archived */
+  publicationStatus  String      @default("draft") @map("publication_status")
+  scheduledAt        DateTime?   @map("scheduled_at")
+  relatedPinned      Json        @default("{}") @map("related_pinned")
+  relatedHidden      Json        @default("{}") @map("related_hidden")
   photoAlbums        PhotoAlbum[]
   speakers           EventSpeaker[]
   libraryItems       LibraryItem[]
+  insightLinks       EventInsight[]
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
 
   @@index([published, startsAt])
+  @@index([publicationStatus, scheduledAt])
   @@index([programId])
+  @@index([shareMediaId])
   @@map("events")
 }
 
@@ -128,18 +177,41 @@ model Person {
   expertise        String      @default("") @db.Text
   /** Cohort or year for fellows and participants. */
   cohortLabel      String      @default("") @map("cohort_label")
+  preferredName    String      @default("") @map("preferred_name")
+  fullBio          String      @default("") @map("full_bio") @db.Text
+  /** Editor confirms permission before a public profile is appropriate. */
+  consentConfirmed Boolean     @default(false) @map("consent_confirmed")
+  /** One link per line: Label | https://… */
+  socialLinks      String      @default("") @map("social_links") @db.Text
+  seoTitle         String      @default("") @map("seo_title")
+  seoDescription   String      @default("") @map("seo_description")
+  /** Topics chosen from the shared list, used as the expertise filter. */
+  expertiseTopics  Json        @default("[]") @map("expertise_topics")
+  keywords         String      @default("")
+  noindex          Boolean     @default(false)
+  shareMediaId     String?     @map("share_media_id")
+  shareMedia       MediaAsset? @relation("PersonShare", fields: [shareMediaId], references: [id], onDelete: SetNull)
+  ledPrograms      Program[]   @relation("ProgramLead")
   featured         Boolean     @default(false)
   published        Boolean     @default(false)
+  /** draft | in_review | scheduled | published | archived */
+  publicationStatus String     @default("draft") @map("publication_status")
+  scheduledAt       DateTime?  @map("scheduled_at")
+  relatedPinned     Json       @default("{}") @map("related_pinned")
+  relatedHidden     Json       @default("{}") @map("related_hidden")
   sortOrder        Int         @default(0) @map("sort_order")
   libraryItems     LibraryItem[]
   programs         PersonProgram[]
   eventRoles       EventSpeaker[]
   insights         NewsPost[]
+  photoAlbums      PhotoAlbumPerson[]
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime    @updatedAt @map("updated_at")
 
   @@index([published, sortOrder])
   @@index([featured, published])
+  @@index([publicationStatus, scheduledAt])
+  @@index([shareMediaId])
   @@map("people")
 }
 
@@ -163,6 +235,8 @@ model LibraryItem {
   scriptureTheme  String      @default("") @map("scripture_theme")
   episodeNumber   Int?        @map("episode_number")
   dateLabel       String      @default("") @map("date_label")
+  /** When the content was created or first presented, distinct from website publication. */
+  originalAt      DateTime?   @map("original_at")
   publishedAt     DateTime?   @map("published_at")
   /** JSON string[] of insight topics */
   topics          Json        @default("[]")
@@ -183,16 +257,33 @@ model LibraryItem {
   videoMedia      MediaAsset? @relation("LibraryVideo", fields: [videoMediaId], references: [id], onDelete: SetNull)
   audioUrl        String      @default("") @map("audio_url")
   videoUrl        String      @default("") @map("video_url")
+  downloadMediaId String?     @map("download_media_id")
+  downloadMedia   MediaAsset? @relation("LibraryDownload", fields: [downloadMediaId], references: [id], onDelete: SetNull)
+  downloadUrl     String      @default("") @map("download_url")
+  duration        String      @default("")
+  rightsNote      String      @default("") @map("rights_note")
+  seoTitle        String      @default("") @map("seo_title")
+  seoDescription  String      @default("") @map("seo_description")
+  noindex         Boolean     @default(false)
+  shareMediaId    String?     @map("share_media_id")
+  shareMedia      MediaAsset? @relation("LibraryShare", fields: [shareMediaId], references: [id], onDelete: SetNull)
   featured        Boolean     @default(false)
   published       Boolean     @default(false)
+  /** draft | in_review | scheduled | published | archived */
+  publicationStatus String    @default("draft") @map("publication_status")
+  scheduledAt       DateTime? @map("scheduled_at")
+  relatedPinned     Json      @default("{}") @map("related_pinned")
+  relatedHidden     Json      @default("{}") @map("related_hidden")
   sortOrder       Int         @default(0) @map("sort_order")
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
   @@index([shelf, published, sortOrder])
+  @@index([shareMediaId])
   @@index([collection, published])
   @@index([episodeNumber])
   @@index([eventId])
+  @@index([publicationStatus, scheduledAt])
   @@map("library_items")
 }
 
@@ -234,17 +325,45 @@ model PhotoAlbum {
   program      Program?    @relation(fields: [programId], references: [id], onDelete: SetNull)
   eventId      String?     @map("event_id")
   event        Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)
-  coverMediaId String?     @map("cover_media_id")
-  coverMedia   MediaAsset? @relation("AlbumCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
-  featured     Boolean     @default(false)
+  coverMediaId   String?     @map("cover_media_id")
+  coverMedia     MediaAsset? @relation("AlbumCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  photographer   String      @default("")
+  rightsNote     String      @default("") @map("rights_note")
+  seoTitle       String      @default("") @map("seo_title")
+  seoDescription String      @default("") @map("seo_description")
+  keywords       String      @default("")
+  noindex        Boolean     @default(false)
+  shareMediaId   String?     @map("share_media_id")
+  shareMedia     MediaAsset? @relation("AlbumShare", fields: [shareMediaId], references: [id], onDelete: SetNull)
+  featured       Boolean     @default(false)
   published    Boolean     @default(false)
+  /** draft | in_review | scheduled | published | archived */
+  publicationStatus String   @default("draft") @map("publication_status")
+  scheduledAt       DateTime? @map("scheduled_at")
+  relatedPinned     Json      @default("{}") @map("related_pinned")
+  relatedHidden     Json      @default("{}") @map("related_hidden")
   sortOrder    Int         @default(0) @map("sort_order")
   images       PhotoAlbumImage[]
+  people       PhotoAlbumPerson[]
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
 
   @@index([collection, published, sortOrder])
+  @@index([publicationStatus, scheduledAt])
+  @@index([shareMediaId])
   @@map("photo_albums")
+}
+
+/** People featured in a photo album. */
+model PhotoAlbumPerson {
+  albumId  String     @map("album_id")
+  personId String     @map("person_id")
+  album    PhotoAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  person   Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([albumId, personId])
+  @@index([personId])
+  @@map("photo_album_people")
 }
 
 model PhotoAlbumImage {
@@ -254,6 +373,7 @@ model PhotoAlbumImage {
   mediaId   String     @map("media_id")
   media     MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
   caption   String     @default("")
+  altText   String     @default("") @map("alt_text")
   sortOrder Int        @default(0) @map("sort_order")
   createdAt DateTime   @default(now()) @map("created_at")
 
@@ -406,21 +526,64 @@ model NewsPost {
   topics            Json        @default("[]")
   /** Also list under Library → Read when true */
   showInLibraryRead Boolean     @default(false) @map("show_in_library_read")
+  imageCredit       String      @default("") @map("image_credit")
+  pullQuote         String      @default("") @map("pull_quote") @db.Text
+  seoTitle          String      @default("") @map("seo_title")
+  seoDescription    String      @default("") @map("seo_description")
+  /** One principal Insights category. Additional topics stay on `topics`. */
+  primaryTopic      String      @default("") @map("primary_topic")
+  keywords          String      @default("")
+  noindex           Boolean     @default(false)
+  shareMediaId      String?     @map("share_media_id")
+  shareMedia        MediaAsset? @relation("NewsShare", fields: [shareMediaId], references: [id], onDelete: SetNull)
   featured          Boolean     @default(false)
   linkHref          String      @default("") @map("link_href")
   coverMediaId      String?     @map("cover_media_id")
   coverMedia        MediaAsset? @relation("NewsCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
   libraryItems      LibraryItem[]
+  programLinks      InsightProgram[]
+  eventLinks        EventInsight[]
   published         Boolean     @default(true)
+  /** draft | in_review | scheduled | published | archived */
+  publicationStatus String      @default("draft") @map("publication_status")
+  scheduledAt       DateTime?   @map("scheduled_at")
+  relatedPinned     Json        @default("{}") @map("related_pinned")
+  relatedHidden     Json        @default("{}") @map("related_hidden")
   sortOrder         Int         @default(0) @map("sort_order")
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
   @@index([published, sortOrder])
   @@index([featured, published])
+  @@index([publicationStatus, scheduledAt])
   @@index([programId])
   @@index([authorPersonId])
+  @@index([shareMediaId])
   @@map("news_posts")
+}
+
+/** Extra programs on an insight. The primary program remains `news_posts.program_id`. */
+model InsightProgram {
+  newsPostId String   @map("news_post_id")
+  programId  String   @map("program_id")
+  newsPost   NewsPost @relation(fields: [newsPostId], references: [id], onDelete: Cascade)
+  program    Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@id([newsPostId, programId])
+  @@index([programId])
+  @@map("insight_programs")
+}
+
+/** Insights attached directly to an event, in addition to program-level matches. */
+model EventInsight {
+  eventId    String   @map("event_id")
+  newsPostId String   @map("news_post_id")
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  newsPost   NewsPost @relation(fields: [newsPostId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, newsPostId])
+  @@index([newsPostId])
+  @@map("event_insights")
 }
 
 model Donation {
@@ -439,6 +602,17 @@ model Donation {
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("donations")
+}
+
+/** Old public path → current path after a slug change. */
+model PathRedirect {
+  id        String   @id @default(cuid())
+  fromPath  String   @unique @map("from_path")
+  toPath    String   @map("to_path")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([toPath])
+  @@map("path_redirects")
 }
 
 /** First-party, self-hosted pageviews (no third-party analytics). */

@@ -99,7 +99,7 @@ export type PhotoCollection = (typeof PHOTO_COLLECTIONS)[number]
 export const EVENT_DELIVERY_MODES = ['in_person', 'online', 'hybrid'] as const
 export type EventDeliveryMode = (typeof EVENT_DELIVERY_MODES)[number]
 
-export const EVENT_STATUSES = ['scheduled', 'postponed', 'cancelled'] as const
+export const EVENT_STATUSES = ['scheduled', 'completed', 'postponed', 'cancelled'] as const
 export type EventStatus = (typeof EVENT_STATUSES)[number]
 
 export const EVENT_GATHERING_TYPES = [
@@ -119,6 +119,7 @@ export function deliveryModeLabel(mode: string): string {
 }
 
 export function eventStatusLabel(status: string): string {
+  if (status === 'completed') return 'Completed'
   if (status === 'postponed') return 'Postponed'
   if (status === 'cancelled') return 'Cancelled'
   return 'Scheduled'

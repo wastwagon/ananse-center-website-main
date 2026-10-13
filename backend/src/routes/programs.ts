@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { eventIncludePublic, mapPublicEvent } from '../lib/event-map.js'
 import { mapPublicProgram, programIncludeCover } from '../lib/program-map.js'
+import { publicListingWhere, publicVisibilityWhere } from '../lib/publication.js'
 
 export async function programRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { section?: string } }>('/api/v1/programs', async (request) => {
@@ -9,7 +10,7 @@ export async function programRoutes(app: FastifyInstance) {
 
     const programs = await prisma.program.findMany({
       where: {
-        published: true,
+        ...publicListingWhere(),
         ...(section ? { section } : {}),
       },
       orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
@@ -21,14 +22,14 @@ export async function programRoutes(app: FastifyInstance) {
 
   app.get<{ Params: { slug: string } }>('/api/v1/programs/:slug/events', async (request, reply) => {
     const program = await prisma.program.findFirst({
-      where: { slug: request.params.slug, published: true },
+      where: { slug: request.params.slug, ...publicVisibilityWhere() },
       select: { id: true },
     })
     if (!program) {
       return reply.status(404).send({ error: 'Program not found' })
     }
     const events = await prisma.event.findMany({
-      where: { published: true, programId: program.id },
+      where: { ...publicVisibilityWhere(), programId: program.id },
       include: eventIncludePublic,
       orderBy: [{ featured: 'desc' }, { startsAt: 'desc' }, { createdAt: 'desc' }],
     })
@@ -37,7 +38,7 @@ export async function programRoutes(app: FastifyInstance) {
 
   app.get<{ Params: { slug: string } }>('/api/v1/programs/:slug', async (request, reply) => {
     const program = await prisma.program.findFirst({
-      where: { slug: request.params.slug, published: true },
+      where: { slug: request.params.slug, ...publicVisibilityWhere() },
       include: programIncludeCover,
     })
 

@@ -47,7 +47,12 @@ The site ships with `demo-*` sample people, events, Midday episodes, library ite
 - **Featured:** pin to the featured row on the listing  
 - **Also in Library Read:** same article appears under Library → Read shelf  
 - Cover image: Media picker  
-- **Published** off = draft
+- **Primary category** required to publish; topics still power filters  
+- **Programs:** primary + “Also appears on” for multi-program links  
+- **Linked gatherings:** optional EventInsight links (also editable from Events)  
+- **Publishing:** Draft / In review / Scheduled / Published / Archived (Scheduled needs a publish time). Only Published (and due Scheduled) appear on public lists; `noindex` hides from lists/search/sitemap but direct URL still works with robots noindex.  
+- **Related content:** optional pinned/hidden slugs to override automatic related lists  
+- **Embeds:** in Full story, use **Embed** for YouTube, Vimeo, Spotify, or SoundCloud
 
 Wisdom Nuggets, study PDFs, book lists, and **recorded** conversations belong in **Library**, not Insights.
 
@@ -60,8 +65,10 @@ Wisdom Nuggets, study PDFs, book lists, and **recorded** conversations belong in
 - **Shelf:** listen, watch, or read  
 - **Collection:** must match the approved shelf lists (e.g. Midday Reflection, Excellence Lectures, Wisdom Nuggets)  
 - One record can hold **audio + video + transcript + further study + wisdom nugget**  
+- Optional **download** file (media picker or external URL) for PDFs and attachments  
 - Link **program** and **person** (speaker) when relevant  
 - Midday episodes: set episode number, scripture/theme, and media URLs  
+- Same **Publishing** and **Related content** sections as Insights
 
 **Midday Reflection:** program page `/programs/midday-reflection` ↔ archive `/library/midday-reflection`.
 
@@ -72,8 +79,9 @@ Wisdom Nuggets, study PDFs, book lists, and **recorded** conversations belong in
 **Admin → Photo albums**
 
 - Collection: Events, Lectures, Conferences, Mentorship, People, Community Engagement, Special Programs, Historical Archive  
-- Add images via gallery field; set cover, date label, place, optional program/event link  
-- Public URL: `/library/photos/[slug]`
+- Add images via gallery field; set cover, date label, place, optional program/event/**people** links  
+- Public URL: `/library/photo-gallery/[slug]` (older `/library/photos` links redirect here)  
+- Same **Publishing** and **Related content** sections as Insights
 
 ---
 
@@ -83,7 +91,7 @@ Wisdom Nuggets, study PDFs, book lists, and **recorded** conversations belong in
 
 - **Groups:** Leadership, Mentors, Speakers & Faculty, Fellows/Participants, Partners (multi-select allowed)  
 - **Organization partners:** check “organization”, add logo, optional website — no personal contact fields  
-- **Published** only when permission is documented internally
+- Set **Publishing → Published** only when permission is documented internally
 
 ---
 
@@ -92,6 +100,7 @@ Wisdom Nuggets, study PDFs, book lists, and **recorded** conversations belong in
 **Admin → Events**
 
 - **Delivery:** in person, online, or hybrid  
+- Same **Publishing** and **Related content** sections as Insights
 - **Status:** upcoming, postponed, cancelled, completed (registration closes when cancelled/completed)  
 - **Program link:** ties gathering to one of the ten programs  
 - Cover + rich story; registration form on public detail page  

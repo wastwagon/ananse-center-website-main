@@ -1923,7 +1923,7 @@ export const CONTENT_REGISTRY = {
             { label: 'Watch', href: '/library?shelf=watch' },
             { label: 'Read', href: '/library?shelf=read' },
             { label: 'Midday Reflection archive', href: '/library/midday-reflection' },
-            { label: 'Photo galleries', href: '/library/photos' },
+            { label: 'Photo galleries', href: '/library/photo-gallery' },
           ],
         },
         {

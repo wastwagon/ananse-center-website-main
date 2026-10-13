@@ -21,7 +21,8 @@ Staging / preview: [`config/coolify-staging.env.example`](config/coolify-staging
 | `NEXT_PUBLIC_API_URL` | Same as site URL* | Browser calls API (or separate API subdomain) |
 | `API_INTERNAL_URL` | `http://backend:4000` | Next.js → API inside Docker network |
 | `CORS_ORIGIN` | Exact site origin | Must match browser URL (scheme + host) |
-| `SKIP_PRISMA_SEED` | `true` | After first successful deploy |
+| `SKIP_PRISMA_SEED` | `true` | After first successful deploy + seed |
+| `SEED_DEMO_PREVIEW` | `false` | Once real content replaces `demo-*` samples |
 | `ADMIN_ALLOW_SYSTEM_OPS` | unset or `false` | Blocks migrate/seed from admin UI in prod |
 | `ADMIN_ROLE` | `superadmin` | First seeded admin |
 | `ADMIN_JWT_SECRET` | 48+ random chars | Never reuse dev secret |
@@ -83,7 +84,7 @@ Staging / preview: [`config/coolify-staging.env.example`](config/coolify-staging
 
 1. Paste production env from `config/coolify-production.env.example` into Coolify.
 2. **Redeploy with rebuild** (both `web` and `backend`).
-3. First boot only: `SKIP_PRISMA_SEED=false` → deploy → verify admin login → set `SKIP_PRISMA_SEED=true` → redeploy.
+3. First boot: leave `SKIP_PRISMA_SEED=false` (default). Every backend start runs `prisma migrate deploy`, then `prisma db seed` (programs, CMS registry, Stage C, demo preview when `SEED_DEMO_PREVIEW` is not `false`), then starts the API. Verify admin login → set `SKIP_PRISMA_SEED=true` → redeploy so later deploys only migrate.
 4. Admin → **Settings → Integrations** (LMS, GA, legacy host) or rely on env.
 5. Admin → **System** — confirm “Seed on deploy: No” and “System ops: disabled” in production.
 6. Smoke-test: `GET /api/v1/health`, `GET /api/health` (web), legacy 301, donate flow, `/admin/login`.

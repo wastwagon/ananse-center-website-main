@@ -13,12 +13,14 @@ export function buildPageMetadata({
   path = '',
   locale = defaultLocale,
   ogImage = defaultOgImage,
+  noindex = false,
 }: {
   title: string
   description?: string
   path?: string
   locale?: Locale
   ogImage?: string
+  noindex?: boolean
 }): Metadata {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? ''
   const canonicalPath = localizedPath(path, locale)
@@ -37,6 +39,7 @@ export function buildPageMetadata({
     // Root layout already applies `template: '%s | Ananse Center'`.
     title,
     description,
+    ...(noindex ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title: `${title} | ${site.name}`,
       description,

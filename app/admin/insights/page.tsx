@@ -1,23 +1,35 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import AdminFormSection from '../../../components/admin/AdminFormSection'
 import AdminShell from '../../../components/admin/AdminShell'
 import AdminRowActions from '../../../components/admin/AdminRowActions'
 import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
+import PublicationFields from '../../../components/admin/PublicationFields'
+import RelatedOverridesFields from '../../../components/admin/RelatedOverridesFields'
 import { INSIGHT_CONTENT_TYPES, INSIGHT_TOPICS } from '../../../lib/leadership/taxonomy'
 import {
   createAdminNews,
   deleteAdminNews,
+  fetchAdminEvents,
   fetchAdminNews,
   fetchAdminPeople,
   fetchAdminPrograms,
   updateAdminNews,
+  type AdminEvent,
   type AdminNewsPost,
   type AdminPerson,
   type AdminProgram,
 } from '../../../lib/admin-api'
+import {
+  fromDatetimeLocal,
+  publishedFromStatus,
+  statusFromPublished,
+  toDatetimeLocal,
+} from '../../../lib/publication'
+import type { RelatedOverrides } from '../../../lib/related-overrides'
 
 const emptyForm = {
   title: '',
@@ -29,14 +41,28 @@ const emptyForm = {
   author: '',
   authorPersonId: '' as string,
   programId: '' as string,
+  extraProgramIds: [] as string[],
+  eventIds: [] as string[],
+  primaryTopic: '' as string,
   contentType: INSIGHT_CONTENT_TYPES[0] as string,
   topics: [] as string[],
   showInLibraryRead: false,
   featured: false,
   linkHref: '',
   published: true,
+  publicationStatus: 'published',
+  scheduledAtLocal: '',
+  relatedPinned: {} as RelatedOverrides,
+  relatedHidden: {} as RelatedOverrides,
   sortOrder: 0,
   coverMediaId: null as string | null,
+  imageCredit: '',
+  pullQuote: '',
+  seoTitle: '',
+  seoDescription: '',
+  keywords: '',
+  noindex: false,
+  shareMediaId: null as string | null,
 }
 
 function toggleTopic(topics: string[], topic: string): string[] {
@@ -47,6 +73,7 @@ export default function AdminInsightsPage() {
   const [records, setRecords] = useState<AdminNewsPost[]>([])
   const [people, setPeople] = useState<AdminPerson[]>([])
   const [programs, setPrograms] = useState<AdminProgram[]>([])
+  const [events, setEvents] = useState<AdminEvent[]>([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -58,14 +85,16 @@ export default function AdminInsightsPage() {
     setLoading(true)
     setError(null)
     try {
-      const [newsRes, peopleRes, programsRes] = await Promise.all([
+      const [newsRes, peopleRes, programsRes, eventsRes] = await Promise.all([
         fetchAdminNews(),
         fetchAdminPeople(),
         fetchAdminPrograms(),
+        fetchAdminEvents(),
       ])
       setRecords(newsRes.data)
       setPeople(peopleRes.data)
       setPrograms(programsRes.data)
+      setEvents(eventsRes.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load insights')
     } finally {
@@ -93,7 +122,10 @@ export default function AdminInsightsPage() {
       subtitle: record.subtitle ?? '',
       author: record.author ?? '',
       authorPersonId: record.authorPersonId ?? '',
-      programId: record.programId ?? '',
+      programId: record.programIds?.[0] || record.programId || '',
+      extraProgramIds: (record.programIds ?? []).slice(1),
+      eventIds: record.eventIds ?? [],
+      primaryTopic: record.primaryTopic ?? '',
       contentType:
         (record.contentType as (typeof INSIGHT_CONTENT_TYPES)[number]) ||
         INSIGHT_CONTENT_TYPES[0],
@@ -102,8 +134,19 @@ export default function AdminInsightsPage() {
       featured: record.featured ?? false,
       linkHref: record.linkHref,
       published: record.published,
+      publicationStatus: record.publicationStatus ?? statusFromPublished(record.published),
+      scheduledAtLocal: toDatetimeLocal(record.scheduledAt),
+      relatedPinned: record.relatedPinned ?? {},
+      relatedHidden: record.relatedHidden ?? {},
       sortOrder: record.sortOrder,
       coverMediaId: record.coverMediaId,
+      imageCredit: record.imageCredit ?? '',
+      pullQuote: record.pullQuote ?? '',
+      seoTitle: record.seoTitle ?? '',
+      seoDescription: record.seoDescription ?? '',
+      keywords: record.keywords ?? '',
+      noindex: record.noindex ?? false,
+      shareMediaId: record.shareMediaId ?? null,
     })
   }
 
@@ -132,15 +175,31 @@ export default function AdminInsightsPage() {
         author: form.author.trim(),
         authorPersonId: form.authorPersonId || null,
         programId: form.programId || null,
+        programIds: [form.programId, ...form.extraProgramIds].filter(Boolean),
+        eventIds: form.eventIds,
+        ...(form.primaryTopic ? { primaryTopic: form.primaryTopic } : {}),
         category: form.contentType,
         contentType: form.contentType,
         topics: form.topics,
         showInLibraryRead: form.showInLibraryRead,
         featured: form.featured,
         linkHref: form.linkHref.trim(),
-        published: form.published,
+        publicationStatus: form.publicationStatus,
+        scheduledAt: fromDatetimeLocal(form.scheduledAtLocal),
+        relatedPinned: form.relatedPinned,
+        relatedHidden: form.relatedHidden,
+        published:
+          form.publicationStatus === 'published' ||
+          publishedFromStatus(form.publicationStatus, form.scheduledAtLocal),
         sortOrder: form.sortOrder,
         coverMediaId: form.coverMediaId,
+        imageCredit: form.imageCredit.trim(),
+        pullQuote: form.pullQuote.trim(),
+        seoTitle: form.seoTitle.trim(),
+        seoDescription: form.seoDescription.trim(),
+        keywords: form.keywords.trim(),
+        noindex: form.noindex,
+        shareMediaId: form.shareMediaId,
       }
       if (editingId && editingId !== 'new') {
         await updateAdminNews(editingId, payload)
@@ -190,6 +249,7 @@ export default function AdminInsightsPage() {
             {editingId === 'new' ? 'New insight' : 'Edit insight'}
           </h2>
           <form className="admin-form" onSubmit={onSubmit}>
+            <AdminFormSection title="Basic information">
             <div className="admin-field">
               <label htmlFor="insight-title">Title</label>
               <input
@@ -287,7 +347,71 @@ export default function AdminInsightsPage() {
                   ))}
                 </select>
               </div>
+              <div className="admin-field">
+                <label htmlFor="insight-primary-topic">Primary category</label>
+                <select
+                  id="insight-primary-topic"
+                  className="admin-input"
+                  value={form.primaryTopic}
+                  onChange={(e) => setForm((f) => ({ ...f, primaryTopic: e.target.value }))}
+                >
+                  <option value="">— Choose —</option>
+                  {INSIGHT_TOPICS.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
+            <div className="admin-field">
+              <label>Also appears on</label>
+              <div className="admin-choice-stack">
+                {programs
+                  .filter((program) => program.id !== form.programId)
+                  .map((program) => (
+                    <label key={program.id} className="admin-toggle-row">
+                      <input
+                        type="checkbox"
+                        checked={form.extraProgramIds.includes(program.id)}
+                        onChange={() =>
+                          setForm((f) => ({
+                            ...f,
+                            extraProgramIds: f.extraProgramIds.includes(program.id)
+                              ? f.extraProgramIds.filter((id) => id !== program.id)
+                              : [...f.extraProgramIds, program.id],
+                          }))
+                        }
+                      />
+                      <span>{program.title}</span>
+                    </label>
+                  ))}
+              </div>
+            </div>
+            <div className="admin-field">
+              <label>Linked gatherings</label>
+              <div className="admin-choice-stack">
+                {events.map((event) => (
+                  <label key={event.id} className="admin-toggle-row">
+                    <input
+                      type="checkbox"
+                      checked={form.eventIds.includes(event.id)}
+                      onChange={() =>
+                        setForm((f) => ({
+                          ...f,
+                          eventIds: f.eventIds.includes(event.id)
+                            ? f.eventIds.filter((id) => id !== event.id)
+                            : [...f.eventIds, event.id],
+                        }))
+                      }
+                    />
+                    <span>{event.title}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            </AdminFormSection>
+            <AdminFormSection title="Main content">
             <div className="admin-field">
               <label>Excerpt (listing summary)</label>
               <CmsRichTextEditor
@@ -302,12 +426,40 @@ export default function AdminInsightsPage() {
               <CmsRichTextEditor
                 value={form.body}
                 onChange={(body) => setForm((f) => ({ ...f, body }))}
+                allowEmbeds
+                placeholder="Full insight story… Use Embed for YouTube, Vimeo, or audio players."
               />
             </div>
+            <div className="admin-field">
+              <label htmlFor="insight-quote">Pull quote</label>
+              <textarea
+                id="insight-quote"
+                value={form.pullQuote}
+                onChange={(e) => setForm((f) => ({ ...f, pullQuote: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            </AdminFormSection>
+            <AdminFormSection title="Images and media">
             <CoverMediaField
               value={form.coverMediaId}
               onChange={(coverMediaId) => setForm((f) => ({ ...f, coverMediaId }))}
             />
+            <CoverMediaField
+              label="Social sharing image"
+              value={form.shareMediaId}
+              onChange={(shareMediaId) => setForm((f) => ({ ...f, shareMediaId }))}
+            />
+            <div className="admin-field">
+              <label htmlFor="insight-credit">Image credit</label>
+              <input
+                id="insight-credit"
+                value={form.imageCredit}
+                onChange={(e) => setForm((f) => ({ ...f, imageCredit: e.target.value }))}
+              />
+            </div>
+            </AdminFormSection>
+            <AdminFormSection title="People and relationships">
             <div className="admin-field">
               <label>Topics</label>
               <div className="admin-choice-row">
@@ -334,6 +486,45 @@ export default function AdminInsightsPage() {
                 placeholder="Leave empty for /insights/slug"
               />
             </div>
+            </AdminFormSection>
+            <AdminFormSection title="Classification">
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="insight-seo-title">SEO title</label>
+                <input
+                  id="insight-seo-title"
+                  value={form.seoTitle}
+                  onChange={(e) => setForm((f) => ({ ...f, seoTitle: e.target.value }))}
+                />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="insight-seo-description">SEO description</label>
+                <input
+                  id="insight-seo-description"
+                  value={form.seoDescription}
+                  onChange={(e) => setForm((f) => ({ ...f, seoDescription: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="admin-field">
+              <label htmlFor="insight-keywords">Keywords</label>
+              <input
+                id="insight-keywords"
+                value={form.keywords}
+                onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))}
+                placeholder="Comma-separated search terms"
+              />
+            </div>
+            <label className="admin-toggle-row">
+              <input
+                type="checkbox"
+                checked={form.noindex}
+                onChange={(e) => setForm((f) => ({ ...f, noindex: e.target.checked }))}
+              />
+              <span>Hide from search engines</span>
+            </label>
+            </AdminFormSection>
+            <AdminFormSection title="Review and permissions">
             <div className="admin-field">
               <label htmlFor="insight-sort">Sort order</label>
               <input
@@ -360,14 +551,36 @@ export default function AdminInsightsPage() {
               />
               <span>Featured on insights listing</span>
             </label>
-            <label className="admin-toggle-row">
-              <input
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))}
+              <PublicationFields
+                value={{
+                  publicationStatus: form.publicationStatus,
+                  scheduledAtLocal: form.scheduledAtLocal,
+                  published: form.published,
+                }}
+                checklist={[
+                  { label: 'Primary category', ok: Boolean(form.primaryTopic) },
+                  { label: 'Excerpt', ok: Boolean(form.excerpt.replace(/<[^>]+>/g, '').trim()) },
+                  { label: 'Body', ok: Boolean(form.body.replace(/<[^>]+>/g, '').trim()) },
+                  { label: 'Author', ok: Boolean(form.author.trim() || form.authorPersonId) },
+                ]}
+                onChange={(next) =>
+                  setForm((f) => ({
+                    ...f,
+                    publicationStatus: next.publicationStatus,
+                    scheduledAtLocal: next.scheduledAtLocal,
+                    published: next.published,
+                  }))
+                }
               />
-              <span>Published</span>
-            </label>
+            </AdminFormSection>
+            <AdminFormSection title="Related content">
+              <RelatedOverridesFields
+                pinned={form.relatedPinned}
+                hidden={form.relatedHidden}
+                onPinnedChange={(relatedPinned) => setForm((f) => ({ ...f, relatedPinned }))}
+                onHiddenChange={(relatedHidden) => setForm((f) => ({ ...f, relatedHidden }))}
+              />
+            </AdminFormSection>
             <div className="admin-actions">
               <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
                 {saving ? 'Saving…' : 'Save'}
@@ -419,7 +632,11 @@ export default function AdminInsightsPage() {
                   <td>{record.contentType || record.category || 'Articles'}</td>
                   <td>{record.topics?.length ? record.topics.join(', ') : '—'}</td>
                   <td>
-                    <AdminStatus value={record.published ? 'published' : 'draft'} />
+                    <AdminStatus
+                      value={
+                        record.publicationStatus ?? (record.published ? 'published' : 'draft')
+                      }
+                    />
                   </td>
                   <td>
                     <AdminRowActions

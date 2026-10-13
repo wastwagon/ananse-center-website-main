@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { mapPublicInsightPost, newsIncludeCover } from '../lib/news-map.js'
+import { publicListingWhere, publicVisibilityWhere } from '../lib/publication.js'
 import { INSIGHT_CONTENT_TYPES } from '../lib/taxonomy.js'
 
 type InsightsQuery = {
@@ -11,13 +12,14 @@ type InsightsQuery = {
 }
 
 function buildInsightsWhere(query: InsightsQuery) {
-  const where: Prisma.NewsPostWhereInput = { published: true }
+  const where: Prisma.NewsPostWhereInput = { ...publicListingWhere() }
   if (query.featured === 'true') where.featured = true
   if (query.contentType?.trim()) {
     where.contentType = query.contentType.trim()
   }
   if (query.topic?.trim()) {
-    where.topics = { array_contains: query.topic.trim() }
+    const topic = query.topic.trim()
+    where.OR = [{ topics: { array_contains: topic } }, { primaryTopic: topic }]
   }
   return where
 }
@@ -42,7 +44,7 @@ export async function insightsRoutes(app: FastifyInstance) {
 
   app.get<{ Params: { slug: string } }>('/api/v1/insights/:slug', async (request, reply) => {
     const row = await prisma.newsPost.findFirst({
-      where: { slug: request.params.slug, published: true },
+      where: { slug: request.params.slug, ...publicVisibilityWhere() },
       include: newsIncludeCover,
     })
     if (!row) {

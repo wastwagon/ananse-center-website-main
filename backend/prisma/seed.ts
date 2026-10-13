@@ -32,7 +32,7 @@ async function seedAdmin() {
     throw new Error('ADMIN_PASSWORD must be at least 8 characters')
   }
 
-  const allowedRoles = new Set(['superadmin', 'admin', 'editor', 'finance'])
+  const allowedRoles = new Set(['superadmin', 'admin', 'reviewer', 'editor', 'finance'])
   const role = allowedRoles.has(process.env.ADMIN_ROLE?.trim() ?? '')
     ? (process.env.ADMIN_ROLE!.trim() as 'superadmin' | 'admin' | 'editor' | 'finance')
     : 'admin'
@@ -124,14 +124,43 @@ async function seedContentBlocks() {
 async function seedEvents() {
   const hidden = await prisma.event.updateMany({
     where: { slug: { in: [...LEGACY_ARTS_EVENT_SLUGS] } },
-    data: { published: false, featured: false },
+    data: { published: false, publicationStatus: 'draft', featured: false },
   })
   console.log(`Unpublished ${hidden.count} arts-and-culture events`)
 }
 
+const PROGRAM_TOPICS: Record<string, string[]> = {
+  'leadership-development': ['Leadership'],
+  mentorship: ['Mentorship'],
+  'excellence-lectures': ['Excellence'],
+  'midday-reflection': ['Authentic Spirituality'],
+  'public-lectures-conversations': ['Society'],
+  'special-initiatives': ['Personal Growth'],
+  'marriage-relationships': ['Marriage & Relationships'],
+  'music-culture': ['Music & Culture'],
+  'sankofa-adr': ['Society'],
+  'healthy-living': ['Healthy Living'],
+}
+
+function programEntryDefaults(program: (typeof LEADERSHIP_PROGRAMS)[number]) {
+  const parts = program.description
+    .split(/\n\s*\n/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  const mentorship = program.slug === 'mentorship'
+  return {
+    tagline: parts[1] || parts[0] || program.title,
+    summary: parts[0] || program.title,
+    ctaLabel: mentorship ? 'Inquire about mentorship' : 'Get involved',
+    ctaHref: mentorship ? '/get-involved#mentor-form' : '/get-involved',
+    topics: PROGRAM_TOPICS[program.slug] ?? ['Leadership'],
+  }
+}
+
 async function seedPrograms() {
   for (const program of LEADERSHIP_PROGRAMS) {
-    await prisma.program.upsert({
+    const defaults = programEntryDefaults(program)
+    const row = await prisma.program.upsert({
       where: { slug: program.slug },
       create: {
         title: program.title,
@@ -145,24 +174,33 @@ async function seedPrograms() {
         features: program.features,
         sortOrder: program.sortOrder,
         published: true,
+        publicationStatus: 'published',
+        ...defaults,
       },
-      update: {
-        title: program.title,
-        description: program.description,
-        category: program.category,
-        section: 'catalog',
-        duration: program.duration,
-        level: program.level,
-        iconKey: program.iconKey,
-        features: program.features,
-        sortOrder: program.sortOrder,
-        published: true,
-      },
+      update: {},
     })
+    const fill: {
+      tagline?: string
+      summary?: string
+      ctaLabel?: string
+      ctaHref?: string
+      topics?: string[]
+    } = {}
+    if (!row.tagline.trim()) fill.tagline = defaults.tagline
+    if (!row.summary.trim()) fill.summary = defaults.summary
+    if (!row.ctaLabel.trim() || !row.ctaHref.trim()) {
+      fill.ctaLabel = defaults.ctaLabel
+      fill.ctaHref = defaults.ctaHref
+    }
+    const topics = Array.isArray(row.topics) ? row.topics : []
+    if (topics.length === 0) fill.topics = defaults.topics
+    if (Object.keys(fill).length > 0) {
+      await prisma.program.update({ where: { id: row.id }, data: fill })
+    }
   }
   const hidden = await prisma.program.updateMany({
     where: { slug: { in: [...LEGACY_ARTS_PROGRAM_SLUGS] } },
-    data: { published: false },
+    data: { published: false, publicationStatus: 'draft' },
   })
   console.log(`Seeded ${LEADERSHIP_PROGRAMS.length} programs; unpublished ${hidden.count} arts programs`)
 }
@@ -231,6 +269,7 @@ async function seedNews() {
             featured: order === 0,
             linkHref,
             published: true,
+            publicationStatus: 'published',
             sortOrder: order,
           },
         })
@@ -248,6 +287,7 @@ async function seedNews() {
           featured: order === 0,
           linkHref,
           published: true,
+          publicationStatus: 'published',
           sortOrder: order,
         },
       })
@@ -272,7 +312,7 @@ async function main() {
   await seedEvents()
   const hiddenNews = await prisma.newsPost.updateMany({
     where: { slug: { in: LEGACY_ARTS_NEWS_SLUGS } },
-    data: { published: false, featured: false },
+    data: { published: false, publicationStatus: 'draft', featured: false },
   })
   console.log(`Unpublished ${hiddenNews.count} arts-and-culture news posts`)
   await seedStageCContent(prisma)

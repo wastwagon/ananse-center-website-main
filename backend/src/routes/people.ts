@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { mapPublicPerson, personIncludeDetail, personIncludeMedia } from '../lib/person-map.js'
+import { publicListingWhere, publicVisibilityWhere } from '../lib/publication.js'
 
 type PeopleQuery = {
   group?: string
@@ -9,7 +10,7 @@ type PeopleQuery = {
 }
 
 function buildPeopleWhere(query: PeopleQuery): Prisma.PersonWhereInput {
-  const where: Prisma.PersonWhereInput = { published: true }
+  const where: Prisma.PersonWhereInput = { ...publicListingWhere() }
   if (query.featured === 'true') where.featured = true
   if (query.group?.trim()) {
     where.groups = { array_contains: query.group.trim() }
@@ -29,7 +30,7 @@ export async function peopleRoutes(app: FastifyInstance) {
 
   app.get<{ Params: { slug: string } }>('/api/v1/people/:slug', async (request, reply) => {
     const row = await prisma.person.findFirst({
-      where: { slug: request.params.slug, published: true },
+      where: { slug: request.params.slug, ...publicVisibilityWhere() },
       include: personIncludeDetail,
     })
     if (!row) {

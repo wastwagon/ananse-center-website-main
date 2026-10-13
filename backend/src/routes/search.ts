@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
+import { publicListingWhere } from '../lib/publication.js'
 
 const PAGE_LABELS: Record<string, string> = {
   'about.hero.lead': 'About',
@@ -69,24 +70,40 @@ export async function searchRoutes(app: FastifyInstance) {
     const [programs, events, newsPosts, libraryItems, people, photoAlbums, blocks] = await Promise.all([
       prisma.program.findMany({
         where: {
-          published: true,
-          OR: [{ title: contains }, { description: contains }, { category: contains }],
+          AND: [
+            publicListingWhere(),
+            {
+              OR: [
+                { title: contains },
+                { description: contains },
+                { summary: contains },
+                { tagline: contains },
+                { category: contains },
+                { keywords: contains },
+              ],
+            },
+          ],
         },
         take: 12,
         orderBy: { sortOrder: 'asc' },
       }),
       prisma.event.findMany({
         where: {
-          published: true,
-          OR: [
-            { title: contains },
-            { description: contains },
-            { location: contains },
-            { type: contains },
-            { venue: contains },
-            { subtitle: contains },
-            { transcript: contains },
-            { meetingUrl: contains },
+          AND: [
+            publicListingWhere(),
+            {
+              OR: [
+                { title: contains },
+                { description: contains },
+                { location: contains },
+                { type: contains },
+                { venue: contains },
+                { subtitle: contains },
+                { transcript: contains },
+                { keywords: contains },
+                { meetingUrl: contains },
+              ],
+            },
           ],
         },
         take: 12,
@@ -94,15 +111,21 @@ export async function searchRoutes(app: FastifyInstance) {
       }),
       prisma.newsPost.findMany({
         where: {
-          published: true,
-          OR: [
-            { title: contains },
-            { subtitle: contains },
-            { excerpt: contains },
-            { body: contains },
-            { contentType: contains },
-            { author: contains },
-            { topics: { string_contains: q } },
+          AND: [
+            publicListingWhere(),
+            {
+              OR: [
+                { title: contains },
+                { subtitle: contains },
+                { excerpt: contains },
+                { body: contains },
+                { contentType: contains },
+                { author: contains },
+                { keywords: contains },
+                { primaryTopic: contains },
+                { topics: { string_contains: q } },
+              ],
+            },
           ],
         },
         take: 8,
@@ -110,19 +133,23 @@ export async function searchRoutes(app: FastifyInstance) {
       }),
       prisma.libraryItem.findMany({
         where: {
-          published: true,
-          OR: [
-            { title: contains },
-            { description: contains },
-            { body: contains },
-            { transcript: contains },
-            { collection: contains },
-            { wisdomNugget: contains },
-            { scriptureTheme: contains },
-            { keywords: contains },
-            { dateLabel: contains },
-            { person: { name: contains } },
-            { topics: { string_contains: q } },
+          AND: [
+            publicListingWhere(),
+            {
+              OR: [
+                { title: contains },
+                { description: contains },
+                { body: contains },
+                { transcript: contains },
+                { collection: contains },
+                { wisdomNugget: contains },
+                { scriptureTheme: contains },
+                { keywords: contains },
+                { dateLabel: contains },
+                { person: { name: contains } },
+                { topics: { string_contains: q } },
+              ],
+            },
           ],
         },
         take: 10,
@@ -130,14 +157,19 @@ export async function searchRoutes(app: FastifyInstance) {
       }),
       prisma.person.findMany({
         where: {
-          published: true,
-          OR: [
-            { name: contains },
-            { roleTitle: contains },
-            { bio: contains },
-            { organizationName: contains },
-            { expertise: contains },
-            { cohortLabel: contains },
+          AND: [
+            publicListingWhere(),
+            {
+              OR: [
+                { name: contains },
+                { roleTitle: contains },
+                { bio: contains },
+                { organizationName: contains },
+                { expertise: contains },
+                { keywords: contains },
+                { cohortLabel: contains },
+              ],
+            },
           ],
         },
         take: 10,
@@ -145,12 +177,17 @@ export async function searchRoutes(app: FastifyInstance) {
       }),
       prisma.photoAlbum.findMany({
         where: {
-          published: true,
-          OR: [
-            { title: contains },
-            { description: contains },
-            { place: contains },
-            { collection: contains },
+          AND: [
+            publicListingWhere(),
+            {
+              OR: [
+                { title: contains },
+                { description: contains },
+                { place: contains },
+                { collection: contains },
+                { keywords: contains },
+              ],
+            },
           ],
         },
         take: 8,
@@ -215,7 +252,7 @@ export async function searchRoutes(app: FastifyInstance) {
         })),
         photoAlbums: photoAlbums.map((album) => ({
           title: album.title,
-          path: `/library/photos/${album.slug}`,
+          path: `/library/photo-gallery/${album.slug}`,
           snippet: `${album.collection} · ${plainSnippet(album.description, 100)}`,
         })),
         pages,

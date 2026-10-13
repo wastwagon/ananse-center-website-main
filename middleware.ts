@@ -39,6 +39,36 @@ function isBypassPath(pathname: string) {
   )
 }
 
+const CONTENT_DETAIL =
+  /^\/(?:programs|events|insights|people)\/[^/]+$|^\/library\/(?:photo-gallery\/)?[^/]+$/
+
+let redirectCache: { at: number; map: Map<string, string> } | null = null
+
+async function lookupContentRedirect(path: string): Promise<string | null> {
+  const now = Date.now()
+  if (!redirectCache || now - redirectCache.at > 30_000) {
+    try {
+      const response = await fetch(`${getServerApiUrl()}/api/v1/redirects`, { cache: 'no-store' })
+      if (!response.ok) return null
+      const payload = (await response.json()) as { data?: { fromPath: string; toPath: string }[] }
+      const map = new Map((payload.data ?? []).map((row) => [row.fromPath, row.toPath]))
+      redirectCache = { at: now, map }
+    } catch {
+      return null
+    }
+  }
+
+  let current = path
+  const seen = new Set<string>()
+  while (!seen.has(current)) {
+    seen.add(current)
+    const next = redirectCache.map.get(current)
+    if (!next || next === current) break
+    current = next
+  }
+  return current === path ? null : current
+}
+
 function legacyRedirectHost(): string {
   return (
     process.env.LEGACY_SITE_HOST?.trim() ||
@@ -75,6 +105,21 @@ export async function middleware(request: NextRequest) {
   }
 
   const logicalPath = stripLocalePrefix(pathname)
+  if (logicalPath === '/library/photos' || logicalPath.startsWith('/library/photos/')) {
+    const nextPath = logicalPath.replace('/library/photos', '/library/photo-gallery')
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = isFrenchPath(pathname) ? localizedPath(nextPath, 'fr') : nextPath
+    return NextResponse.redirect(redirectUrl, 308)
+  }
+  if (CONTENT_DETAIL.test(logicalPath)) {
+    const target = await lookupContentRedirect(logicalPath)
+    if (target) {
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = isFrenchPath(pathname) ? localizedPath(target, 'fr') : target
+      return NextResponse.redirect(redirectUrl, 308)
+    }
+  }
+
   const artsTarget = LEGACY_ARTS_PATH_REDIRECTS[logicalPath]
   if (artsTarget) {
     const redirectUrl = request.nextUrl.clone()

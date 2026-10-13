@@ -1,11 +1,35 @@
-import type { MediaAsset, NewsPost, Person, Program } from '@prisma/client'
+import type { Event, MediaAsset, NewsPost, Person, Program } from '@prisma/client'
 import { parseStringArray } from './json-arrays.js'
 import { mediaPublicPath } from './media-url.js'
+import { parseRelatedOverrides } from './related-overrides.js'
+import { isPubliclyVisible, statusFromPublished } from './publication.js'
+
+type VisibilityFields = {
+  published: boolean
+  publicationStatus: string
+  scheduledAt: Date | null
+}
+
+const visibilitySelect = {
+  published: true,
+  publicationStatus: true,
+  scheduledAt: true,
+} as const
+
+type ProgramLink = {
+  program: Pick<Program, 'id' | 'slug' | 'title'> & VisibilityFields
+}
+
+type EventLink = {
+  event: Pick<Event, 'id' | 'slug' | 'title' | 'dateLabel'> & VisibilityFields
+}
 
 type NewsWithCover = NewsPost & {
   coverMedia?: MediaAsset | null
-  program?: Pick<Program, 'id' | 'slug' | 'title'> | null
-  authorPerson?: Pick<Person, 'id' | 'slug' | 'name'> | null
+  program?: (Pick<Program, 'id' | 'slug' | 'title'> & VisibilityFields) | null
+  authorPerson?: (Pick<Person, 'id' | 'slug' | 'name'> & VisibilityFields) | null
+  programLinks?: ProgramLink[]
+  eventLinks?: EventLink[]
 }
 
 function insightHref(row: NewsWithCover) {
@@ -24,18 +48,55 @@ export function mapPublicNewsPost(row: NewsWithCover) {
     excerpt: row.excerpt,
     body: row.body,
     date: row.dateLabel,
-    author: row.author || row.authorPerson?.name || '',
-    authorPerson: row.authorPerson
-      ? { id: row.authorPerson.id, slug: row.authorPerson.slug, name: row.authorPerson.name }
-      : null,
-    program: row.program
-      ? { id: row.program.id, slug: row.program.slug, title: row.program.title }
-      : null,
+    author:
+      row.author ||
+      (row.authorPerson && isPubliclyVisible(row.authorPerson) ? row.authorPerson.name : '') ||
+      '',
+    authorPerson:
+      row.authorPerson && isPubliclyVisible(row.authorPerson)
+        ? { id: row.authorPerson.id, slug: row.authorPerson.slug, name: row.authorPerson.name }
+        : null,
+    program:
+      row.program && isPubliclyVisible(row.program)
+        ? { id: row.program.id, slug: row.program.slug, title: row.program.title }
+        : null,
     category: row.category || 'Articles',
     contentType: row.contentType || row.category || 'Articles',
     topics: parseStringArray(row.topics),
     showInLibraryRead: row.showInLibraryRead,
+    imageCredit: row.imageCredit,
+    pullQuote: row.pullQuote,
+    seoTitle: row.seoTitle,
+    seoDescription: row.seoDescription,
+    primaryTopic: row.primaryTopic,
+    keywords: row.keywords,
+    noindex: row.noindex,
+    shareImageUrl: row.shareMediaId ? mediaPublicPath(row.shareMediaId) : null,
+    programs: [
+      ...(row.program && isPubliclyVisible(row.program)
+        ? [{ id: row.program.id, slug: row.program.slug, title: row.program.title }]
+        : []),
+      ...(row.programLinks ?? [])
+        .filter((link) => isPubliclyVisible(link.program) && link.program.id !== row.program?.id)
+        .map((link) => ({
+          id: link.program.id,
+          slug: link.program.slug,
+          title: link.program.title,
+        })),
+    ],
+    events: (row.eventLinks ?? [])
+      .filter((link) => isPubliclyVisible(link.event))
+      .map((link) => ({
+        id: link.event.id,
+        slug: link.event.slug,
+        title: link.event.title,
+        date: link.event.dateLabel,
+      })),
     featured: row.featured,
+    publicationStatus: row.publicationStatus || statusFromPublished(row.published),
+    scheduledAt: row.scheduledAt?.toISOString() ?? null,
+    relatedPinned: parseRelatedOverrides(row.relatedPinned),
+    relatedHidden: parseRelatedOverrides(row.relatedHidden),
     href: link || `/news/${row.slug}`,
     insightHref: insightHref(row),
     isExternal: /^https?:\/\//i.test(link),
@@ -69,9 +130,26 @@ export function mapAdminNewsPost(row: NewsWithCover) {
     contentType: row.contentType || 'Articles',
     topics: parseStringArray(row.topics),
     showInLibraryRead: row.showInLibraryRead,
+    imageCredit: row.imageCredit,
+    pullQuote: row.pullQuote,
+    seoTitle: row.seoTitle,
+    seoDescription: row.seoDescription,
+    primaryTopic: row.primaryTopic,
+    keywords: row.keywords,
+    noindex: row.noindex,
+    shareMediaId: row.shareMediaId,
+    programIds: [
+      ...(row.programId ? [row.programId] : []),
+      ...(row.programLinks ?? []).map((link) => link.program.id).filter((id) => id !== row.programId),
+    ],
+    eventIds: (row.eventLinks ?? []).map((link) => link.event.id),
     featured: row.featured,
     linkHref: row.linkHref,
     published: row.published,
+    publicationStatus: row.publicationStatus || statusFromPublished(row.published),
+    scheduledAt: row.scheduledAt?.toISOString() ?? null,
+    relatedPinned: parseRelatedOverrides(row.relatedPinned),
+    relatedHidden: parseRelatedOverrides(row.relatedHidden),
     sortOrder: row.sortOrder,
     coverMediaId: row.coverMediaId,
     coverImageUrl: row.coverMedia ? mediaPublicPath(row.coverMedia.id) : null,
@@ -82,6 +160,18 @@ export function mapAdminNewsPost(row: NewsWithCover) {
 
 export const newsIncludeCover = {
   coverMedia: true,
-  program: { select: { id: true, slug: true, title: true } },
-  authorPerson: { select: { id: true, slug: true, name: true } },
+  program: { select: { id: true, slug: true, title: true, ...visibilitySelect } },
+  authorPerson: { select: { id: true, slug: true, name: true, ...visibilitySelect } },
+  programLinks: {
+    include: {
+      program: { select: { id: true, slug: true, title: true, ...visibilitySelect } },
+    },
+  },
+  eventLinks: {
+    include: {
+      event: {
+        select: { id: true, slug: true, title: true, dateLabel: true, ...visibilitySelect },
+      },
+    },
+  },
 } as const

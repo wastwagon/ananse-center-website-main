@@ -2,16 +2,18 @@ import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { mapPublicPhotoAlbum, photoAlbumIncludeRelations } from '../lib/photo-album-map.js'
+import { publicListingWhere, publicVisibilityWhere } from '../lib/publication.js'
 
 type PhotoAlbumQuery = {
   collection?: string
   featured?: string
   program?: string
   event?: string
+  person?: string
 }
 
 function buildPhotoAlbumWhere(query: PhotoAlbumQuery): Prisma.PhotoAlbumWhereInput {
-  const where: Prisma.PhotoAlbumWhereInput = { published: true }
+  const where: Prisma.PhotoAlbumWhereInput = { ...publicListingWhere() }
   if (query.collection?.trim()) where.collection = query.collection.trim()
   if (query.featured === 'true') where.featured = true
   if (query.program?.trim()) {
@@ -19,6 +21,9 @@ function buildPhotoAlbumWhere(query: PhotoAlbumQuery): Prisma.PhotoAlbumWhereInp
   }
   if (query.event?.trim()) {
     where.event = { slug: query.event.trim() }
+  }
+  if (query.person?.trim()) {
+    where.people = { some: { person: { slug: query.person.trim() } } }
   }
   return where
 }
@@ -35,7 +40,7 @@ export async function photoAlbumRoutes(app: FastifyInstance) {
 
   app.get<{ Params: { slug: string } }>('/api/v1/photo-albums/:slug', async (request, reply) => {
     const row = await prisma.photoAlbum.findFirst({
-      where: { slug: request.params.slug, published: true },
+      where: { slug: request.params.slug, ...publicVisibilityWhere() },
       include: photoAlbumIncludeRelations,
     })
     if (!row) {

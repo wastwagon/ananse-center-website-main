@@ -1,11 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { mapPublicNewsPost, newsIncludeCover } from '../lib/news-map.js'
+import { publicVisibilityWhere } from '../lib/publication.js'
 
 export async function newsRoutes(app: FastifyInstance) {
   app.get('/api/v1/news', async () => {
     const rows = await prisma.newsPost.findMany({
-      where: { published: true },
+      where: publicVisibilityWhere(),
       include: newsIncludeCover,
       orderBy: [{ featured: 'desc' }, { sortOrder: 'asc' }, { createdAt: 'desc' }],
     })
@@ -14,7 +15,7 @@ export async function newsRoutes(app: FastifyInstance) {
 
   app.get<{ Params: { slug: string } }>('/api/v1/news/:slug', async (request, reply) => {
     const row = await prisma.newsPost.findFirst({
-      where: { slug: request.params.slug, published: true },
+      where: { slug: request.params.slug, ...publicVisibilityWhere() },
       include: newsIncludeCover,
     })
     if (!row) {

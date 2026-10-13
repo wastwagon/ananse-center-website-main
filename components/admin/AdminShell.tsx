@@ -120,7 +120,7 @@ const navGroups: NavGroup[] = [
         label: 'Photo albums',
         roles: ['superadmin', 'admin', 'editor'],
         icon: Camera,
-        previewHref: '/library/photos',
+        previewHref: '/library/photo-gallery',
       },
       {
         href: '/admin/people',

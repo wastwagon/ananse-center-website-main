@@ -43,8 +43,8 @@ export default async function InsightsPage({
   searchParams: Promise<{ type?: string; topic?: string }>
 }) {
   const { type, topic } = await searchParams
-  const posts = await fetchInsights()
   const activeTopic = topic?.trim() || ''
+  const posts = await fetchInsights(activeTopic ? { topic: activeTopic } : undefined)
 
   const items = posts.map((post, index) => ({
     key: post.id,
@@ -53,6 +53,7 @@ export default async function InsightsPage({
     excerpt: post.excerpt,
     author: post.author || '',
     contentType: post.contentType || post.category || 'Articles',
+    primaryTopic: post.primaryTopic?.trim() || '',
     topics: post.topics ?? [],
     featured: Boolean(post.featured),
     href: post.isExternal ? post.href : `/insights/${post.slug}`,

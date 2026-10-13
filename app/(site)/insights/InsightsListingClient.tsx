@@ -14,6 +14,7 @@ export type InsightListItem = {
   excerpt: string
   author: string
   contentType: string
+  primaryTopic?: string
   topics: string[]
   featured: boolean
   href: string
@@ -132,9 +133,14 @@ function InsightCard({
         </h3>
         {item.author ? <p className="insights-card-author">{item.author}</p> : null}
         <p className="insights-card-copy">{cmsPlainExcerpt(item.excerpt)}</p>
-        {item.topics.length > 0 ? (
-          <p className="insights-card-topics">{item.topics.slice(0, 3).join(' · ')}</p>
-        ) : null}
+        {(() => {
+          const line = [
+            ...new Set([item.primaryTopic?.trim(), ...item.topics].filter(Boolean)),
+          ].slice(0, 3) as string[]
+          return line.length > 0 ? (
+            <p className="insights-card-topics">{line.join(' · ')}</p>
+          ) : null
+        })()}
         {cta}
       </div>
     </article>
@@ -149,6 +155,8 @@ export default function InsightsListingClient({
   initialTopic,
 }: InsightsListingClientProps) {
   const [topicFilter, setTopicFilter] = useState<string>(() => resolveTopicFilter(initialTopic))
+  const [authorFilter, setAuthorFilter] = useState('All authors')
+  const [yearFilter, setYearFilter] = useState('All dates')
   const [typeFilter, setTypeFilter] = useState<string>(() => resolveTypeFilter(initialType))
 
   useEffect(() => {
@@ -180,7 +188,12 @@ export default function InsightsListingClient({
   }, [items, typeFilter])
 
   const availableTopics = useMemo(() => {
-    const present = new Set(typeScopedItems.flatMap((item) => item.topics))
+    const present = new Set(
+      typeScopedItems.flatMap((item) => [
+        ...(item.primaryTopic?.trim() ? [item.primaryTopic.trim()] : []),
+        ...item.topics,
+      ]),
+    )
     return INSIGHT_TOPICS.filter((topic) => present.has(topic))
   }, [typeScopedItems])
 
@@ -197,11 +210,28 @@ export default function InsightsListingClient({
 
   const showFeatured = featuredItems.length > 0 && typeFilter === ALL_TYPES
 
+  const authorOptions = useMemo(() => {
+    const names = [...new Set(typeScopedItems.map((item) => item.author).filter(Boolean))]
+    return ['All authors', ...names.sort((a, b) => a.localeCompare(b))]
+  }, [typeScopedItems])
+
   const filtered = useMemo(() => {
     return typeScopedItems.filter((item) => {
-      return topicFilter === ALL_TOPICS || item.topics.some((topic) => topic === topicFilter)
+      if (
+        topicFilter !== ALL_TOPICS &&
+        item.primaryTopic?.trim() !== topicFilter &&
+        !item.topics.some((topic) => topic === topicFilter)
+      ) {
+        return false
+      }
+      if (authorFilter !== 'All authors' && item.author !== authorFilter) return false
+      if (yearFilter !== 'All dates') {
+        const year = item.date.match(/\b(?:19|20)\d{2}\b/)?.[0]
+        if (year !== yearFilter) return false
+      }
+      return true
     })
-  }, [typeScopedItems, topicFilter])
+  }, [typeScopedItems, topicFilter, authorFilter, yearFilter])
 
   const catalogItems = useMemo(() => {
     if (!showFeatured) return filtered
@@ -281,6 +311,31 @@ export default function InsightsListingClient({
                 },
               ]
             : []),
+          ...(authorOptions.length > 1
+            ? [
+                {
+                  label: 'Author',
+                  ariaLabel: 'Insight author',
+                  value: authorOptions.includes(authorFilter) ? authorFilter : 'All authors',
+                  onChange: setAuthorFilter,
+                  options: authorOptions.map((option) => ({ value: option, label: option })),
+                },
+              ]
+            : []),
+          ...((() => {
+            const years = [...new Set(items.map((item) => item.date.match(/\b(?:19|20)\d{2}\b/)?.[0]).filter(Boolean))] as string[]
+            if (years.length === 0) return []
+            const options = ['All dates', ...years.sort((a, b) => b.localeCompare(a))]
+            return [
+              {
+                label: 'Date',
+                ariaLabel: 'Insight year',
+                value: options.includes(yearFilter) ? yearFilter : 'All dates',
+                onChange: setYearFilter,
+                options: options.map((option) => ({ value: option, label: option })),
+              },
+            ]
+          })()),
           {
             label: 'Type',
             ariaLabel: 'Insight content type',

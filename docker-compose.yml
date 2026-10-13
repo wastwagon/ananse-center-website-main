@@ -59,6 +59,8 @@ services:
       REDIS_URL: redis://redis:6379
       CORS_ORIGIN: ${CORS_ORIGIN}
       SKIP_PRISMA_SEED: ${SKIP_PRISMA_SEED:-false}
+      # Leave unset/true for handover samples; set false once real content is live
+      SEED_DEMO_PREVIEW: ${SEED_DEMO_PREVIEW:-true}
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY}
       PAYSTACK_CURRENCY: ${PAYSTACK_CURRENCY:-GHS}
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
@@ -102,7 +104,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
-      start_period: 120s
+      start_period: 180s
 
   web:
     build:

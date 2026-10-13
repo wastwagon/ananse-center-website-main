@@ -91,12 +91,18 @@ export default function ProgramsPageClient({
   }, [programs])
 
   const [activeTab, setActiveTab] = useState('All Programs')
+  const [topicFilter, setTopicFilter] = useState('All topics')
+  const topicOptions = useMemo(() => {
+    const names = [...new Set(programs.flatMap((program) => program.topics ?? []))]
+    return ['All topics', ...names.sort((a, b) => a.localeCompare(b))]
+  }, [programs])
   const show = (key: string) => sectionVisibility[key] !== false
 
-  const filteredPrograms =
-    categories.length === 0 || activeTab === 'All Programs'
-      ? programs
-      : programs.filter((p) => p.category === activeTab)
+  const filteredPrograms = programs.filter((program) => {
+    if (categories.length > 0 && activeTab !== 'All Programs' && program.category !== activeTab) return false
+    if (topicFilter !== 'All topics' && !(program.topics ?? []).includes(topicFilter)) return false
+    return true
+  })
 
   return (
     <div className="programs-page">
@@ -119,20 +125,35 @@ export default function ProgramsPageClient({
             <p className="page-body-text">{catalogLead}</p>
           </div>
 
-          {categories.length > 0 ? (
+          {categories.length > 0 || topicOptions.length > 1 ? (
             <PremiumFilterBar
               groups={[
-                {
-                  label: 'Category',
-                  ariaLabel: 'Program category filter',
-                  value: activeTab,
-                  variant: 'tabs',
-                  onChange: setActiveTab,
-                  options: categories.map((cat) => ({
-                    value: cat,
-                    label: cat,
-                  })),
-                },
+                ...(categories.length > 0
+                  ? [
+                      {
+                        label: 'Category',
+                        ariaLabel: 'Program category filter',
+                        value: activeTab,
+                        variant: 'tabs' as const,
+                        onChange: setActiveTab,
+                        options: categories.map((cat) => ({
+                          value: cat,
+                          label: cat,
+                        })),
+                      },
+                    ]
+                  : []),
+                ...(topicOptions.length > 1
+                  ? [
+                      {
+                        label: 'Topic',
+                        ariaLabel: 'Program topic filter',
+                        value: topicOptions.includes(topicFilter) ? topicFilter : 'All topics',
+                        onChange: setTopicFilter,
+                        options: topicOptions.map((topic) => ({ value: topic, label: topic })),
+                      },
+                    ]
+                  : []),
               ]}
             />
           ) : null}

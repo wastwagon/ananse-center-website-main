@@ -47,4 +47,4 @@ export const PHOTO_COLLECTIONS = [
 ] as const
 
 export const EVENT_DELIVERY_MODES = ['in_person', 'online', 'hybrid'] as const
-export const EVENT_STATUSES = ['scheduled', 'postponed', 'cancelled'] as const
+export const EVENT_STATUSES = ['scheduled', 'completed', 'postponed', 'cancelled'] as const

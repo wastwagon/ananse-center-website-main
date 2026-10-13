@@ -3,10 +3,24 @@ import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
 import { slugify } from '../../lib/slug.js'
 import { libraryIncludeRelations, mapAdminLibraryItem } from '../../lib/library-map.js'
+import {
+  adminPublicationFieldsSchema,
+  publicationCreateDefaults,
+  resolvePublicationWrite,
+} from '../../lib/admin-publication-fields.js'
+import { rememberPathRedirect } from '../../lib/path-redirect.js'
 import { INSIGHT_TOPICS, LIBRARY_SHELF_KEYS } from '../../lib/taxonomy.js'
+import { CONTENT_EDITOR_ROLES } from '../../lib/admin-roles.js'
+import {
+  denyPublicationChange,
+  enteringPublication,
+  plainText,
+  publishError,
+  sharedEntryWrite,
+} from '../../lib/entry-fields.js'
 import { withAdminRoles } from '../../plugins/admin-role-guard.js'
 
-const guard = { preHandler: [withAdminRoles(['superadmin', 'admin', 'editor'])] }
+const guard = { preHandler: [withAdminRoles(CONTENT_EDITOR_ROLES)] }
 
 const librarySchema = z.object({
   title: z.string().min(2).max(200),
@@ -21,7 +35,10 @@ const librarySchema = z.object({
   scriptureTheme: z.string().max(500).optional(),
   episodeNumber: z.number().int().positive().optional().nullable(),
   dateLabel: z.string().max(80).optional(),
+  originalAt: z.union([z.string().min(1), z.null()]).optional(),
   publishedAt: z.union([z.string().min(1), z.null()]).optional(),
+  noindex: z.boolean().optional(),
+  shareMediaId: z.string().cuid().nullable().optional(),
   topics: z.array(z.enum(INSIGHT_TOPICS)).max(13).optional(),
   keywords: z.string().max(500).optional(),
   programId: z.string().cuid().optional().nullable(),
@@ -31,12 +48,17 @@ const librarySchema = z.object({
   coverMediaId: z.string().cuid().optional().nullable(),
   audioMediaId: z.string().cuid().optional().nullable(),
   videoMediaId: z.string().cuid().optional().nullable(),
+  downloadMediaId: z.string().cuid().optional().nullable(),
   audioUrl: z.string().max(500).optional(),
+  downloadUrl: z.string().max(500).optional(),
   videoUrl: z.string().max(500).optional(),
+  duration: z.string().max(40).optional(),
+  rightsNote: z.string().max(500).optional(),
+  seoTitle: z.string().max(160).optional(),
+  seoDescription: z.string().max(320).optional(),
   featured: z.boolean().optional(),
-  published: z.boolean().optional(),
   sortOrder: z.number().int().min(0).max(9999).optional(),
-})
+}).merge(adminPublicationFieldsSchema)
 
 function parseOptionalDate(value: string | null | undefined): Date | null | undefined {
   if (value === undefined) return undefined
@@ -59,6 +81,28 @@ export async function adminLibraryRoutes(app: FastifyInstance) {
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Invalid library payload', details: parsed.error.flatten() })
     }
+    const nextStatus = parsed.data.publicationStatus ?? (parsed.data.published === false ? 'draft' : 'published')
+    if (denyPublicationChange(request.admin?.role, nextStatus, null, reply)) return
+    if (enteringPublication(nextStatus, null)) {
+      const hasMedia = Boolean(
+        plainText(parsed.data.body) ||
+          plainText(parsed.data.transcript) ||
+          parsed.data.audioUrl?.trim() ||
+          parsed.data.videoUrl?.trim() ||
+          parsed.data.downloadUrl?.trim() ||
+          parsed.data.audioMediaId ||
+          parsed.data.videoMediaId ||
+          parsed.data.downloadMediaId,
+      )
+      const error = publishError(
+        [
+          !plainText(parsed.data.description) ? 'short description' : '',
+          !(parsed.data.topics && parsed.data.topics.length > 0) ? 'at least one topic' : '',
+          !hasMedia ? 'a file, embed, transcript, or body' : '',
+        ].filter(Boolean),
+      )
+      if (error) return reply.status(400).send({ error })
+    }
     const slug = parsed.data.slug?.trim() || slugify(parsed.data.title)
     try {
       const row = await prisma.libraryItem.create({
@@ -75,7 +119,10 @@ export async function adminLibraryRoutes(app: FastifyInstance) {
           scriptureTheme: parsed.data.scriptureTheme ?? '',
           episodeNumber: parsed.data.episodeNumber ?? null,
           dateLabel: parsed.data.dateLabel ?? '',
+          originalAt: parseOptionalDate(parsed.data.originalAt) ?? null,
           publishedAt: parseOptionalDate(parsed.data.publishedAt) ?? null,
+          noindex: parsed.data.noindex ?? false,
+          shareMediaId: parsed.data.shareMediaId ?? null,
           topics: parsed.data.topics ?? [],
           keywords: parsed.data.keywords ?? '',
           programId: parsed.data.programId ?? null,
@@ -85,10 +132,16 @@ export async function adminLibraryRoutes(app: FastifyInstance) {
           coverMediaId: parsed.data.coverMediaId ?? null,
           audioMediaId: parsed.data.audioMediaId ?? null,
           videoMediaId: parsed.data.videoMediaId ?? null,
+          downloadMediaId: parsed.data.downloadMediaId ?? null,
           audioUrl: parsed.data.audioUrl ?? '',
           videoUrl: parsed.data.videoUrl ?? '',
+          downloadUrl: parsed.data.downloadUrl ?? '',
+          duration: parsed.data.duration ?? '',
+          rightsNote: parsed.data.rightsNote ?? '',
+          seoTitle: parsed.data.seoTitle ?? '',
+          seoDescription: parsed.data.seoDescription ?? '',
           featured: parsed.data.featured ?? false,
-          published: parsed.data.published ?? false,
+          ...publicationCreateDefaults(parsed.data),
           sortOrder: parsed.data.sortOrder ?? 0,
         },
         include: libraryIncludeRelations,
@@ -106,6 +159,43 @@ export async function adminLibraryRoutes(app: FastifyInstance) {
     }
     try {
       const data = parsed.data
+      const existing = await prisma.libraryItem.findUnique({ where: { id: request.params.id } })
+      if (!existing) return reply.status(404).send({ error: 'Library item not found' })
+      const nextStatus = data.publicationStatus ?? existing.publicationStatus
+      if (denyPublicationChange(request.admin?.role, data.publicationStatus, existing.publicationStatus, reply)) {
+        return
+      }
+      if (enteringPublication(nextStatus, existing.publicationStatus)) {
+        const description = data.description ?? existing.description
+        const topics = data.topics ?? existing.topics
+        const topicList = Array.isArray(topics) ? topics : []
+        const hasMedia = Boolean(
+          plainText(data.body ?? existing.body ?? '') ||
+            plainText(data.transcript ?? existing.transcript ?? '') ||
+            (data.audioUrl ?? existing.audioUrl)?.trim() ||
+            (data.videoUrl ?? existing.videoUrl)?.trim() ||
+            (data.downloadUrl ?? existing.downloadUrl)?.trim() ||
+            data.audioMediaId ||
+            existing.audioMediaId ||
+            data.videoMediaId ||
+            existing.videoMediaId ||
+            data.downloadMediaId ||
+            existing.downloadMediaId,
+        )
+        const error = publishError(
+          [
+            !plainText(description) ? 'short description' : '',
+            topicList.length === 0 ? 'at least one topic' : '',
+            !hasMedia ? 'a file, embed, transcript, or body' : '',
+          ].filter(Boolean),
+        )
+        if (error) return reply.status(400).send({ error })
+      }
+      if (data.slug && data.slug !== existing.slug) {
+        const taken = await prisma.libraryItem.findUnique({ where: { slug: data.slug } })
+        if (taken) return reply.status(409).send({ error: 'A library item with this slug already exists' })
+        await rememberPathRedirect(`/library/${existing.slug}`, `/library/${data.slug}`)
+      }
       const row = await prisma.libraryItem.update({
         where: { id: request.params.id },
         data: {
@@ -121,9 +211,13 @@ export async function adminLibraryRoutes(app: FastifyInstance) {
           ...(data.scriptureTheme !== undefined ? { scriptureTheme: data.scriptureTheme } : {}),
           ...(data.episodeNumber !== undefined ? { episodeNumber: data.episodeNumber } : {}),
           ...(data.dateLabel !== undefined ? { dateLabel: data.dateLabel } : {}),
+          ...(data.originalAt !== undefined
+            ? { originalAt: parseOptionalDate(data.originalAt) ?? null }
+            : {}),
           ...(data.publishedAt !== undefined
             ? { publishedAt: parseOptionalDate(data.publishedAt) ?? null }
             : {}),
+          ...sharedEntryWrite(data),
           ...(data.topics !== undefined ? { topics: data.topics } : {}),
           ...(data.keywords !== undefined ? { keywords: data.keywords } : {}),
           ...(data.programId !== undefined ? { programId: data.programId } : {}),
@@ -133,10 +227,16 @@ export async function adminLibraryRoutes(app: FastifyInstance) {
           ...(data.coverMediaId !== undefined ? { coverMediaId: data.coverMediaId } : {}),
           ...(data.audioMediaId !== undefined ? { audioMediaId: data.audioMediaId } : {}),
           ...(data.videoMediaId !== undefined ? { videoMediaId: data.videoMediaId } : {}),
+          ...(data.downloadMediaId !== undefined ? { downloadMediaId: data.downloadMediaId } : {}),
           ...(data.audioUrl !== undefined ? { audioUrl: data.audioUrl } : {}),
           ...(data.videoUrl !== undefined ? { videoUrl: data.videoUrl } : {}),
+          ...(data.downloadUrl !== undefined ? { downloadUrl: data.downloadUrl } : {}),
+          ...(data.duration !== undefined ? { duration: data.duration } : {}),
+          ...(data.rightsNote !== undefined ? { rightsNote: data.rightsNote } : {}),
+          ...(data.seoTitle !== undefined ? { seoTitle: data.seoTitle } : {}),
+          ...(data.seoDescription !== undefined ? { seoDescription: data.seoDescription } : {}),
           ...(data.featured !== undefined ? { featured: data.featured } : {}),
-          ...(data.published !== undefined ? { published: data.published } : {}),
+          ...resolvePublicationWrite(data, existing),
           ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
         },
         include: libraryIncludeRelations,
@@ -148,11 +248,10 @@ export async function adminLibraryRoutes(app: FastifyInstance) {
   })
 
   app.delete<{ Params: { id: string } }>('/api/v1/admin/library/:id', guard, async (request, reply) => {
-    try {
-      await prisma.libraryItem.delete({ where: { id: request.params.id } })
-      return { ok: true }
-    } catch {
-      return reply.status(404).send({ error: 'Library item not found' })
-    }
+    const existing = await prisma.libraryItem.findUnique({ where: { id: request.params.id } })
+    if (!existing) return reply.status(404).send({ error: 'Library item not found' })
+    if (denyPublicationChange(request.admin?.role, 'draft', existing.publicationStatus, reply)) return
+    await prisma.libraryItem.delete({ where: { id: existing.id } })
+    return { ok: true }
   })
 }

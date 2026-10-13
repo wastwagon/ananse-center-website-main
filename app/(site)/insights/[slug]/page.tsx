@@ -2,11 +2,18 @@ import Image from 'next/image'
 import { notFound, redirect } from 'next/navigation'
 import LocalizedLink from '../../../../components/LocalizedLink'
 import CmsRichText from '../../../../components/CmsRichText'
-import { fetchInsightBySlug, fetchInsights, fetchLibraryItems } from '../../../../lib/api'
+import {
+  fetchEventsForProgram,
+  fetchInsightBySlug,
+  fetchInsights,
+  fetchLibraryItemBySlug,
+  fetchLibraryItems,
+} from '../../../../lib/api'
 import ShareBar from '../../../../components/ShareBar'
 import { buildPageMetadata } from '../../../../lib/page-meta'
 import { resolveNewsCoverImage } from '../../../../lib/images'
 import { cmsPlainExcerpt } from '../../../../lib/cms/richtext'
+import { applyRelatedItems } from '../../../../lib/related-overrides'
 
 function looksLikeDateLabel(value: string) {
   return /\d/.test(value) && /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4})/i.test(value)
@@ -23,10 +30,11 @@ export async function generateMetadata({
     return buildPageMetadata({ title: 'Insights', path: `/insights/${slug}` })
   }
   return buildPageMetadata({
-    title: post.title,
-    description: cmsPlainExcerpt(post.excerpt, 160),
+    title: post.seoTitle?.trim() || post.title,
+    description: post.seoDescription?.trim() || cmsPlainExcerpt(post.excerpt, 160),
     path: `/insights/${slug}`,
-    ogImage: resolveNewsCoverImage(post),
+    ogImage: post.shareImageUrl || resolveNewsCoverImage(post),
+    noindex: post.noindex,
   })
 }
 
@@ -45,15 +53,60 @@ export default async function InsightDetailPage({
 
   const contentType = post.contentType || post.category || 'Articles'
   const typeBrowseHref = `/insights?type=${encodeURIComponent(contentType)}`
-  const primaryTopic = post.topics?.[0]
-  const [relatedInsights, relatedLibrary] = await Promise.all([
-    primaryTopic ? fetchInsights({ topic: primaryTopic }).catch(() => []) : Promise.resolve([]),
-    primaryTopic
-      ? fetchLibraryItems({ topic: primaryTopic }).catch(() => [])
-      : Promise.resolve([]),
-  ])
-  const moreInsights = relatedInsights.filter((item) => item.slug !== post.slug).slice(0, 6)
-  const moreLibrary = relatedLibrary.slice(0, 6)
+  const primaryTopic = post.primaryTopic?.trim() || post.topics?.[0]
+  const pinned = post.relatedPinned
+  const hidden = post.relatedHidden
+  const connectedPrograms =
+    post.programs && post.programs.length > 0
+      ? post.programs
+      : post.program
+        ? [post.program]
+        : []
+  const programSlugs = [...new Set(connectedPrograms.map((program) => program.slug))]
+  const junctionEvents = post.events ?? []
+  const [relatedInsights, relatedLibrary, programEventGroups, pinnedInsightRows, pinnedLibraryRows] =
+    await Promise.all([
+      primaryTopic ? fetchInsights({ topic: primaryTopic }).catch(() => []) : Promise.resolve([]),
+      primaryTopic
+        ? fetchLibraryItems({ topic: primaryTopic }).catch(() => [])
+        : Promise.resolve([]),
+      programSlugs.length > 0
+        ? Promise.all(programSlugs.map((slug) => fetchEventsForProgram(slug).catch(() => [])))
+        : Promise.resolve([] as Awaited<ReturnType<typeof fetchEventsForProgram>>[]),
+      Promise.all(
+        (pinned?.insights ?? []).map((slug) => fetchInsightBySlug(slug).catch(() => null)),
+      ).then((rows) => rows.filter((row): row is NonNullable<typeof row> => Boolean(row))),
+      Promise.all(
+        (pinned?.library ?? []).map((slug) => fetchLibraryItemBySlug(slug).catch(() => null)),
+      ).then((rows) => rows.filter((row): row is NonNullable<typeof row> => Boolean(row))),
+    ])
+  const relatedEventsAutomatic = [...junctionEvents]
+  const seenEventSlugs = new Set(relatedEventsAutomatic.map((event) => event.slug))
+  for (const group of programEventGroups) {
+    for (const event of group) {
+      if (!seenEventSlugs.has(event.slug)) {
+        seenEventSlugs.add(event.slug)
+        relatedEventsAutomatic.push(event)
+      }
+    }
+  }
+  const moreInsights = applyRelatedItems(
+    relatedInsights.filter((item) => item.slug !== post.slug),
+    pinned?.insights,
+    hidden?.insights,
+    pinnedInsightRows,
+  )
+  const moreLibrary = applyRelatedItems(
+    relatedLibrary,
+    pinned?.library,
+    hidden?.library,
+    pinnedLibraryRows,
+  )
+  const moreEvents = applyRelatedItems(
+    relatedEventsAutomatic,
+    pinned?.events,
+    hidden?.events,
+  )
 
   const cover = resolveNewsCoverImage(post)
   const dateIsCalendar = Boolean(post.date && looksLikeDateLabel(post.date))
@@ -109,13 +162,21 @@ export default async function InsightDetailPage({
               !cmsPlainExcerpt(post.body).startsWith(cmsPlainExcerpt(post.excerpt)) ? (
                 <CmsRichText body={post.excerpt} className="page-body-text insights-detail-lead" />
               ) : null}
+              {post.pullQuote?.trim() ? (
+                <blockquote className="page-body-text insights-detail-lead">{post.pullQuote}</blockquote>
+              ) : null}
               <CmsRichText body={post.body || post.excerpt} className="content-prose-body" />
+              {post.imageCredit?.trim() ? (
+                <p className="page-body-text text-body-sm">Image: {post.imageCredit}</p>
+              ) : null}
 
-              {post.topics?.length ? (
+              {(post.primaryTopic || post.topics?.length) ? (
                 <div className="insights-detail-panel">
-                  <h3 className="insights-detail-panel-title">Topics</h3>
+                  <h3 className="insights-detail-panel-title">
+                    {post.primaryTopic ? 'Category' : 'Topics'}
+                  </h3>
                   <div className="insights-detail-topic-grid">
-                    {post.topics.map((topic) => (
+                    {[...new Set([post.primaryTopic, ...(post.topics ?? [])].filter(Boolean))].map((topic) => (
                       <LocalizedLink
                         key={topic}
                         href={`/insights?topic=${encodeURIComponent(topic)}`}
@@ -156,14 +217,6 @@ export default async function InsightDetailPage({
                       </span>
                     </li>
                   ) : null}
-                  {post.program ? (
-                    <li>
-                      <strong>Program</strong>
-                      <span>
-                        <LocalizedLink href={`/programs/${post.program.slug}`}>{post.program.title}</LocalizedLink>
-                      </span>
-                    </li>
-                  ) : null}
                 </ul>
                 <LocalizedLink href={typeBrowseHref} className="btn-primary insights-detail-aside-cta">
                   Browse {contentType}
@@ -178,12 +231,25 @@ export default async function InsightDetailPage({
                   Library reading
                 </LocalizedLink>
               </div>
+
+              {connectedPrograms.length > 0 ? (
+                <div className="events-detail-aside-card events-detail-aside-card--muted">
+                  <p className="events-detail-aside-label">Connected</p>
+                  <ul className="events-detail-link-list">
+                    {connectedPrograms.map((program) => (
+                      <li key={program.id}>
+                        <LocalizedLink href={`/programs/${program.slug}`}>{program.title}</LocalizedLink>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </aside>
           </div>
         </div>
       </section>
 
-      {moreInsights.length > 0 || moreLibrary.length > 0 ? (
+      {moreInsights.length > 0 || moreLibrary.length > 0 || moreEvents.length > 0 ? (
         <section className="page-section section-reveal bg-slate-50">
           <div className="page-section-container">
             {moreInsights.length > 0 ? (
@@ -231,6 +297,27 @@ export default async function InsightDetailPage({
                       {item.collection ? (
                         <span className="insights-detail-link-meta">{item.collection}</span>
                       ) : null}
+                    </LocalizedLink>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {moreEvents.length > 0 ? (
+              <div className="insights-detail-related-block">
+                <div className="insights-section-intro">
+                  <span className="section-badge">Gatherings</span>
+                  <h2 className="page-section-heading">Related gatherings</h2>
+                </div>
+                <div className="insights-detail-link-grid">
+                  {moreEvents.map((item) => (
+                    <LocalizedLink
+                      key={item.id}
+                      href={`/events/${item.slug}`}
+                      className="insights-detail-link-card"
+                    >
+                      <span className="insights-detail-link-title">{item.title}</span>
+                      {item.date ? <span className="insights-detail-link-meta">{item.date}</span> : null}
                     </LocalizedLink>
                   ))}
                 </div>

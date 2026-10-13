@@ -90,6 +90,8 @@ export default async function PeoplePage({
     image: resolvePersonImage(person, index),
     isOrganization: person.isOrganization,
     featured: person.featured,
+    programs: (person.programs ?? []).map((program) => program.title),
+    expertiseTopics: person.expertiseTopics ?? [],
   }))
 
   return (

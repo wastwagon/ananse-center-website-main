@@ -1,11 +1,14 @@
 'use client'
 
 import { FormEvent, useEffect, useMemo, useState } from 'react'
+import AdminFormSection from '../../../components/admin/AdminFormSection'
 import AdminShell from '../../../components/admin/AdminShell'
 import AdminRowActions from '../../../components/admin/AdminRowActions'
 import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
+import PublicationFields from '../../../components/admin/PublicationFields'
+import RelatedOverridesFields from '../../../components/admin/RelatedOverridesFields'
 import { INSIGHT_TOPICS, LIBRARY_SHELVES } from '../../../lib/leadership/taxonomy'
 import {
   createAdminLibraryItem,
@@ -22,6 +25,13 @@ import {
   type AdminPerson,
   type AdminProgram,
 } from '../../../lib/admin-api'
+import {
+  fromDatetimeLocal,
+  publishedFromStatus,
+  statusFromPublished,
+  toDatetimeLocal,
+} from '../../../lib/publication'
+import type { RelatedOverrides } from '../../../lib/related-overrides'
 
 type ShelfKey = (typeof LIBRARY_SHELVES)[number]['key']
 
@@ -37,37 +47,35 @@ const emptyForm = {
   wisdomNugget: '',
   scriptureTheme: '',
   keywords: '',
+  duration: '',
+  rightsNote: '',
+  seoTitle: '',
+  seoDescription: '',
   episodeNumber: '' as string,
   dateLabel: '',
+  originalAtLocal: '',
   publishedAtLocal: '',
+  noindex: false,
+  shareMediaId: null as string | null,
   topics: [] as string[],
   programId: '' as string,
   personId: '' as string,
   newsPostId: '' as string,
   eventId: '' as string,
   coverMediaId: null as string | null,
+  downloadMediaId: null as string | null,
+  downloadUrl: '',
   audioMediaId: null as string | null,
   videoMediaId: null as string | null,
   audioUrl: '',
   videoUrl: '',
   featured: false,
   published: true,
+  publicationStatus: 'published',
+  scheduledAtLocal: '',
+  relatedPinned: {} as RelatedOverrides,
+  relatedHidden: {} as RelatedOverrides,
   sortOrder: 0,
-}
-
-function toDatetimeLocal(value: string | null | undefined): string {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
-function fromDatetimeLocal(value: string): string | null {
-  if (!value.trim()) return null
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return null
-  return date.toISOString()
 }
 
 function toggleTopic(topics: string[], topic: string): string[] {
@@ -138,21 +146,34 @@ export default function AdminLibraryPage() {
       wisdomNugget: record.wisdomNugget ?? '',
       scriptureTheme: record.scriptureTheme ?? '',
       keywords: record.keywords ?? '',
+      duration: record.duration ?? '',
+      rightsNote: record.rightsNote ?? '',
+      seoTitle: record.seoTitle ?? '',
+      seoDescription: record.seoDescription ?? '',
       episodeNumber: record.episodeNumber != null ? String(record.episodeNumber) : '',
       dateLabel: record.dateLabel ?? '',
+      originalAtLocal: toDatetimeLocal(record.originalAt),
       publishedAtLocal: toDatetimeLocal(record.publishedAt),
+      noindex: record.noindex ?? false,
+      shareMediaId: record.shareMediaId ?? null,
       topics: record.topics ?? [],
       programId: record.programId ?? '',
       personId: record.personId ?? '',
       newsPostId: record.newsPostId ?? '',
       eventId: record.eventId ?? '',
       coverMediaId: record.coverMediaId,
+      downloadMediaId: record.downloadMediaId ?? null,
+      downloadUrl: record.downloadUrl ?? '',
       audioMediaId: record.audioMediaId,
       videoMediaId: record.videoMediaId,
       audioUrl: record.audioUrl ?? '',
       videoUrl: record.videoUrl ?? '',
       featured: record.featured,
       published: record.published,
+      publicationStatus: record.publicationStatus ?? statusFromPublished(record.published),
+      scheduledAtLocal: toDatetimeLocal(record.scheduledAt),
+      relatedPinned: record.relatedPinned ?? {},
+      relatedHidden: record.relatedHidden ?? {},
       sortOrder: record.sortOrder,
     })
   }
@@ -164,6 +185,13 @@ export default function AdminLibraryPage() {
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
+    const wouldPublish =
+      form.publicationStatus === 'published' ||
+      publishedFromStatus(form.publicationStatus, form.scheduledAtLocal)
+    if (wouldPublish && form.topics.length === 0) {
+      setError('Choose at least one topic before publishing.')
+      return
+    }
     setSaving(true)
     setError(null)
     setNotice(null)
@@ -181,21 +209,34 @@ export default function AdminLibraryPage() {
         wisdomNugget: form.wisdomNugget,
         scriptureTheme: form.scriptureTheme,
         keywords: form.keywords.trim(),
+        duration: form.duration.trim(),
+        rightsNote: form.rightsNote.trim(),
+        seoTitle: form.seoTitle.trim(),
+        seoDescription: form.seoDescription.trim(),
         episodeNumber: Number.isFinite(episode) ? episode : null,
         dateLabel: form.dateLabel.trim(),
+        originalAt: fromDatetimeLocal(form.originalAtLocal),
         publishedAt: fromDatetimeLocal(form.publishedAtLocal),
+        noindex: form.noindex,
+        shareMediaId: form.shareMediaId,
         topics: form.topics,
         programId: form.programId || null,
         personId: form.personId || null,
         newsPostId: form.newsPostId || null,
         eventId: form.eventId || null,
         coverMediaId: form.coverMediaId,
+        downloadMediaId: form.downloadMediaId,
+        downloadUrl: form.downloadUrl.trim(),
         audioMediaId: form.audioMediaId,
         videoMediaId: form.videoMediaId,
         audioUrl: form.audioUrl.trim(),
         videoUrl: form.videoUrl.trim(),
         featured: form.featured,
-        published: form.published,
+        publicationStatus: form.publicationStatus,
+        scheduledAt: fromDatetimeLocal(form.scheduledAtLocal),
+        relatedPinned: form.relatedPinned,
+        relatedHidden: form.relatedHidden,
+        published: wouldPublish,
         sortOrder: form.sortOrder,
       }
       if (editingId && editingId !== 'new') {
@@ -246,6 +287,7 @@ export default function AdminLibraryPage() {
             {editingId === 'new' ? 'New item' : 'Edit item'}
           </h2>
           <form className="admin-form" onSubmit={onSubmit}>
+            <AdminFormSection title="Basic information">
             <div className="admin-field">
               <label htmlFor="lib-title">Title</label>
               <input
@@ -316,7 +358,17 @@ export default function AdminLibraryPage() {
               />
             </div>
             <div className="admin-field">
-              <label htmlFor="lib-published-at">Published at (optional)</label>
+              <label htmlFor="lib-original-at">Original date</label>
+              <input
+                id="lib-original-at"
+                type="datetime-local"
+                value={form.originalAtLocal}
+                onChange={(e) => setForm((f) => ({ ...f, originalAtLocal: e.target.value }))}
+              />
+              <p className="admin-meta">When the work was first made. Website publication is separate.</p>
+            </div>
+            <div className="admin-field">
+              <label htmlFor="lib-published-at">Website publication date</label>
               <input
                 id="lib-published-at"
                 type="datetime-local"
@@ -324,6 +376,8 @@ export default function AdminLibraryPage() {
                 onChange={(e) => setForm((f) => ({ ...f, publishedAtLocal: e.target.value }))}
               />
             </div>
+            </AdminFormSection>
+            <AdminFormSection title="Main content">
             {form.shelf === 'listen' ? (
               <>
                 <div className="admin-field">
@@ -433,12 +487,82 @@ export default function AdminLibraryPage() {
                 placeholder="Comma-separated search terms"
               />
             </div>
+            <label className="admin-toggle-row">
+              <input
+                type="checkbox"
+                checked={form.noindex}
+                onChange={(e) => setForm((f) => ({ ...f, noindex: e.target.checked }))}
+              />
+              <span>Hide from search engines</span>
+            </label>
+            </AdminFormSection>
+            <AdminFormSection title="Images and media">
             <CoverMediaField
               value={form.coverMediaId}
               onChange={(coverMediaId) => setForm((f) => ({ ...f, coverMediaId }))}
             />
+            <CoverMediaField
+              label="Social sharing image"
+              value={form.shareMediaId}
+              onChange={(shareMediaId) => setForm((f) => ({ ...f, shareMediaId }))}
+            />
+            <CoverMediaField
+              label="Download file (media library)"
+              value={form.downloadMediaId}
+              onChange={(downloadMediaId) => setForm((f) => ({ ...f, downloadMediaId }))}
+              imagesOnly={false}
+            />
             <div className="admin-field">
-              <label>Topics (optional)</label>
+              <label htmlFor="lib-download-url">Or download URL</label>
+              <input
+                id="lib-download-url"
+                value={form.downloadUrl}
+                onChange={(e) => setForm((f) => ({ ...f, downloadUrl: e.target.value }))}
+                placeholder="https://"
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="lib-duration">Duration</label>
+              <input
+                id="lib-duration"
+                value={form.duration}
+                onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))}
+                placeholder="24 min"
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="lib-rights">Rights / permission</label>
+              <input
+                id="lib-rights"
+                value={form.rightsNote}
+                onChange={(e) => setForm((f) => ({ ...f, rightsNote: e.target.value }))}
+                placeholder="Permission to publish or embed"
+              />
+            </div>
+            </AdminFormSection>
+            <AdminFormSection title="Classification">
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="lib-seo-title">SEO title</label>
+                <input
+                  id="lib-seo-title"
+                  value={form.seoTitle}
+                  onChange={(e) => setForm((f) => ({ ...f, seoTitle: e.target.value }))}
+                />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="lib-seo-description">SEO description</label>
+                <input
+                  id="lib-seo-description"
+                  value={form.seoDescription}
+                  onChange={(e) => setForm((f) => ({ ...f, seoDescription: e.target.value }))}
+                />
+              </div>
+            </div>
+            </AdminFormSection>
+            <AdminFormSection title="People and relationships">
+            <div className="admin-field">
+              <label>Topics</label>
               <div className="admin-choice-row">
                 {INSIGHT_TOPICS.map((topic) => (
                   <label key={topic} className="admin-toggle-row">
@@ -518,6 +642,8 @@ export default function AdminLibraryPage() {
                 ))}
               </select>
             </div>
+            </AdminFormSection>
+            <AdminFormSection title="Review and permissions">
             <div className="admin-field">
               <label htmlFor="lib-sort">Sort order</label>
               <input
@@ -536,14 +662,50 @@ export default function AdminLibraryPage() {
               />
               <span>Featured</span>
             </label>
-            <label className="admin-toggle-row">
-              <input
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))}
+              <PublicationFields
+                value={{
+                  publicationStatus: form.publicationStatus,
+                  scheduledAtLocal: form.scheduledAtLocal,
+                  published: form.published,
+                }}
+                checklist={[
+                  {
+                    label: 'Short description',
+                    ok: Boolean(form.description.replace(/<[^>]+>/g, '').trim()),
+                  },
+                  { label: 'At least one topic', ok: form.topics.length > 0 },
+                  {
+                    label: 'File, embed, transcript, or body',
+                    ok: Boolean(
+                      form.body.replace(/<[^>]+>/g, '').trim() ||
+                        form.transcript.replace(/<[^>]+>/g, '').trim() ||
+                        form.audioUrl.trim() ||
+                        form.videoUrl.trim() ||
+                        form.downloadUrl.trim() ||
+                        form.audioMediaId ||
+                        form.videoMediaId ||
+                        form.downloadMediaId,
+                    ),
+                  },
+                ]}
+                onChange={(next) =>
+                  setForm((f) => ({
+                    ...f,
+                    publicationStatus: next.publicationStatus,
+                    scheduledAtLocal: next.scheduledAtLocal,
+                    published: next.published,
+                  }))
+                }
               />
-              <span>Published</span>
-            </label>
+            </AdminFormSection>
+            <AdminFormSection title="Related content">
+              <RelatedOverridesFields
+                pinned={form.relatedPinned}
+                hidden={form.relatedHidden}
+                onPinnedChange={(relatedPinned) => setForm((f) => ({ ...f, relatedPinned }))}
+                onHiddenChange={(relatedHidden) => setForm((f) => ({ ...f, relatedHidden }))}
+              />
+            </AdminFormSection>
             <div className="admin-actions">
               <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
                 {saving ? 'Saving…' : 'Save'}
@@ -594,7 +756,11 @@ export default function AdminLibraryPage() {
                   </td>
                   <td>{record.collection}</td>
                   <td>
-                    <AdminStatus value={record.published ? 'published' : 'draft'} />
+                    <AdminStatus
+                      value={
+                        record.publicationStatus ?? (record.published ? 'published' : 'draft')
+                      }
+                    />
                   </td>
                   <td>
                     <AdminRowActions

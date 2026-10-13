@@ -9,7 +9,7 @@ const staticPaths = [
   '/programs',
   '/library',
   '/library/midday-reflection',
-  '/library/photos',
+  '/library/photo-gallery',
   '/events',
   '/insights',
   '/people',
@@ -27,8 +27,8 @@ async function fetchSlugs(endpoint: string): Promise<string[]> {
       next: { revalidate: 3600 },
     })
     if (!response.ok) return []
-    const payload = (await response.json()) as { data: { slug: string }[] }
-    return payload.data.map((row) => row.slug)
+    const payload = (await response.json()) as { data: { slug: string; noindex?: boolean }[] }
+    return payload.data.filter((row) => !row.noindex).map((row) => row.slug)
   } catch {
     return []
   }
@@ -56,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...insightSlugs.map((slug) => `/insights/${slug}` as const),
     ...librarySlugs.map((slug) => `/library/${slug}` as const),
     ...peopleSlugs.map((slug) => `/people/${slug}` as const),
-    ...albumSlugs.map((slug) => `/library/photos/${slug}` as const),
+    ...albumSlugs.map((slug) => `/library/photo-gallery/${slug}` as const),
   ]
 
   return paths.flatMap((path) =>

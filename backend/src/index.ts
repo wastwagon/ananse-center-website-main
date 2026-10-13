@@ -18,6 +18,7 @@ import { insightsRoutes } from './routes/insights.js'
 import { peopleRoutes } from './routes/people.js'
 import { libraryRoutes } from './routes/library.js'
 import { photoAlbumRoutes } from './routes/photo-albums.js'
+import { redirectRoutes } from './routes/redirects.js'
 import { analyticsRoutes } from './routes/analytics.js'
 import { adminRoutes } from './routes/admin/index.js'
 import { mediaRoutes } from './routes/media.js'
@@ -26,6 +27,7 @@ import { syncRegistryContent } from './lib/sync-content.js'
 import { syncIntegrationEnvDefaults } from './lib/sync-integrations.js'
 import { registerSecurityHeaders } from './lib/security-headers.js'
 import { validateProductionEnvOnBoot } from './lib/validate-production-env.js'
+import { startScheduledPublishWorker } from './lib/promote-scheduled.js'
 
 const port = Number(process.env.BACKEND_PORT || 4000)
 const host = process.env.BACKEND_HOST || '0.0.0.0'
@@ -83,12 +85,14 @@ await app.register(insightsRoutes)
 await app.register(peopleRoutes)
 await app.register(libraryRoutes)
 await app.register(photoAlbumRoutes)
+await app.register(redirectRoutes)
 await app.register(analyticsRoutes)
 await app.register(adminRoutes)
 
 try {
   await syncRegistryContent()
   await syncIntegrationEnvDefaults()
+  startScheduledPublishWorker(app.log)
   await app.listen({ port, host })
   app.log.info(`Ananse API listening on http://${host}:${port}`)
 } catch (error) {

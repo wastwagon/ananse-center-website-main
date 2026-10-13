@@ -87,7 +87,14 @@ export function isUpcomingEventDate(dateStr: string, now = new Date()): boolean 
 }
 
 
-export type EventRegistrationStatus = 'auto' | 'open' | 'closed' | 'waitlist' | 'completed'
+export type EventRegistrationStatus =
+  | 'auto'
+  | 'open'
+  | 'closed'
+  | 'waitlist'
+  | 'completed'
+  | 'not_required'
+  | 'unavailable'
 
 /** Resolve display registration status from admin override + schedule. */
 export function resolveEventRegistrationStatus(input: {
@@ -95,10 +102,22 @@ export function resolveEventRegistrationStatus(input: {
   dateLabel?: string | null
   startsAt?: string | Date | null
   endsAt?: string | Date | null
+  registrationUrl?: string | null
+  eventStatus?: string | null
   now?: Date
 }): EventRegistrationStatus {
+  if (input.eventStatus === 'cancelled' || input.eventStatus === 'postponed') return 'unavailable'
+  if (input.eventStatus === 'completed') return 'completed'
+
   const status = (input.registrationStatus || 'auto').toLowerCase()
-  if (status === 'open' || status === 'closed' || status === 'waitlist' || status === 'completed') {
+  if (
+    status === 'open' ||
+    status === 'closed' ||
+    status === 'waitlist' ||
+    status === 'completed' ||
+    status === 'not_required' ||
+    status === 'unavailable'
+  ) {
     return status
   }
 
@@ -118,11 +137,12 @@ export function resolveEventRegistrationStatus(input: {
         new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Accra' }).format(starts),
       )
       if (startDay.getTime() < today.getTime()) return 'completed'
-      return 'open'
     }
+  } else {
+    const upcoming = input.dateLabel ? isUpcomingEventDate(input.dateLabel, now) : true
+    if (!upcoming) return 'completed'
   }
-  if (input.dateLabel) {
-    return isUpcomingEventDate(input.dateLabel, now) ? 'open' : 'completed'
-  }
-  return 'open'
+  // Auto is open only when an external registration link exists.
+  // On-site registration is used when an editor sets the status to Open.
+  return input.registrationUrl?.trim() ? 'open' : 'not_required'
 }

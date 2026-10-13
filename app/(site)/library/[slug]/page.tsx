@@ -3,10 +3,12 @@ import LocalizedLink from '../../../../components/LocalizedLink'
 import HeroSplit from '../../../../components/HeroSplit'
 import CmsRichText from '../../../../components/CmsRichText'
 import { fetchLibraryItemBySlug, fetchLibraryItems, fetchInsights } from '../../../../lib/api'
+import { applyRelatedItems } from '../../../../lib/related-overrides'
 import ShareBar from '../../../../components/ShareBar'
 import { buildPageMetadata } from '../../../../lib/page-meta'
 import { resolveLibraryCoverImage } from '../../../../lib/images'
 import { cmsPlainExcerpt } from '../../../../lib/cms/richtext'
+import MediaPlayer from '../../../../components/MediaPlayer'
 
 function shelfCtaLabel(shelf: string) {
   if (shelf === 'listen') return 'Listen'
@@ -26,10 +28,11 @@ export async function generateMetadata({
     return buildPageMetadata({ title: 'Library', path: `/library/${slug}` })
   }
   return buildPageMetadata({
-    title: item.title,
-    description: cmsPlainExcerpt(item.description, 160),
+    title: item.seoTitle?.trim() || item.title,
+    description: item.seoDescription?.trim() || cmsPlainExcerpt(item.description, 160),
     path: `/library/${item.slug}`,
-    ogImage: resolveLibraryCoverImage(item),
+    ogImage: item.shareImageUrl || resolveLibraryCoverImage(item),
+    noindex: item.noindex,
   })
 }
 
@@ -51,20 +54,36 @@ export default async function LibraryItemPage({
       : Promise.resolve([]),
     item.program?.slug ? fetchInsights().catch(() => []) : Promise.resolve([]),
   ])
-  const moreFromProgram = programItems.filter((row) => row.slug !== item.slug).slice(0, 6)
+  const pinned = item.relatedPinned
+  const hidden = item.relatedHidden
+  const moreFromProgram = applyRelatedItems(
+    programItems.filter((row) => row.slug !== item.slug),
+    pinned?.library,
+    hidden?.library,
+  )
   const speakerIds = new Set(moreFromProgram.map((row) => row.slug))
-  const moreFromSpeaker = speakerItems
-    .filter((row) => row.slug !== item.slug && !speakerIds.has(row.slug))
-    .slice(0, 6)
-  const relatedInsights = insightRows
-    .filter((row) => row.program?.slug === item.program?.slug)
-    .slice(0, 6)
+  const moreFromSpeaker = applyRelatedItems(
+    speakerItems.filter((row) => row.slug !== item.slug && !speakerIds.has(row.slug)),
+    pinned?.library,
+    hidden?.library,
+  )
+  const relatedInsights = applyRelatedItems(
+    insightRows.filter((row) => row.program?.slug === item.program?.slug),
+    pinned?.insights,
+    hidden?.insights,
+    insightRows,
+  )
 
   const cover = resolveLibraryCoverImage(item)
+  const originalLabel = item.originalAt
+    ? `Originally ${new Date(item.originalAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+    : ''
   const metaParts = [
     item.collection,
+    originalLabel,
     item.dateLabel,
     item.episodeNumber != null ? `Episode ${item.episodeNumber}` : '',
+    item.duration?.trim() || '',
     item.scriptureTheme,
   ].filter(Boolean)
   const shelfLabel = item.shelf.charAt(0).toUpperCase() + item.shelf.slice(1)
@@ -103,27 +122,32 @@ export default async function LibraryItemPage({
                 <CmsRichText body={item.description} className="content-prose-body" />
               ) : null}
 
-              {(item.audioUrl || item.videoUrl) && (
+              {(item.audioUrl || item.videoUrl || item.downloadUrl) && (
                 <div id="library-media" className="library-detail-media">
                   {item.audioUrl ? (
                     <div className="library-detail-media-block">
                       <h3 className="library-detail-media-title">Listen</h3>
-                      <audio controls preload="none" src={item.audioUrl} className="library-detail-audio">
-                        Your browser does not support audio playback.
-                      </audio>
+                      <MediaPlayer url={item.audioUrl} title={`${item.title} audio`} kind="audio" />
                     </div>
                   ) : null}
                   {item.videoUrl ? (
                     <div className="library-detail-media-block">
                       <h3 className="library-detail-media-title">Watch</h3>
-                      <video
-                        controls
-                        preload="metadata"
-                        src={item.videoUrl}
-                        className="library-detail-video"
+                      <MediaPlayer url={item.videoUrl} title={`${item.title} video`} kind="video" />
+                    </div>
+                  ) : null}
+                  {item.downloadUrl ? (
+                    <div className="library-detail-media-block">
+                      <h3 className="library-detail-media-title">Download</h3>
+                      <a
+                        href={item.downloadUrl}
+                        className="btn-outline library-detail-download"
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        Your browser does not support video playback.
-                      </video>
+                        Download file
+                      </a>
                     </div>
                   ) : null}
                 </div>
@@ -154,6 +178,9 @@ export default async function LibraryItemPage({
                   <h3 className="library-detail-panel-title">Further study</h3>
                   <CmsRichText body={item.furtherStudy} className="content-prose-body" />
                 </div>
+              ) : null}
+              {item.rightsNote?.trim() ? (
+                <p className="page-body-text text-body-sm">{item.rightsNote}</p>
               ) : null}
             </div>
 

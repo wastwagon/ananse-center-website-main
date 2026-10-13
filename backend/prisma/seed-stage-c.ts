@@ -396,21 +396,10 @@ export async function seedStageCContent(prisma: PrismaClient) {
         featured: insight.featured ?? false,
         showInLibraryRead: insight.showInLibraryRead ?? false,
         published: true,
+        publicationStatus: 'published',
         sortOrder: insight.sortOrder,
       },
-      update: {
-        title: insight.title,
-        excerpt: insight.excerpt,
-        body: insight.body,
-        author: AUTHOR,
-        category: insight.contentType,
-        contentType: insight.contentType,
-        topics: insight.topics,
-        featured: insight.featured ?? false,
-        showInLibraryRead: insight.showInLibraryRead ?? false,
-        published: true,
-        sortOrder: insight.sortOrder,
-      },
+      update: {},
     })
   }
 
@@ -431,20 +420,10 @@ export async function seedStageCContent(prisma: PrismaClient) {
         publishedAt: now,
         featured: item.featured ?? false,
         published: true,
+        publicationStatus: 'published',
         sortOrder: item.sortOrder,
       },
-      update: {
-        title: item.title,
-        description: item.description,
-        shelf: 'read',
-        collection: item.collection,
-        body: item.body,
-        wisdomNugget: item.wisdomNugget ?? '',
-        topics: item.topics,
-        featured: item.featured ?? false,
-        published: true,
-        sortOrder: item.sortOrder,
-      },
+      update: {},
     })
   }
 

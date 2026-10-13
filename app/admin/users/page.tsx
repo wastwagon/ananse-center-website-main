@@ -14,6 +14,7 @@ import {
 const ROLES = [
   { value: 'superadmin', label: 'Super admin' },
   { value: 'admin', label: 'Admin' },
+  { value: 'reviewer', label: 'Reviewer' },
   { value: 'editor', label: 'Editor' },
   { value: 'finance', label: 'Finance' },
 ] as const

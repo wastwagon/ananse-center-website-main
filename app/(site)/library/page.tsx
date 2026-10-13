@@ -38,7 +38,7 @@ const LIBRARY_GATEWAYS = [
   {
     key: 'photos',
     title: 'Photo galleries',
-    href: '/library/photos',
+    href: '/library/photo-gallery',
     body: 'Photographs and memories from ANANSE events, programs, people, and activities.',
   },
 ] as const
@@ -80,6 +80,9 @@ export default async function LibraryPage({
       cover: resolveLibraryCoverImage(item, index),
       featured: item.featured,
       kind: 'library' as const,
+      programTitle: item.program?.title,
+      personName: item.person?.name,
+      topics: item.topics,
     }))
   })
 
@@ -96,6 +99,9 @@ export default async function LibraryPage({
     cover: resolveNewsCoverImage(post, index),
     featured: Boolean(post.featured),
     kind: 'linked-article' as const,
+    programTitle: post.program?.title,
+    personName: post.author,
+    topics: post.topics,
   }))
 
   const items = [...libraryItems, ...readLinked]
@@ -113,7 +119,7 @@ export default async function LibraryPage({
         }
         description={LIBRARY_MASTER.kicker}
         primaryCta={{ label: 'Midday Reflection archive', href: '/library/midday-reflection' }}
-        secondaryCta={{ label: 'Photo galleries', href: '/library/photos' }}
+        secondaryCta={{ label: 'Photo galleries', href: '/library/photo-gallery' }}
         stats={[]}
       />
 
@@ -201,14 +207,14 @@ export default async function LibraryPage({
             <article className="library-shelf-card">
               <div className="library-shelf-card-head">
                 <h3 className="library-shelf-card-title">{LIBRARY_PHOTO_SHELF.title}</h3>
-                <LocalizedLink href="/library/photos" className="library-shelf-card-link">
+                <LocalizedLink href="/library/photo-gallery" className="library-shelf-card-link">
                   Browse Galleries
                 </LocalizedLink>
               </div>
               <ul className="library-shelf-list">
                 {LIBRARY_PHOTO_SHELF.items.map((item) => (
                   <li key={item}>
-                    <LocalizedLink href="/library/photos">{item}</LocalizedLink>
+                    <LocalizedLink href="/library/photo-gallery">{item}</LocalizedLink>
                   </li>
                 ))}
               </ul>

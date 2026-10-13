@@ -1,3 +1,5 @@
+import type { RelatedOverrides } from './related-overrides'
+
 export type AdminUser = {
   id: string
   email: string
@@ -18,7 +20,23 @@ export type AdminProgram = {
   features: string[]
   sortOrder: number
   published: boolean
+  publicationStatus?: string
+  scheduledAt?: string | null
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
   coverMediaId: string | null
+  tagline?: string
+  ctaLabel?: string
+  ctaHref?: string
+  topics?: string[]
+  seoTitle?: string
+  seoDescription?: string
+  summary?: string
+  keywords?: string
+  noindex?: boolean
+  shareMediaId?: string | null
+  relatedPersonIds?: string[]
+  leadPersonId?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -34,11 +52,21 @@ export type AdminEvent = {
   timeLabel: string
   capacity: number | null
   registrationStatus: 'auto' | 'open' | 'closed' | 'waitlist' | 'completed' | string
-  eventStatus: 'scheduled' | 'postponed' | 'cancelled' | string
+  eventStatus: 'scheduled' | 'completed' | 'postponed' | 'cancelled' | string
   deliveryMode: 'in_person' | 'online' | 'hybrid' | string
   meetingUrl: string
   recordingUrl: string
   audioUrl?: string
+  cost?: string
+  registrationUrl?: string
+  organizer?: string
+  timeZone?: string
+  seoTitle?: string
+  seoDescription?: string
+  keywords?: string
+  noindex?: boolean
+  shareMediaId?: string | null
+  insightIds?: string[]
   transcript?: string
   subtitle?: string
   speakers?: { personId: string; role: string; name?: string }[]
@@ -54,6 +82,10 @@ export type AdminEvent = {
   highlights: string[]
   featured: boolean
   published: boolean
+  publicationStatus?: string
+  scheduledAt?: string | null
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
   coverMediaId: string | null
   createdAt: string
   updatedAt: string
@@ -438,7 +470,21 @@ export type AdminNewsPost = {
   showInLibraryRead: boolean
   featured: boolean
   linkHref: string
+  imageCredit?: string
+  pullQuote?: string
+  seoTitle?: string
+  seoDescription?: string
+  primaryTopic?: string
+  keywords?: string
+  noindex?: boolean
+  shareMediaId?: string | null
+  programIds?: string[]
+  eventIds?: string[]
   published: boolean
+  publicationStatus?: string
+  scheduledAt?: string | null
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
   sortOrder: number
   coverMediaId: string | null
   coverImageUrl?: string | null
@@ -449,14 +495,24 @@ export type AdminNewsPost = {
 export type AdminPerson = {
   id: string
   name: string
+  preferredName?: string
   slug: string
   roleTitle: string
   bio: string
+  fullBio?: string
+  consentConfirmed?: boolean
+  socialLinks?: string
+  seoTitle?: string
+  seoDescription?: string
   groups: string[]
   isOrganization: boolean
   organizationName: string
   websiteUrl: string
   expertise?: string
+  expertiseTopics?: string[]
+  keywords?: string
+  noindex?: boolean
+  shareMediaId?: string | null
   cohortLabel?: string
   programIds?: string[]
   photoMediaId: string | null
@@ -465,6 +521,10 @@ export type AdminPerson = {
   logoImageUrl: string | null
   featured: boolean
   published: boolean
+  publicationStatus?: string
+  scheduledAt?: string | null
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
   sortOrder: number
   createdAt: string
   updatedAt: string
@@ -484,7 +544,10 @@ export type AdminLibraryItem = {
   scriptureTheme: string
   episodeNumber: number | null
   dateLabel: string
+  originalAt?: string | null
   publishedAt: string | null
+  noindex?: boolean
+  shareMediaId?: string | null
   topics: string[]
   keywords?: string
   programId: string | null
@@ -492,13 +555,23 @@ export type AdminLibraryItem = {
   personId: string | null
   newsPostId: string | null
   coverMediaId: string | null
+  downloadMediaId?: string | null
+  downloadUrl?: string
   audioMediaId: string | null
   videoMediaId: string | null
   audioUrl: string
   videoUrl: string
+  duration?: string
+  rightsNote?: string
+  seoTitle?: string
+  seoDescription?: string
   coverImageUrl: string | null
   featured: boolean
   published: boolean
+  publicationStatus?: string
+  scheduledAt?: string | null
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
   sortOrder: number
   createdAt: string
   updatedAt: string
@@ -508,6 +581,7 @@ export type AdminPhotoAlbumImage = {
   id?: string
   mediaId: string
   caption: string
+  altText?: string
   sortOrder: number
   url?: string
 }
@@ -520,13 +594,25 @@ export type AdminPhotoAlbum = {
   dateLabel: string
   place: string
   collection: string
+  photographer?: string
+  rightsNote?: string
+  seoTitle?: string
+  seoDescription?: string
+  keywords?: string
+  noindex?: boolean
+  shareMediaId?: string | null
   programId: string | null
   eventId: string | null
   coverMediaId: string | null
   coverImageUrl: string | null
   images: AdminPhotoAlbumImage[]
+  personIds?: string[]
   featured: boolean
   published: boolean
+  publicationStatus?: string
+  scheduledAt?: string | null
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
   sortOrder: number
   createdAt: string
   updatedAt: string

@@ -23,7 +23,7 @@ Open each route and confirm the pattern, then swap in real data:
 5. **Library** — Listen / Watch / Read shelves + **Photo Gallery** tab; Midday archive with audio, video, transcript, wisdom nugget, further study  
 6. **Insights** — topic filters; article page with “More on this topic”  
 7. **People** — five groups; person page with Talks and writings + Related gatherings (no personal phone/email)  
-8. **Photo galleries** — albums under `/library/photos`  
+8. **Photo galleries** — albums under `/library/photo-gallery`  
 9. **Get Involved** — Learn, Attend, Mentor, Partner, Support, Share + Contact  
 10. **Search** — finds programs, events, library, people, insights (not arts archives)  
 

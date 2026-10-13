@@ -1,12 +1,15 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import AdminFormSection from '../../../components/admin/AdminFormSection'
 import AdminShell from '../../../components/admin/AdminShell'
 import AdminRowActions from '../../../components/admin/AdminRowActions'
 import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
-import { PEOPLE_GROUPS } from '../../../lib/leadership/taxonomy'
+import PublicationFields from '../../../components/admin/PublicationFields'
+import RelatedOverridesFields from '../../../components/admin/RelatedOverridesFields'
+import { INSIGHT_TOPICS, PEOPLE_GROUPS } from '../../../lib/leadership/taxonomy'
 import {
   createAdminPerson,
   deleteAdminPerson,
@@ -16,15 +19,32 @@ import {
   type AdminPerson,
   type AdminProgram,
 } from '../../../lib/admin-api'
+import {
+  fromDatetimeLocal,
+  publishedFromStatus,
+  statusFromPublished,
+  toDatetimeLocal,
+} from '../../../lib/publication'
+import type { RelatedOverrides } from '../../../lib/related-overrides'
 
 const emptyForm = {
   name: '',
   slug: '',
   roleTitle: '',
   expertise: '',
+  expertiseTopics: [] as string[],
   cohortLabel: '',
   programIds: [] as string[],
   bio: '',
+  fullBio: '',
+  preferredName: '',
+  consentConfirmed: false,
+  socialLinks: '',
+  seoTitle: '',
+  seoDescription: '',
+  keywords: '',
+  noindex: false,
+  shareMediaId: null as string | null,
   groups: [] as string[],
   isOrganization: false,
   organizationName: '',
@@ -32,7 +52,11 @@ const emptyForm = {
   photoMediaId: null as string | null,
   logoMediaId: null as string | null,
   featured: false,
-  published: true,
+  published: false,
+  publicationStatus: 'draft',
+  scheduledAtLocal: '',
+  relatedPinned: {} as RelatedOverrides,
+  relatedHidden: {} as RelatedOverrides,
   sortOrder: 0,
 }
 
@@ -80,9 +104,19 @@ export default function AdminPeoplePage() {
       slug: record.slug,
       roleTitle: record.roleTitle ?? '',
       expertise: record.expertise ?? '',
+      expertiseTopics: record.expertiseTopics ?? [],
       cohortLabel: record.cohortLabel ?? '',
       programIds: record.programIds ?? [],
       bio: record.bio ?? '',
+      fullBio: record.fullBio ?? '',
+      preferredName: record.preferredName ?? '',
+      consentConfirmed: record.consentConfirmed ?? false,
+      socialLinks: record.socialLinks ?? '',
+      seoTitle: record.seoTitle ?? '',
+      seoDescription: record.seoDescription ?? '',
+      keywords: record.keywords ?? '',
+      noindex: record.noindex ?? false,
+      shareMediaId: record.shareMediaId ?? null,
       groups: record.groups ?? [],
       isOrganization: record.isOrganization ?? false,
       organizationName: record.organizationName ?? '',
@@ -91,6 +125,10 @@ export default function AdminPeoplePage() {
       logoMediaId: record.logoMediaId,
       featured: record.featured,
       published: record.published,
+      publicationStatus: record.publicationStatus ?? statusFromPublished(record.published),
+      scheduledAtLocal: toDatetimeLocal(record.scheduledAt),
+      relatedPinned: record.relatedPinned ?? {},
+      relatedHidden: record.relatedHidden ?? {},
       sortOrder: record.sortOrder,
     })
   }
@@ -102,6 +140,13 @@ export default function AdminPeoplePage() {
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
+    const wouldPublish =
+      form.publicationStatus === 'published' ||
+      publishedFromStatus(form.publicationStatus, form.scheduledAtLocal)
+    if (wouldPublish && !form.consentConfirmed) {
+      setError('Confirm publication permission before publishing this profile.')
+      return
+    }
     setSaving(true)
     setError(null)
     setNotice(null)
@@ -111,9 +156,19 @@ export default function AdminPeoplePage() {
         slug: form.slug.trim() || undefined,
         roleTitle: form.roleTitle.trim(),
         expertise: form.expertise.trim(),
+        expertiseTopics: form.expertiseTopics,
         cohortLabel: form.cohortLabel.trim(),
         programIds: form.programIds,
         bio: form.bio,
+        fullBio: form.fullBio,
+        preferredName: form.preferredName.trim(),
+        consentConfirmed: form.consentConfirmed,
+        socialLinks: form.socialLinks,
+        seoTitle: form.seoTitle.trim(),
+        seoDescription: form.seoDescription.trim(),
+        keywords: form.keywords.trim(),
+        noindex: form.noindex,
+        shareMediaId: form.shareMediaId,
         groups: form.groups,
         isOrganization: form.isOrganization,
         organizationName: form.isOrganization ? form.organizationName.trim() : '',
@@ -121,7 +176,11 @@ export default function AdminPeoplePage() {
         photoMediaId: form.photoMediaId,
         logoMediaId: form.logoMediaId,
         featured: form.featured,
-        published: form.published,
+        publicationStatus: form.publicationStatus,
+        scheduledAt: fromDatetimeLocal(form.scheduledAtLocal),
+        relatedPinned: form.relatedPinned,
+        relatedHidden: form.relatedHidden,
+        published: wouldPublish,
         sortOrder: form.sortOrder,
       }
       if (editingId && editingId !== 'new') {
@@ -172,6 +231,7 @@ export default function AdminPeoplePage() {
             {editingId === 'new' ? 'New profile' : 'Edit profile'}
           </h2>
           <form className="admin-form" onSubmit={onSubmit}>
+            <AdminFormSection title="Basic information">
             <label className="admin-toggle-row">
               <input
                 type="checkbox"
@@ -180,6 +240,15 @@ export default function AdminPeoplePage() {
               />
               <span>Organization / partner (use logo instead of portrait)</span>
             </label>
+            <div className="admin-field">
+              <label htmlFor="person-preferred">Preferred display name</label>
+              <input
+                id="person-preferred"
+                value={form.preferredName}
+                onChange={(e) => setForm((f) => ({ ...f, preferredName: e.target.value }))}
+                placeholder="If different from the full name"
+              />
+            </div>
             <div className="admin-field">
               <label htmlFor="person-name">{form.isOrganization ? 'Display name' : 'Full name'}</label>
               <input
@@ -237,6 +306,8 @@ export default function AdminPeoplePage() {
                 ))}
               </div>
             </div>
+            </AdminFormSection>
+            <AdminFormSection title="People and relationships">
             <div className="admin-field-row">
               <div className="admin-field">
                 <label htmlFor="person-expertise">Expertise</label>
@@ -244,7 +315,7 @@ export default function AdminPeoplePage() {
                   id="person-expertise"
                   value={form.expertise}
                   onChange={(e) => setForm((f) => ({ ...f, expertise: e.target.value }))}
-                  placeholder="Leadership, mentoring, public speaking"
+                  placeholder="Short expertise line"
                 />
               </div>
               <div className="admin-field">
@@ -255,6 +326,28 @@ export default function AdminPeoplePage() {
                   onChange={(e) => setForm((f) => ({ ...f, cohortLabel: e.target.value }))}
                   placeholder="2026 Fellows"
                 />
+              </div>
+            </div>
+            <div className="admin-field">
+              <label>Expertise topics</label>
+              <div className="admin-choice-row">
+                {INSIGHT_TOPICS.map((topic) => (
+                  <label key={topic} className="admin-toggle-row">
+                    <input
+                      type="checkbox"
+                      checked={form.expertiseTopics.includes(topic)}
+                      onChange={() =>
+                        setForm((f) => ({
+                          ...f,
+                          expertiseTopics: f.expertiseTopics.includes(topic)
+                            ? f.expertiseTopics.filter((item) => item !== topic)
+                            : [...f.expertiseTopics, topic],
+                        }))
+                      }
+                    />
+                    <span>{topic}</span>
+                  </label>
+                ))}
               </div>
             </div>
             <div className="admin-field">
@@ -279,14 +372,81 @@ export default function AdminPeoplePage() {
                 ))}
               </div>
             </div>
+            </AdminFormSection>
+            <AdminFormSection title="Main content">
             <div className="admin-field">
-              <label>Bio</label>
+              <label>Short biography</label>
               <CmsRichTextEditor
                 value={form.bio}
                 onChange={(bio) => setForm((f) => ({ ...f, bio }))}
                 placeholder="Short biography…"
               />
             </div>
+            <div className="admin-field">
+              <label>Full biography</label>
+              <CmsRichTextEditor
+                value={form.fullBio}
+                onChange={(fullBio) => setForm((f) => ({ ...f, fullBio }))}
+                placeholder="Longer background, shown after the short biography…"
+              />
+            </div>
+            <div className="admin-field">
+              <label htmlFor="person-social">Professional social links</label>
+              <textarea
+                id="person-social"
+                value={form.socialLinks}
+                onChange={(e) => setForm((f) => ({ ...f, socialLinks: e.target.value }))}
+                rows={3}
+                placeholder={'LinkedIn | https://…\nOne link per line'}
+              />
+            </div>
+            </AdminFormSection>
+            <AdminFormSection title="Classification">
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="person-seo-title">SEO title</label>
+                <input
+                  id="person-seo-title"
+                  value={form.seoTitle}
+                  onChange={(e) => setForm((f) => ({ ...f, seoTitle: e.target.value }))}
+                />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="person-seo-description">SEO description</label>
+                <input
+                  id="person-seo-description"
+                  value={form.seoDescription}
+                  onChange={(e) => setForm((f) => ({ ...f, seoDescription: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="admin-field">
+              <label htmlFor="person-keywords">Keywords</label>
+              <input
+                id="person-keywords"
+                value={form.keywords}
+                onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))}
+                placeholder="Comma-separated search terms"
+              />
+            </div>
+            <label className="admin-toggle-row">
+              <input
+                type="checkbox"
+                checked={form.noindex}
+                onChange={(e) => setForm((f) => ({ ...f, noindex: e.target.checked }))}
+              />
+              <span>Hide from search engines</span>
+            </label>
+            </AdminFormSection>
+            <AdminFormSection title="Images and media">
+            <label className="admin-toggle-row">
+              <input
+                type="checkbox"
+                checked={form.consentConfirmed}
+                onChange={(e) => setForm((f) => ({ ...f, consentConfirmed: e.target.checked }))}
+              />
+              <span>Publication permission confirmed</span>
+            </label>
             <div className="admin-field">
               <label htmlFor="person-website">Website (optional)</label>
               <input
@@ -309,6 +469,13 @@ export default function AdminPeoplePage() {
                 onChange={(photoMediaId) => setForm((f) => ({ ...f, photoMediaId }))}
               />
             )}
+            <CoverMediaField
+              label="Social sharing image"
+              value={form.shareMediaId}
+              onChange={(shareMediaId) => setForm((f) => ({ ...f, shareMediaId }))}
+            />
+            </AdminFormSection>
+            <AdminFormSection title="Review and permissions">
             <div className="admin-field">
               <label htmlFor="person-sort">Sort order</label>
               <input
@@ -327,14 +494,35 @@ export default function AdminPeoplePage() {
               />
               <span>Featured on people listing</span>
             </label>
-            <label className="admin-toggle-row">
-              <input
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))}
+              <PublicationFields
+                value={{
+                  publicationStatus: form.publicationStatus,
+                  scheduledAtLocal: form.scheduledAtLocal,
+                  published: form.published,
+                }}
+                checklist={[
+                  { label: 'Biography', ok: Boolean(form.bio.replace(/<[^>]+>/g, '').trim()) },
+                  { label: 'At least one group', ok: form.groups.length > 0 },
+                  { label: 'Publication permission', ok: form.consentConfirmed },
+                ]}
+                onChange={(next) =>
+                  setForm((f) => ({
+                    ...f,
+                    publicationStatus: next.publicationStatus,
+                    scheduledAtLocal: next.scheduledAtLocal,
+                    published: next.published,
+                  }))
+                }
               />
-              <span>Published</span>
-            </label>
+            </AdminFormSection>
+            <AdminFormSection title="Related content">
+              <RelatedOverridesFields
+                pinned={form.relatedPinned}
+                hidden={form.relatedHidden}
+                onPinnedChange={(relatedPinned) => setForm((f) => ({ ...f, relatedPinned }))}
+                onHiddenChange={(relatedHidden) => setForm((f) => ({ ...f, relatedHidden }))}
+              />
+            </AdminFormSection>
             <div className="admin-actions">
               <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
                 {saving ? 'Saving…' : 'Save'}
@@ -386,7 +574,11 @@ export default function AdminPeoplePage() {
                   <td>{record.roleTitle || '—'}</td>
                   <td>{record.groups?.length ? record.groups.join(', ') : '—'}</td>
                   <td>
-                    <AdminStatus value={record.published ? 'published' : 'draft'} />
+                    <AdminStatus
+                      value={
+                        record.publicationStatus ?? (record.published ? 'published' : 'draft')
+                      }
+                    />
                   </td>
                   <td>
                     <AdminRowActions

@@ -25,6 +25,8 @@ const ALLOWED_TAGS = [
   'tr',
   'th',
   'td',
+  'div',
+  'iframe',
 ]
 
 const ALLOWED_ATTR = [
@@ -39,6 +41,22 @@ const ALLOWED_ATTR = [
   'height',
   'colspan',
   'rowspan',
+  'loading',
+  'allow',
+  'allowfullscreen',
+  'referrerpolicy',
+  'frameborder',
+  'data-embed-iframe',
+]
+
+const EMBED_HOST_ALLOWLIST = [
+  'www.youtube.com',
+  'youtube.com',
+  'www.youtube-nocookie.com',
+  'youtube-nocookie.com',
+  'player.vimeo.com',
+  'open.spotify.com',
+  'w.soundcloud.com',
 ]
 
 /** True when the body already contains HTML tags from the rich editor. */
@@ -112,12 +130,34 @@ export function cmsPlainExcerpt(value: string, maxLen = 220): string {
   return `${first.slice(0, maxLen - 1).trimEnd()}…`
 }
 
+let embedHookRegistered = false
+
+function ensureEmbedHostHook() {
+  if (embedHookRegistered) return
+  embedHookRegistered = true
+  DOMPurify.addHook('uponSanitizeElement', (node) => {
+    if (node.nodeName !== 'IFRAME') return
+    const el = node as Element
+    const src = el.getAttribute('src') || ''
+    try {
+      const host = new URL(src).hostname
+      if (!EMBED_HOST_ALLOWLIST.includes(host)) {
+        el.parentNode?.removeChild(el)
+      }
+    } catch {
+      el.parentNode?.removeChild(el)
+    }
+  })
+}
+
 /** Sanitize CMS HTML for safe public rendering. */
 export function sanitizeCmsHtml(html: string): string {
+  ensureEmbedHostHook()
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
     ALLOW_DATA_ATTR: false,
+    ADD_ATTR: ['allowfullscreen', 'referrerpolicy', 'frameborder'],
   })
 }
 

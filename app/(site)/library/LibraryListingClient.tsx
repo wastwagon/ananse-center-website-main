@@ -20,6 +20,9 @@ export type LibraryListItem = {
   cover: string
   featured: boolean
   kind: 'library' | 'linked-article'
+  programTitle?: string
+  personName?: string
+  topics?: string[]
 }
 
 type LibraryListingClientProps = {
@@ -52,6 +55,10 @@ export default function LibraryListingClient({
     resolveShelfKey(initialShelfKey, items),
   )
   const [collectionFilter, setCollectionFilter] = useState<string>(ALL_COLLECTIONS)
+  const [programFilter, setProgramFilter] = useState('All programs')
+  const [speakerFilter, setSpeakerFilter] = useState('All speakers')
+  const [topicFilter, setTopicFilter] = useState('All topics')
+  const [yearFilter, setYearFilter] = useState('All dates')
 
   useEffect(() => {
     const next = resolveShelfKey(initialShelfKey, items)
@@ -73,10 +80,34 @@ export default function LibraryListingClient({
     [items, shelf],
   )
 
+  const programOptions = useMemo(() => {
+    const names = [...new Set(shelfItems.map((item) => item.programTitle).filter(Boolean))] as string[]
+    return ['All programs', ...names.sort((a, b) => a.localeCompare(b))]
+  }, [shelfItems])
+
+  const speakerOptions = useMemo(() => {
+    const names = [...new Set(shelfItems.map((item) => item.personName).filter(Boolean))] as string[]
+    return ['All speakers', ...names.sort((a, b) => a.localeCompare(b))]
+  }, [shelfItems])
+
+  const topicOptions = useMemo(() => {
+    const names = [...new Set(shelfItems.flatMap((item) => item.topics ?? []))]
+    return ['All topics', ...names.sort((a, b) => a.localeCompare(b))]
+  }, [shelfItems])
+
   const filtered = useMemo(() => {
-    if (collectionFilter === ALL_COLLECTIONS) return shelfItems
-    return shelfItems.filter((item) => item.collection === collectionFilter)
-  }, [collectionFilter, shelfItems])
+    return shelfItems.filter((item) => {
+      if (collectionFilter !== ALL_COLLECTIONS && item.collection !== collectionFilter) return false
+      if (programFilter !== 'All programs' && item.programTitle !== programFilter) return false
+      if (speakerFilter !== 'All speakers' && item.personName !== speakerFilter) return false
+      if (topicFilter !== 'All topics' && !(item.topics ?? []).includes(topicFilter)) return false
+      if (yearFilter !== 'All dates') {
+        const year = item.dateLabel.match(/\b(?:19|20)\d{2}\b/)?.[0]
+        if (year !== yearFilter) return false
+      }
+      return true
+    })
+  }, [collectionFilter, programFilter, shelfItems, speakerFilter, topicFilter, yearFilter])
 
   const shelfCta =
     shelf === 'listen' ? 'Listen' : shelf === 'watch' ? 'Watch' : shelf === 'read' ? 'Read' : readMore
@@ -89,7 +120,7 @@ export default function LibraryListingClient({
           <LocalizedLink href="/programs" className="btn-primary">
             Explore programs
           </LocalizedLink>
-          <LocalizedLink href="/library/photos" className="btn-outline">
+          <LocalizedLink href="/library/photo-gallery" className="btn-outline">
             Photo galleries
           </LocalizedLink>
         </div>
@@ -108,13 +139,16 @@ export default function LibraryListingClient({
             onChange: (value) => {
               setShelf(value as (typeof LIBRARY_SHELVES)[number]['key'])
               setCollectionFilter(ALL_COLLECTIONS)
+              setProgramFilter('All programs')
+              setSpeakerFilter('All speakers')
+              setTopicFilter('All topics')
             },
             options: [
               ...LIBRARY_SHELVES.map((option) => ({
                 value: option.key,
                 label: option.title,
               })),
-              { value: 'photos', label: 'Photo Gallery', href: '/library/photos' },
+              { value: 'photos', label: 'Photo Gallery', href: '/library/photo-gallery' },
             ],
           },
           ...(collectionOptions.length > 0
@@ -132,6 +166,59 @@ export default function LibraryListingClient({
                 },
               ]
             : []),
+          ...(programOptions.length > 1
+            ? [
+                {
+                  label: 'Program',
+                  ariaLabel: 'Library program',
+                  value: programOptions.includes(programFilter) ? programFilter : 'All programs',
+                  onChange: setProgramFilter,
+                  options: programOptions.map((option) => ({ value: option, label: option })),
+                },
+              ]
+            : []),
+          ...(speakerOptions.length > 1
+            ? [
+                {
+                  label: 'Speaker',
+                  ariaLabel: 'Library speaker',
+                  value: speakerOptions.includes(speakerFilter) ? speakerFilter : 'All speakers',
+                  onChange: setSpeakerFilter,
+                  options: speakerOptions.map((option) => ({ value: option, label: option })),
+                },
+              ]
+            : []),
+          ...(topicOptions.length > 1
+            ? [
+                {
+                  label: 'Topic',
+                  ariaLabel: 'Library topic',
+                  value: topicOptions.includes(topicFilter) ? topicFilter : 'All topics',
+                  onChange: setTopicFilter,
+                  options: topicOptions.map((option) => ({ value: option, label: option })),
+                },
+              ]
+            : []),
+          ...((() => {
+            const years = [
+              ...new Set(
+                shelfItems
+                  .map((item) => item.dateLabel.match(/\b(?:19|20)\d{2}\b/)?.[0])
+                  .filter(Boolean),
+              ),
+            ] as string[]
+            if (years.length === 0) return []
+            const options = ['All dates', ...years.sort((a, b) => b.localeCompare(a))]
+            return [
+              {
+                label: 'Date',
+                ariaLabel: 'Library year',
+                value: options.includes(yearFilter) ? yearFilter : 'All dates',
+                onChange: setYearFilter,
+                options: options.map((option) => ({ value: option, label: option })),
+              },
+            ]
+          })()),
         ]}
       />
 

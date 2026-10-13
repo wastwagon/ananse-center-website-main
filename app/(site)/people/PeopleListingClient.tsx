@@ -17,6 +17,8 @@ export type PeopleListItem = {
   image: string | null
   isOrganization: boolean
   featured: boolean
+  programs?: string[]
+  expertiseTopics?: string[]
 }
 
 type PeopleListingClientProps = {
@@ -103,6 +105,8 @@ export default function PeopleListingClient({
   items,
   initialGroup,
 }: PeopleListingClientProps) {
+  const [programFilter, setProgramFilter] = useState('All programs')
+  const [expertiseFilter, setExpertiseFilter] = useState('All expertise')
   const [groupFilter, setGroupFilter] = useState<string>(() => {
     const preferred = initialGroup?.trim()
     if (preferred && PEOPLE_GROUPS.includes(preferred as (typeof PEOPLE_GROUPS)[number])) {
@@ -132,12 +136,24 @@ export default function PeopleListingClient({
     return items.slice(0, 3)
   }, [items, groupFilter])
 
-  const showFeatured = featuredItems.length > 0 && groupFilter === ALL_GROUPS
+  const showFeatured =
+    featuredItems.length > 0 && groupFilter === ALL_GROUPS && programFilter === 'All programs'
+
+  const programOptions = useMemo(() => {
+    const names = [...new Set(items.flatMap((item) => item.programs ?? []))]
+    return ['All programs', ...names.sort((a, b) => a.localeCompare(b))]
+  }, [items])
 
   const filtered = useMemo(() => {
-    if (groupFilter === ALL_GROUPS) return items
-    return items.filter((item) => item.groups.includes(groupFilter))
-  }, [groupFilter, items])
+    return items.filter((item) => {
+      if (groupFilter !== ALL_GROUPS && !item.groups.includes(groupFilter)) return false
+      if (programFilter !== 'All programs' && !(item.programs ?? []).includes(programFilter)) return false
+      if (expertiseFilter !== 'All expertise' && !(item.expertiseTopics ?? []).includes(expertiseFilter)) {
+        return false
+      }
+      return true
+    })
+  }, [expertiseFilter, groupFilter, items, programFilter])
 
   const catalogItems = useMemo(() => {
     if (!showFeatured) return filtered
@@ -211,10 +227,35 @@ export default function PeopleListingClient({
               options: [ALL_GROUPS, ...availableGroups].map((option) => ({
                 value: option,
                 label: option,
-                href: GROUP_HREFS[option] ?? `/people?group=${encodeURIComponent(option)}`,
-              })),
-            },
-          ]}
+              href: GROUP_HREFS[option] ?? `/people?group=${encodeURIComponent(option)}`,
+            })),
+          },
+          ...(programOptions.length > 1
+            ? [
+                {
+                  label: 'Program',
+                  ariaLabel: 'Person program',
+                  value: programOptions.includes(programFilter) ? programFilter : 'All programs',
+                  onChange: setProgramFilter,
+                  options: programOptions.map((option) => ({ value: option, label: option })),
+                },
+              ]
+            : []),
+          ...((() => {
+            const names = [...new Set(items.flatMap((item) => item.expertiseTopics ?? []))]
+            if (names.length === 0) return []
+            const options = ['All expertise', ...names.sort((a, b) => a.localeCompare(b))]
+            return [
+              {
+                label: 'Expertise',
+                ariaLabel: 'Person expertise',
+                value: options.includes(expertiseFilter) ? expertiseFilter : 'All expertise',
+                onChange: setExpertiseFilter,
+                options: options.map((option) => ({ value: option, label: option })),
+              },
+            ]
+          })()),
+        ]}
         />
       ) : null}
 

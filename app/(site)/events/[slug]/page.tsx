@@ -7,15 +7,22 @@ import CardCover from '../../../../components/CardCover'
 import { Calendar, MapPin } from 'lucide-react'
 import JsonLd from '../../../../components/JsonLd'
 import CmsRichText from '../../../../components/CmsRichText'
-import { fetchEventBySlug, fetchInsights, fetchLibraryItems, fetchPhotoAlbums } from '../../../../lib/api'
+import {
+  fetchEventBySlug,
+  fetchInsightBySlug,
+  fetchInsights,
+  fetchLibraryItems,
+  fetchPhotoAlbums,
+} from '../../../../lib/api'
+import { applyRelatedItems } from '../../../../lib/related-overrides'
 import ShareBar from '../../../../components/ShareBar'
+import MediaPlayer from '../../../../components/MediaPlayer'
 import { formatEventDateDisplay } from '../../../../lib/format'
 import { resolveEventCoverImage } from '../../../../lib/images'
 import { cmsPlainExcerpt, looksLikeHtml } from '../../../../lib/cms/richtext'
 import { buildPageMetadata } from '../../../../lib/page-meta'
 import { eventJsonLd } from '../../../../lib/structured-data'
 import {
-  DEFAULT_EVENTS_DETAIL_HIGHLIGHTS_FALLBACK,
   getCmsTexts,
   parseCmsJson,
   type CmsHeroCta,
@@ -38,10 +45,11 @@ export async function generateMetadata({
     return buildPageMetadata({ title: 'Event', path: `/events/${slug}` })
   }
   return buildPageMetadata({
-    title: event.title,
-    description: cmsPlainExcerpt(event.description, 160),
+    title: event.seoTitle?.trim() || event.title,
+    description: event.seoDescription?.trim() || cmsPlainExcerpt(event.description, 160),
     path: `/events/${slug}`,
-    ogImage: resolveEventCoverImage(event),
+    ogImage: event.shareImageUrl || resolveEventCoverImage(event),
+    noindex: event.noindex,
   })
 }
 
@@ -58,7 +66,6 @@ export default async function EventDetailPage({
     getCmsTexts([
       'events.detail.storyTitleDefault',
       'events.detail.highlightsHeading',
-      'events.detail.highlightsFallback',
       'events.detail.whenLabel',
       'events.detail.whereLabel',
       'events.detail.registerHeading',
@@ -73,26 +80,61 @@ export default async function EventDetailPage({
     notFound()
   }
 
-  const [relatedLibrary, relatedAlbums, relatedInsights] = await Promise.all([
-    event.program?.slug
-      ? fetchLibraryItems({ program: event.program.slug }).catch(() => [])
-      : Promise.resolve([]),
-    fetchPhotoAlbums({ event: event.slug }).catch(() => []),
-    event.program?.title
-      ? fetchInsights().catch(() => [])
-      : Promise.resolve([]),
-  ])
-  const programInsights = event.program
-    ? relatedInsights.filter((item) => item.program?.slug === event.program?.slug).slice(0, 6)
-    : []
+  const pinned = event.relatedPinned
+  const hidden = event.relatedHidden
+  const junctionInsights = event.insights ?? []
+  const programSlug = event.program?.slug
+  const needsInsightCatalog =
+    junctionInsights.length > 0 ||
+    Boolean(programSlug) ||
+    (pinned?.insights?.length ?? 0) > 0
+
+  const [eventLibrary, programLibrary, albumsRaw, insightRows, pinnedInsightRows] =
+    await Promise.all([
+      fetchLibraryItems({ event: event.slug }).catch(() => []),
+      programSlug ? fetchLibraryItems({ program: programSlug }).catch(() => []) : Promise.resolve([]),
+      fetchPhotoAlbums({ event: event.slug }).catch(() => []),
+      needsInsightCatalog ? fetchInsights().catch(() => []) : Promise.resolve([]),
+      Promise.all(
+        (pinned?.insights ?? []).map((insightSlug) => fetchInsightBySlug(insightSlug).catch(() => null)),
+      ).then((rows) => rows.filter((row): row is NonNullable<typeof row> => Boolean(row))),
+    ])
+  const relatedLibrary = applyRelatedItems(
+    eventLibrary.length > 0 ? eventLibrary : programLibrary,
+    pinned?.library,
+    hidden?.library,
+  )
+  const relatedAlbums = applyRelatedItems(albumsRaw, pinned?.albums, hidden?.albums)
+
+  const automaticInsights: { slug: string; title: string }[] = []
+  const seenInsightSlugs = new Set<string>()
+  for (const item of junctionInsights) {
+    if (!seenInsightSlugs.has(item.slug)) {
+      seenInsightSlugs.add(item.slug)
+      automaticInsights.push(item)
+    }
+  }
+  if (programSlug) {
+    for (const item of insightRows) {
+      const linkedToProgram =
+        item.program?.slug === programSlug ||
+        item.programs?.some((program) => program.slug === programSlug)
+      if (linkedToProgram && !seenInsightSlugs.has(item.slug)) {
+        seenInsightSlugs.add(item.slug)
+        automaticInsights.push(item)
+      }
+    }
+  }
+  const relatedInsights = applyRelatedItems(
+    automaticInsights,
+    pinned?.insights,
+    hidden?.insights,
+    [...insightRows, ...pinnedInsightRows],
+  )
 
   const storyTitle = event.storyTitle?.trim() || cms['events.detail.storyTitleDefault']
   const storyBody = event.storyBody?.trim() || event.description
-  const highlightsFallback = parseCmsJson<string[]>(
-    cms['events.detail.highlightsFallback'],
-    DEFAULT_EVENTS_DETAIL_HIGHLIGHTS_FALLBACK,
-  )
-  const highlights = event.highlights.length > 0 ? event.highlights : highlightsFallback
+  const highlights = event.highlights
   const reserveCta = parseCmsJson<CmsHeroCta>(cms['events.detail.reserveCta'], {
     label: 'Reserve Your Place',
     href: '/get-involved#contact',
@@ -106,14 +148,22 @@ export default async function EventDetailPage({
     dateLabel: event.date,
     startsAt: event.startsAt,
     endsAt: event.endsAt,
+    registrationUrl: event.registrationUrl,
+    eventStatus: event.eventStatus,
   })
   const registrationOpen =
     lifecycle !== 'cancelled' &&
     registrationState !== 'closed' &&
-    registrationState !== 'completed'
-  const gallery = event.galleryImageUrls ?? []
+    registrationState !== 'completed' &&
+    registrationState !== 'not_required' &&
+    registrationState !== 'unavailable'
+  const externalRegistration = Boolean(registrationOpen && event.registrationUrl)
+  const gallery = event.gallery?.length
+    ? event.gallery
+    : (event.galleryImageUrls ?? []).map((url) => ({ url, alt: event.title }))
+  const hasEventMedia = gallery.length > 0 || Boolean(event.recordingUrl) || Boolean(event.audioUrl)
   const typeBrowseHref = `/events?type=${encodeURIComponent(event.type)}`
-  const whenLine = [displayDate, event.timeLabel].filter(Boolean).join(' · ')
+  const whenLine = [displayDate, event.timeLabel, event.timeZone].filter(Boolean).join(' · ')
   const whereLine = [
     deliveryModeLabel(delivery),
     delivery !== 'online' ? event.location : null,
@@ -172,7 +222,16 @@ export default async function EventDetailPage({
               </span>
             </div>
             <div className="events-detail-hero-actions">
-              {registrationOpen ? (
+              {externalRegistration ? (
+                <a
+                  href={event.registrationUrl || '#register'}
+                  className="hero-page-btn hero-page-btn--primary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Register
+                </a>
+              ) : registrationOpen ? (
                 <a href="#register" className="hero-page-btn hero-page-btn--primary">
                   Register
                 </a>
@@ -210,15 +269,11 @@ export default async function EventDetailPage({
                 </div>
               ) : null}
 
-              {gallery.length > 0 || event.recordingUrl ? (
+              {hasEventMedia ? (
                 <div className="events-detail-panel">
                   <h3 className="events-detail-panel-title">Media from this gathering</h3>
                   {event.recordingUrl ? (
-                    <p className="page-body-text">
-                      <a href={event.recordingUrl} target="_blank" rel="noopener noreferrer">
-                        Watch the recording
-                      </a>
-                    </p>
+                    <MediaPlayer url={event.recordingUrl} title={`${event.title} recording`} kind="video" />
                   ) : null}
                   {event.audioUrl ? (
                     <p className="page-body-text">
@@ -229,13 +284,20 @@ export default async function EventDetailPage({
                   ) : null}
                   {gallery.length > 0 ? (
                     <div className="events-detail-gallery">
-                      {gallery.map((src) => (
-                        <div key={src} className="events-detail-gallery-item">
-                          <CardCover src={src} alt="" sizes="(max-width:768px) 100vw, 33vw" />
+                      {gallery.map((image) => (
+                        <div key={image.url} className="events-detail-gallery-item">
+                          <CardCover src={image.url} alt={image.alt} sizes="(max-width:768px) 100vw, 33vw" />
                         </div>
                       ))}
                     </div>
                   ) : null}
+                </div>
+              ) : null}
+
+              {event.transcript ? (
+                <div className="events-detail-panel">
+                  <h3 className="events-detail-panel-title">Transcript</h3>
+                  <CmsRichText body={event.transcript} className="content-prose-body" />
                 </div>
               ) : null}
 
@@ -245,7 +307,13 @@ export default async function EventDetailPage({
                     ? cms['events.detail.registerHeading']
                     : 'Registration'}
                 </h3>
-                {registrationOpen ? (
+                {externalRegistration ? (
+                  <p className="page-body-text">
+                    <a href={event.registrationUrl || '#'} target="_blank" rel="noopener noreferrer">
+                      Continue to registration
+                    </a>
+                  </p>
+                ) : registrationOpen ? (
                   <>
                     <CmsRichText
                       body={cms['events.detail.registerLead']}
@@ -306,8 +374,29 @@ export default async function EventDetailPage({
                       <span>{event.capacity} seats</span>
                     </li>
                   ) : null}
+                  {event.cost?.trim() ? (
+                    <li>
+                      <strong>Cost</strong>
+                      <span>{event.cost}</span>
+                    </li>
+                  ) : null}
+                  {event.organizer?.trim() ? (
+                    <li>
+                      <strong>Organizer</strong>
+                      <span>{event.organizer}</span>
+                    </li>
+                  ) : null}
                 </ul>
-                {registrationOpen ? (
+                {externalRegistration ? (
+                  <a
+                    href={event.registrationUrl || '#register'}
+                    className="btn-primary events-detail-aside-cta"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Register
+                  </a>
+                ) : registrationOpen ? (
                   <a href="#register" className="btn-primary events-detail-aside-cta">
                     Register
                   </a>
@@ -365,7 +454,7 @@ export default async function EventDetailPage({
         </div>
       </section>
 
-      {relatedAlbums.length > 0 || relatedLibrary.length > 0 ? (
+      {relatedAlbums.length > 0 || relatedLibrary.length > 0 || relatedInsights.length > 0 ? (
         <section className="page-section section-reveal bg-slate-50">
           <div className="page-section-container">
             {relatedAlbums.length > 0 ? (
@@ -378,7 +467,7 @@ export default async function EventDetailPage({
                   {relatedAlbums.map((album) => (
                     <LocalizedLink
                       key={album.id}
-                      href={`/library/photos/${album.slug}`}
+                      href={`/library/photo-gallery/${album.slug}`}
                       className="events-detail-link-card"
                     >
                       <span className="events-detail-link-title">{album.title}</span>
@@ -391,23 +480,14 @@ export default async function EventDetailPage({
               </div>
             ) : null}
 
-            {event.transcript ? (
-              <div className="events-detail-related-block">
-                <div className="events-section-intro">
-                  <span className="section-badge">Read</span>
-                  <h2 className="page-section-heading">Transcript</h2>
-                </div>
-                <CmsRichText body={event.transcript} className="content-prose-body" />
-              </div>
-            ) : null}
-            {programInsights.length > 0 ? (
+            {relatedInsights.length > 0 ? (
               <div className="events-detail-related-block">
                 <div className="events-section-intro">
                   <span className="section-badge">Insights</span>
                   <h2 className="page-section-heading">Related insights</h2>
                 </div>
                 <div className="events-detail-link-grid">
-                  {programInsights.map((item) => (
+                  {relatedInsights.map((item) => (
                     <LocalizedLink key={item.slug} href={`/insights/${item.slug}`} className="events-detail-link-card">
                       <span className="events-detail-link-title">{item.title}</span>
                     </LocalizedLink>
@@ -422,7 +502,9 @@ export default async function EventDetailPage({
                   <span className="section-badge">Library</span>
                   <h2 className="page-section-heading">Related from the Library</h2>
                   <p className="page-body-text">
-                    Resources linked to the same program as this gathering.
+                    {eventLibrary.length > 0
+                      ? 'Resources linked to this gathering.'
+                      : 'Resources linked to the same program as this gathering.'}
                   </p>
                 </div>
                 <div className="events-detail-link-grid">

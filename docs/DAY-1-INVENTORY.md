@@ -17,7 +17,7 @@ This inventory describes what is **live in the product** on day one. Content cou
 | `/programs` | Ten leadership programs (catalog + detail pages) |
 | `/library` | Listen / Watch / Read shelves + collections; links to Midday archive and photo galleries |
 | `/library/midday-reflection` | Midday Reflection episode archive (empty until episodes published) |
-| `/library/photos` | Photo albums by collection (empty until albums published) |
+| `/library/photo-gallery` | Photo albums by collection (empty until albums published). `/library/photos` redirects here. |
 | `/library/[slug]` | Library record detail (audio, video, transcript, study fields) |
 | `/events` | Gatherings — list + month view, in-person/online, registration |
 | `/events/[slug]` | Event detail + registration (page remains after date) |

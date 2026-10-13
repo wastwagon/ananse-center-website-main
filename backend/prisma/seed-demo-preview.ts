@@ -65,6 +65,11 @@ async function ensureDemoMedia(prisma: PrismaClient) {
 }
 
 export async function seedDemoPreviewContent(prisma: PrismaClient) {
+  const already = await prisma.person.findFirst({ where: { slug: { startsWith: 'demo-' } } })
+  if (already) {
+    console.log('Demo preview already present; leaving those records for staff to edit or replace')
+    return
+  }
   const media = await ensureDemoMedia(prisma)
   const pick = (i: number) => media[i % Math.max(media.length, 1)]?.id ?? null
   const pickMany = (start: number, count: number) =>
@@ -424,6 +429,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         logoMediaId,
         featured: person.featured,
         published: true,
+        publicationStatus: 'published',
         sortOrder: person.sortOrder,
       },
       update: {
@@ -433,6 +439,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         groups: [...person.groups],
         featured: person.featured,
         published: true,
+        publicationStatus: 'published',
         sortOrder: person.sortOrder,
         photoMediaId,
         logoMediaId,
@@ -796,6 +803,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         registrationStatus: event.registrationStatus,
         featured: event.featured,
         published: true,
+        publicationStatus: 'published',
         coverMediaId: pick(index),
         highlights: [...event.highlights],
         storyTitle: 'About this gathering',
@@ -817,6 +825,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         galleryMediaIds: galleryIds,
         featured: event.featured,
         published: true,
+        publicationStatus: 'published',
         registrationStatus: event.registrationStatus,
         eventStatus: 'eventStatus' in event ? event.eventStatus || 'scheduled' : 'scheduled',
         programId: event.programId ?? null,
@@ -921,6 +930,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         videoUrl: SAMPLE_VIDEO,
         featured: ep.featured,
         published: true,
+        publicationStatus: 'published',
         sortOrder: ep.episodeNumber,
       },
       update: {
@@ -937,6 +947,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         publishedAt: ep.publishedAt,
         featured: ep.featured,
         published: true,
+        publicationStatus: 'published',
         audioUrl: SAMPLE_AUDIO,
         videoUrl: SAMPLE_VIDEO,
         personId: hostId,
@@ -1254,6 +1265,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         videoUrl: 'video' in item && item.video ? SAMPLE_VIDEO : '',
         featured: item.featured,
         published: true,
+        publicationStatus: 'published',
         sortOrder: 20 + index,
       },
       update: {
@@ -1269,6 +1281,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         keywords: 'keywords' in item ? item.keywords : '',
         featured: item.featured,
         published: true,
+        publicationStatus: 'published',
         audioUrl: 'audio' in item && item.audio ? SAMPLE_AUDIO : '',
         videoUrl: 'video' in item && item.video ? SAMPLE_VIDEO : '',
         coverMediaId: pick(index + 6),
@@ -1424,6 +1437,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         coverMediaId: pick(index + 2),
         featured: album.featured,
         published: true,
+        publicationStatus: 'published',
         sortOrder: index + 1,
       },
       update: {
@@ -1434,6 +1448,7 @@ Sample Music & Culture speaker / facilitator — heritage, identity, and creativ
         collection: album.collection,
         featured: album.featured,
         published: true,
+        publicationStatus: 'published',
         coverMediaId: pick(index + 2),
         programId: album.programId ?? null,
         eventId: 'eventId' in album ? album.eventId || null : null,
@@ -1689,6 +1704,7 @@ Not every need fits an existing program. This Articles sample shows how a specia
         featured: insight.featured,
         showInLibraryRead: true,
         published: true,
+        publicationStatus: 'published',
         sortOrder: insight.sortOrder,
         coverMediaId: pick(index + 10),
       },
@@ -1703,6 +1719,7 @@ Not every need fits an existing program. This Articles sample shows how a specia
         featured: insight.featured,
         showInLibraryRead: true,
         published: true,
+        publicationStatus: 'published',
         sortOrder: insight.sortOrder,
         coverMediaId: pick(index + 10),
       },
@@ -1770,6 +1787,31 @@ Not every need fits an existing program. This Articles sample shows how a specia
     await prisma.personProgram.upsert({
       where: { personId_programId: { personId: link.personId, programId: link.programId } },
       create: { personId: link.personId, programId: link.programId },
+      update: {},
+    })
+  }
+
+  const albumRows = await prisma.photoAlbum.findMany({
+    where: { slug: { startsWith: 'demo-album-' } },
+    select: { id: true, slug: true },
+  })
+  const albumIds = Object.fromEntries(albumRows.map((row) => [row.slug, row.id]))
+  const albumPeopleLinks: { albumSlug: string; personId?: string }[] = [
+    { albumSlug: 'demo-album-people', personId: hostId },
+    { albumSlug: 'demo-album-people', personId: amaId },
+    { albumSlug: 'demo-album-people', personId: nanaId },
+    { albumSlug: 'demo-album-people', personId: personIds['demo-yaw-ofori'] },
+    { albumSlug: 'demo-album-marriage-seminar', personId: personIds['demo-akua-frimpong'] },
+    { albumSlug: 'demo-album-music-culture', personId: personIds['demo-grace-agyeman'] },
+    { albumSlug: 'demo-album-healthy-living', personId: personIds['demo-adwoa-darko'] },
+    { albumSlug: 'demo-album-public-conversation', personId: personIds['demo-kofi-asante'] },
+  ]
+  for (const link of albumPeopleLinks) {
+    const albumId = albumIds[link.albumSlug]
+    if (!albumId || !link.personId) continue
+    await prisma.photoAlbumPerson.upsert({
+      where: { albumId_personId: { albumId, personId: link.personId } },
+      create: { albumId, personId: link.personId },
       update: {},
     })
   }

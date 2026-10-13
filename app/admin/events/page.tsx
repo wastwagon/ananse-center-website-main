@@ -1,12 +1,15 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import AdminFormSection from '../../../components/admin/AdminFormSection'
 import AdminShell from '../../../components/admin/AdminShell'
 import AdminRowActions from '../../../components/admin/AdminRowActions'
 import { AdminStatus } from '../../../components/admin/AdminStatus'
 import CoverMediaField from '../../../components/admin/CoverMediaField'
 import CmsRichTextEditor from '../../../components/admin/CmsRichTextEditor'
 import GalleryMediaField from '../../../components/admin/GalleryMediaField'
+import PublicationFields from '../../../components/admin/PublicationFields'
+import RelatedOverridesFields from '../../../components/admin/RelatedOverridesFields'
 import { linesToListHtml, listHtmlToLines } from '../../../lib/cms/richtext'
 import {
   EVENT_DELIVERY_MODES,
@@ -22,25 +25,19 @@ import {
   createAdminEvent,
   deleteAdminEvent,
   fetchAdminEvents,
+  fetchAdminNews,
   fetchAdminPeople,
   fetchAdminPrograms,
   updateAdminEvent,
+  type AdminNewsPost,
 } from '../../../lib/admin-api'
-
-function toDatetimeLocal(value: string | null | undefined): string {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
-function fromDatetimeLocal(value: string): string | null {
-  if (!value.trim()) return null
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return null
-  return date.toISOString()
-}
+import {
+  fromDatetimeLocal,
+  publishedFromStatus,
+  statusFromPublished,
+  toDatetimeLocal,
+} from '../../../lib/publication'
+import type { RelatedOverrides } from '../../../lib/related-overrides'
 
 const emptyForm = {
   title: '',
@@ -63,6 +60,16 @@ const emptyForm = {
   meetingUrl: '',
   recordingUrl: '',
   audioUrl: '',
+  cost: '',
+  registrationUrl: '',
+  organizer: '',
+  timeZone: '',
+  seoTitle: '',
+  seoDescription: '',
+  keywords: '',
+  noindex: false,
+  shareMediaId: null as string | null,
+  insightIds: [] as string[],
   subtitle: '',
   transcript: '',
   speakers: [] as { personId: string; role: string }[],
@@ -70,6 +77,10 @@ const emptyForm = {
   programId: '',
   featured: false,
   published: true,
+  publicationStatus: 'published',
+  scheduledAtLocal: '',
+  relatedPinned: {} as RelatedOverrides,
+  relatedHidden: {} as RelatedOverrides,
   coverMediaId: null as string | null,
 }
 
@@ -77,6 +88,7 @@ export default function AdminEventsPage() {
   const [events, setEvents] = useState<AdminEvent[]>([])
   const [programs, setPrograms] = useState<AdminProgram[]>([])
   const [people, setPeople] = useState<AdminPerson[]>([])
+  const [insights, setInsights] = useState<AdminNewsPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -87,14 +99,16 @@ export default function AdminEventsPage() {
     setLoading(true)
     setError(null)
     try {
-      const [eventsRes, programsRes, peopleRes] = await Promise.all([
+      const [eventsRes, programsRes, peopleRes, newsRes] = await Promise.all([
         fetchAdminEvents(),
         fetchAdminPrograms(),
         fetchAdminPeople(),
+        fetchAdminNews(),
       ])
       setEvents(eventsRes.data)
       setPrograms(programsRes.data)
       setPeople(peopleRes.data)
+      setInsights(newsRes.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load events')
     } finally {
@@ -134,6 +148,16 @@ export default function AdminEventsPage() {
       meetingUrl: event.meetingUrl ?? '',
       recordingUrl: event.recordingUrl ?? '',
       audioUrl: event.audioUrl ?? '',
+      cost: event.cost ?? '',
+      registrationUrl: event.registrationUrl ?? '',
+      organizer: event.organizer ?? '',
+      timeZone: event.timeZone ?? '',
+      seoTitle: event.seoTitle ?? '',
+      seoDescription: event.seoDescription ?? '',
+      keywords: event.keywords ?? '',
+      noindex: event.noindex ?? false,
+      shareMediaId: event.shareMediaId ?? null,
+      insightIds: event.insightIds ?? [],
       subtitle: event.subtitle ?? '',
       transcript: event.transcript ?? '',
       speakers: (event.speakers ?? []).map((speaker) => ({
@@ -144,6 +168,10 @@ export default function AdminEventsPage() {
       programId: event.programId ?? '',
       featured: event.featured,
       published: event.published,
+      publicationStatus: event.publicationStatus ?? statusFromPublished(event.published),
+      scheduledAtLocal: toDatetimeLocal(event.scheduledAt),
+      relatedPinned: event.relatedPinned ?? {},
+      relatedHidden: event.relatedHidden ?? {},
       coverMediaId: event.coverMediaId,
     })
   }
@@ -179,13 +207,29 @@ export default function AdminEventsPage() {
         meetingUrl: form.meetingUrl.trim(),
         recordingUrl: form.recordingUrl.trim(),
         audioUrl: form.audioUrl.trim(),
+        cost: form.cost.trim(),
+        registrationUrl: form.registrationUrl.trim(),
+        organizer: form.organizer.trim(),
+        timeZone: form.timeZone.trim(),
+        seoTitle: form.seoTitle.trim(),
+        seoDescription: form.seoDescription.trim(),
+        keywords: form.keywords.trim(),
+        noindex: form.noindex,
+        shareMediaId: form.shareMediaId,
+        insightIds: form.insightIds,
         subtitle: form.subtitle.trim(),
         transcript: form.transcript,
         speakers: form.speakers.filter((speaker) => speaker.personId),
         galleryMediaIds: form.galleryMediaIds,
         programId: form.programId || null,
         featured: form.featured,
-        published: form.published,
+        publicationStatus: form.publicationStatus,
+        scheduledAt: fromDatetimeLocal(form.scheduledAtLocal),
+        relatedPinned: form.relatedPinned,
+        relatedHidden: form.relatedHidden,
+        published:
+          form.publicationStatus === 'published' ||
+          publishedFromStatus(form.publicationStatus, form.scheduledAtLocal),
         coverMediaId: form.coverMediaId,
       }
       if (editingId === 'new') {
@@ -232,6 +276,7 @@ export default function AdminEventsPage() {
             {editingId === 'new' ? 'New event' : 'Edit event'}
           </h2>
           <form className="admin-form" onSubmit={onSubmit}>
+            <AdminFormSection title="Basic information">
             <div className="admin-field">
               <label htmlFor="title">Title</label>
               <input
@@ -259,6 +304,8 @@ export default function AdminEventsPage() {
                 compact
               />
             </div>
+            </AdminFormSection>
+            <AdminFormSection title="Schedule & venue">
             <div className="admin-field-row">
               <div className="admin-field">
                 <label htmlFor="dateLabel">Date label</label>
@@ -268,6 +315,15 @@ export default function AdminEventsPage() {
                   value={form.dateLabel}
                   onChange={(e) => setForm({ ...form, dateLabel: e.target.value })}
                   placeholder="August 15-17, 2026"
+                />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="timeZone">Time zone</label>
+                <input
+                  id="timeZone"
+                  value={form.timeZone}
+                  onChange={(e) => setForm({ ...form, timeZone: e.target.value })}
+                  placeholder="Africa/Accra"
                 />
               </div>
               <div className="admin-field">
@@ -324,6 +380,8 @@ export default function AdminEventsPage() {
                   <option value="closed">Closed</option>
                   <option value="waitlist">Waitlist</option>
                   <option value="completed">Completed</option>
+                  <option value="not_required">Not required</option>
+                  <option value="unavailable">Unavailable</option>
                 </select>
               </div>
             </div>
@@ -406,6 +464,73 @@ export default function AdminEventsPage() {
                 />
               </div>
             ) : null}
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="event-cost">Cost</label>
+                <input
+                  id="event-cost"
+                  value={form.cost}
+                  onChange={(e) => setForm({ ...form, cost: e.target.value })}
+                  placeholder="Free, or the fee"
+                />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="event-organizer">Organizer</label>
+                <input
+                  id="event-organizer"
+                  value={form.organizer}
+                  onChange={(e) => setForm({ ...form, organizer: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="admin-field">
+              <label htmlFor="event-registration-url">External registration link</label>
+              <input
+                id="event-registration-url"
+                value={form.registrationUrl}
+                onChange={(e) => setForm({ ...form, registrationUrl: e.target.value })}
+                placeholder="https:// — used instead of the on-site form"
+              />
+            </div>
+            </AdminFormSection>
+            <AdminFormSection title="Classification">
+            <div className="admin-field-row">
+              <div className="admin-field">
+                <label htmlFor="event-seo-title">SEO title</label>
+                <input
+                  id="event-seo-title"
+                  value={form.seoTitle}
+                  onChange={(e) => setForm({ ...form, seoTitle: e.target.value })}
+                />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="event-seo-description">SEO description</label>
+                <input
+                  id="event-seo-description"
+                  value={form.seoDescription}
+                  onChange={(e) => setForm({ ...form, seoDescription: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="admin-field">
+              <label htmlFor="event-keywords">Keywords</label>
+              <input
+                id="event-keywords"
+                value={form.keywords}
+                onChange={(e) => setForm({ ...form, keywords: e.target.value })}
+                placeholder="Comma-separated search terms"
+              />
+            </div>
+            <label className="admin-toggle-row">
+              <input
+                type="checkbox"
+                checked={form.noindex}
+                onChange={(e) => setForm({ ...form, noindex: e.target.checked })}
+              />
+              <span>Hide from search engines</span>
+            </label>
+            </AdminFormSection>
+            <AdminFormSection title="Images and media">
             <div className="admin-field">
               <label htmlFor="recordingUrl">Recording URL (optional)</label>
               <input
@@ -433,6 +558,17 @@ export default function AdminEventsPage() {
                 compact
               />
             </div>
+            <CoverMediaField
+              value={form.coverMediaId}
+              onChange={(coverMediaId) => setForm({ ...form, coverMediaId })}
+            />
+            <CoverMediaField
+              label="Social sharing image"
+              value={form.shareMediaId}
+              onChange={(shareMediaId) => setForm({ ...form, shareMediaId })}
+            />
+            </AdminFormSection>
+            <AdminFormSection title="People and relationships">
             <div className="admin-field">
               <label htmlFor="event-speaker">People</label>
               <div className="admin-choice-stack">
@@ -514,10 +650,32 @@ export default function AdminEventsPage() {
                 ))}
               </select>
             </div>
-            <CoverMediaField
-              value={form.coverMediaId}
-              onChange={(coverMediaId) => setForm({ ...form, coverMediaId })}
-            />
+            <div className="admin-field">
+              <label>Linked insights</label>
+              {insights.length > 0 ? (
+                <div className="admin-choice-stack">
+                  {insights.map((insight) => (
+                    <label key={insight.id} className="admin-toggle-row">
+                      <input
+                        type="checkbox"
+                        checked={form.insightIds.includes(insight.id)}
+                        onChange={() =>
+                          setForm({
+                            ...form,
+                            insightIds: form.insightIds.includes(insight.id)
+                              ? form.insightIds.filter((id) => id !== insight.id)
+                              : [...form.insightIds, insight.id],
+                          })
+                        }
+                      />
+                      <span>{insight.title}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="admin-help">No insights yet. Create one, then link it here.</p>
+              )}
+            </div>
             <details className="admin-details">
               <summary>Event story</summary>
               <div className="admin-field-row">
@@ -561,22 +719,44 @@ export default function AdminEventsPage() {
                 onChange={(galleryMediaIds) => setForm({ ...form, galleryMediaIds })}
               />
             </details>
-            <label className="admin-toggle-row">
-              <input
-                type="checkbox"
-                checked={form.featured}
-                onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+            </AdminFormSection>
+            <AdminFormSection title="Review and permissions">
+              <label className="admin-toggle-row">
+                <input
+                  type="checkbox"
+                  checked={form.featured}
+                  onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+                />
+                <span>Featured</span>
+              </label>
+              <PublicationFields
+                value={{
+                  publicationStatus: form.publicationStatus,
+                  scheduledAtLocal: form.scheduledAtLocal,
+                  published: form.published,
+                }}
+                checklist={[
+                  { label: 'Short description', ok: Boolean(form.description.replace(/<[^>]+>/g, '').trim()) },
+                  { label: 'Full description', ok: Boolean(form.storyBody.replace(/<[^>]+>/g, '').trim()) },
+                ]}
+                onChange={(next) =>
+                  setForm({
+                    ...form,
+                    publicationStatus: next.publicationStatus,
+                    scheduledAtLocal: next.scheduledAtLocal,
+                    published: next.published,
+                  })
+                }
               />
-              <span>Featured</span>
-            </label>
-            <label className="admin-toggle-row">
-              <input
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm({ ...form, published: e.target.checked })}
+            </AdminFormSection>
+            <AdminFormSection title="Related content">
+              <RelatedOverridesFields
+                pinned={form.relatedPinned}
+                hidden={form.relatedHidden}
+                onPinnedChange={(relatedPinned) => setForm({ ...form, relatedPinned })}
+                onHiddenChange={(relatedHidden) => setForm({ ...form, relatedHidden })}
               />
-              <span>Published</span>
-            </label>
+            </AdminFormSection>
             <div className="admin-actions">
               <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
                 {saving ? 'Saving…' : 'Save'}
@@ -628,7 +808,11 @@ export default function AdminEventsPage() {
                     </span>
                   </td>
                   <td>
-                    <AdminStatus value={event.published ? 'published' : 'draft'} />
+                    <AdminStatus
+                      value={
+                        event.publicationStatus ?? (event.published ? 'published' : 'draft')
+                      }
+                    />
                   </td>
                   <td>
                     <AdminRowActions

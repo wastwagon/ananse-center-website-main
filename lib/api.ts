@@ -1,4 +1,5 @@
 import { getServerApiUrl } from './server-api-url'
+import type { RelatedOverrides } from './related-overrides'
 
 export type ApiEvent = {
   id: string
@@ -16,16 +17,29 @@ export type ApiEvent = {
   meetingUrl?: string | null
   recordingUrl?: string | null
   audioUrl?: string | null
+  cost?: string
+  registrationUrl?: string | null
+  organizer?: string
+  timeZone?: string
+  seoTitle?: string
+  seoDescription?: string
+  keywords?: string
+  noindex?: boolean
+  shareImageUrl?: string | null
+  insights?: { id: string; slug: string; title: string; contentType: string }[]
   transcript?: string
   subtitle?: string
   speakers?: { role: string; id: string; slug: string; name: string; roleTitle: string }[]
   galleryImageUrls?: string[]
+  gallery?: { url: string; alt: string }[]
   program?: { id: string; slug: string; title: string } | null
   location: string
   type: string
   image: string
   coverImageUrl: string | null
   featured: boolean
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
 }
 
 export type ApiEventDetail = ApiEvent & {
@@ -48,6 +62,19 @@ export type ApiProgram = {
   features: string[]
   sortOrder: number
   coverImageUrl: string | null
+  tagline?: string
+  ctaLabel?: string
+  ctaHref?: string
+  topics?: string[]
+  seoTitle?: string
+  seoDescription?: string
+  summary?: string
+  keywords?: string
+  noindex?: boolean
+  shareImageUrl?: string | null
+  lead?: { id: string; slug: string; name: string; roleTitle: string } | null
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
 }
 
 function trimSlash(value: string) {
@@ -253,29 +280,53 @@ export type ApiNewsPost = {
 export type ApiInsightPost = ApiNewsPost & {
   contentType: string
   topics: string[]
+  primaryTopic?: string
+  programs?: { id: string; slug: string; title: string }[]
+  events?: { id: string; slug: string; title: string; date: string }[]
+  keywords?: string
+  noindex?: boolean
+  shareImageUrl?: string | null
   authorPerson?: { id: string; slug: string; name: string } | null
   program?: { id: string; slug: string; title: string } | null
   showInLibraryRead?: boolean
+  imageCredit?: string
+  pullQuote?: string
+  seoTitle?: string
+  seoDescription?: string
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
 }
 
 export type ApiPerson = {
   id: string
   name: string
+  preferredName?: string
+  displayName?: string
   slug: string
   roleTitle: string
   bio: string
+  fullBio?: string
+  socialLinks?: string
+  photoAlt?: string
+  seoTitle?: string
+  seoDescription?: string
   groups: string[]
   isOrganization: boolean
   organizationName: string
   websiteUrl: string | null
   expertise?: string
+  expertiseTopics?: string[]
   cohortLabel?: string
   programs?: { id: string; slug: string; title: string }[]
   events?: { id: string; slug: string; title: string; date: string; role: string }[]
   insights?: { id: string; slug: string; title: string; date: string; contentType: string }[]
   photoImageUrl: string | null
   logoImageUrl: string | null
+  noindex?: boolean
+  shareImageUrl?: string | null
   featured: boolean
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
 }
 
 export type ApiLibraryProgramRef = { id: string; slug: string; title: string }
@@ -295,7 +346,10 @@ export type ApiLibraryItem = {
   scriptureTheme: string
   episodeNumber: number | null
   dateLabel: string
+  originalAt?: string | null
   publishedAt: string | null
+  noindex?: boolean
+  shareImageUrl?: string | null
   topics: string[]
   keywords?: string
   program: ApiLibraryProgramRef | null
@@ -305,14 +359,22 @@ export type ApiLibraryItem = {
   coverImageUrl: string | null
   audioUrl: string | null
   videoUrl: string | null
+  downloadUrl?: string | null
+  duration?: string
+  rightsNote?: string
+  seoTitle?: string
+  seoDescription?: string
   featured: boolean
   href: string
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
 }
 
 export type ApiPhotoAlbumImage = {
   id: string
   mediaId: string
   caption: string
+  alt?: string
   sortOrder: number
   url: string
 }
@@ -325,12 +387,22 @@ export type ApiPhotoAlbum = {
   dateLabel: string
   place: string
   collection: string
+  photographer?: string
+  rightsNote?: string
+  seoTitle?: string
+  seoDescription?: string
   program: ApiLibraryProgramRef | null
   event: { id: string; slug: string; title: string } | null
+  people?: { id: string; slug: string; name: string }[]
   coverImageUrl: string | null
+  noindex?: boolean
+  shareImageUrl?: string | null
+  keywords?: string
   images: ApiPhotoAlbumImage[]
   featured: boolean
   href: string
+  relatedPinned?: RelatedOverrides
+  relatedHidden?: RelatedOverrides
 }
 
 export type SearchResults = {
@@ -437,6 +509,7 @@ export async function fetchLibraryItems(query?: {
   program?: string
   person?: string
   topic?: string
+  event?: string
   featured?: boolean
   q?: string
 }): Promise<ApiLibraryItem[]> {
@@ -446,6 +519,7 @@ export async function fetchLibraryItems(query?: {
     program: query?.program,
     person: query?.person,
     topic: query?.topic,
+    event: query?.event,
     featured: query?.featured ? 'true' : undefined,
     q: query?.q,
   })
@@ -468,12 +542,14 @@ export async function fetchPhotoAlbums(query?: {
   featured?: boolean
   program?: string
   event?: string
+  person?: string
 }): Promise<ApiPhotoAlbum[]> {
   return fetchPublicList<ApiPhotoAlbum>('/api/v1/photo-albums', {
     collection: query?.collection,
     featured: query?.featured ? 'true' : undefined,
     program: query?.program,
     event: query?.event,
+    person: query?.person,
   })
 }
 

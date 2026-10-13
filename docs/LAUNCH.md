@@ -30,8 +30,8 @@ Local `docker-compose.dev.yml` (`ananse-*-dev` on ports 3035 / 4035) is **previe
 
 ### 2. Database
 
-1. Prisma migrations in `backend/prisma/migrations` (including Stage B templates) run on API boot as they already do.
-2. Do **not** re-run a destructive full seed on production if content is already live. Stage C institutional Insights/Library rows can be entered in Admin, or `seed-stage-c` only when you intend those upserts.
+1. On every backend container start, `docker-entrypoint.sh` runs `prisma migrate deploy` (all migrations under `backend/prisma/migrations`), then — unless `SKIP_PRISMA_SEED=true` — runs `prisma db seed` to completion before the API listens.
+2. Do **not** leave seeding on after real content is live. Set `SKIP_PRISMA_SEED=true` (and usually `SEED_DEMO_PREVIEW=false`) so later redeploys only migrate. Stage C / demo upserts are for empty or handover databases.
 3. Leave `ADMIN_ALLOW_SYSTEM_OPS=false` in production.
 
 ### 3. After redeploy smoke-test
@@ -60,6 +60,8 @@ Local `docker-compose.dev.yml` (`ananse-*-dev` on ports 3035 / 4035) is **previe
 | Donate | Only if Paystack already live |
 | Mobile | Bottom nav + sheet scroll |
 | Admin | News path redirects to Insights; Archives marked legacy |
+| Publishing | Admin → Insights/Events/Library/People/Programs/Albums: **Draft** → public list/search hide (+ slug 404 if never published); **Published** → visible; **Scheduled** past → live after API boot / ~1 min; **noindex** → sitemap/lists hide, direct URL still loads |
+| Junctions | Insight with 2+ programs shows both under Connected; Event ↔ Insight links appear on both detail pages |
 
 ---
 

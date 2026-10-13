@@ -237,6 +237,8 @@ export default function EventsPageClient({
   const [deliveryFilter, setDeliveryFilter] = useState<'All' | 'in_person' | 'online' | 'hybrid'>('All')
   const [viewMode, setViewMode] = useState<'list' | 'month'>('list')
   const [programFilter, setProgramFilter] = useState('All')
+  const [speakerFilter, setSpeakerFilter] = useState('All')
+  const [locationFilter, setLocationFilter] = useState('All')
   const [events, setEvents] = useState<ApiEvent[]>(() => withoutLegacyArtsEvents(initialEvents))
 
   const detailsLabel = cms['home.events.cardCta'] ?? 'Event Details'
@@ -264,8 +266,12 @@ export default function EventsPageClient({
       dateLabel: event.date,
       startsAt: event.startsAt,
       endsAt: event.endsAt,
+      registrationUrl: event.registrationUrl,
+      eventStatus: event.eventStatus,
     })
-    return status === 'auto' ? 'open' : status
+    if (status === 'not_required' || status === 'unavailable') return 'closed'
+    if (status === 'auto') return 'closed'
+    return status
   }
   const isEventOpen = (event: ApiEvent) => {
     const status = getEventStatus(event)
@@ -312,13 +318,23 @@ export default function EventsPageClient({
       const matchesType = activeTab === 'All Events' || event.type === activeTab
       if (!matchesType) return false
       if (programFilter !== 'All' && event.program?.title !== programFilter) return false
+      if (
+        speakerFilter !== 'All' &&
+        !(event.speakers ?? []).some((speaker) => speaker.name === speakerFilter)
+      ) {
+        return false
+      }
+      if (locationFilter !== 'All' && event.location !== locationFilter) return false
       const mode = event.deliveryMode || 'in_person'
       if (deliveryFilter !== 'All' && mode !== deliveryFilter) return false
       if (timingFilter === 'All') return true
-      const upcoming = isEventOpen(event) && event.eventStatus !== 'cancelled'
+      const upcoming =
+        event.eventStatus !== 'completed' &&
+        event.eventStatus !== 'cancelled' &&
+        isEventOpen(event)
       return timingFilter === 'Upcoming' ? upcoming : !upcoming
     })
-  }, [events, activeTab, timingFilter, deliveryFilter, programFilter])
+  }, [events, activeTab, timingFilter, deliveryFilter, programFilter, speakerFilter, locationFilter])
 
   const catalogEvents = useMemo(() => {
     if (!showFeatured || timingFilter !== 'Upcoming') return filteredEvents
@@ -342,6 +358,20 @@ export default function EventsPageClient({
       ...new Set(events.map((event) => event.program?.title).filter((title): title is string => Boolean(title))),
     ]
     return ['All', ...titles.sort((a, b) => a.localeCompare(b))]
+  }, [events])
+
+  const speakerOptions = useMemo(() => {
+    const names = [
+      ...new Set(
+        events.flatMap((event) => (event.speakers ?? []).map((speaker) => speaker.name)).filter(Boolean),
+      ),
+    ]
+    return ['All', ...names.sort((a, b) => a.localeCompare(b))]
+  }, [events])
+
+  const locationOptions = useMemo(() => {
+    const places = [...new Set(events.map((event) => event.location).filter(Boolean))]
+    return ['All', ...places.sort((a, b) => a.localeCompare(b))]
   }, [events])
 
   const cardProps = {
@@ -497,6 +527,28 @@ export default function EventsPageClient({
                       onChange: setProgramFilter,
                       options: programOptions.map((title) => ({ value: title, label: title })),
                     },
+                    ...(speakerOptions.length > 1
+                      ? [
+                          {
+                            label: 'Speaker',
+                            ariaLabel: 'Event speaker',
+                            value: speakerOptions.includes(speakerFilter) ? speakerFilter : 'All',
+                            onChange: setSpeakerFilter,
+                            options: speakerOptions.map((name) => ({ value: name, label: name })),
+                          },
+                        ]
+                      : []),
+                    ...(locationOptions.length > 1
+                      ? [
+                          {
+                            label: 'Location',
+                            ariaLabel: 'Event location',
+                            value: locationOptions.includes(locationFilter) ? locationFilter : 'All',
+                            onChange: setLocationFilter,
+                            options: locationOptions.map((place) => ({ value: place, label: place })),
+                          },
+                        ]
+                      : []),
                     {
                       label: 'Type',
                       ariaLabel: 'Event category',
